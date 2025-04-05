@@ -1,7 +1,7 @@
 // src/components/SignUpForm.tsx
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FaGoogle } from "react-icons/fa";
@@ -278,42 +278,50 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
   );
 }
 
-export default function AuthPage() {
+function AuthPageInner() {
   const params = useSearchParams();
   const [isLogin, setIsLogin] = useState(!params.has("signup"));
 
   return (
-    <div className="flex flex-col p-8 bg-background">
-      <div className="mb-6">
-        <Image
-          src="/images/logo.png"
-          alt="Checkaroundme"
-          width={200}
-          height={40}
-        />
-      </div>
-      <div className="flex flex-col md:flex-row">
-        <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 lg:p-16 h-[80vh]">
-          <div className="w-full max-w-md space-y-6">
-            {isLogin ? (
-              <LoginForm onToggle={() => setIsLogin(false)} />
-            ) : (
-              <SignUpForm onToggle={() => setIsLogin(true)} />
-            )}
-          </div>
-        </div>
-
-        <div className="hidden md:block md:w-1/2 relative">
+      <div className="flex flex-col p-8 bg-background">
+        <div className="mb-6">
           <Image
-            className="rounded-xl"
-            src="/images/signin-placeholder.jpg"
-            alt="Mechanic working on car engine"
-            style={{ objectFit: "cover" }}
-            fill
-            priority
+            src="/images/logo.png"
+            alt="Checkaroundme"
+            width={200}
+            height={40}
           />
         </div>
+        <div className="flex flex-col md:flex-row">
+          <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 lg:p-16 h-[80vh]">
+            <div className="w-full max-w-md space-y-6">
+              {isLogin ? (
+                <LoginForm onToggle={() => setIsLogin(false)} />
+              ) : (
+                <SignUpForm onToggle={() => setIsLogin(true)} />
+              )}
+            </div>
+          </div>
+
+          <div className="hidden md:block md:w-1/2 relative">
+            <Image
+              className="rounded-xl"
+              src="/images/signin-placeholder.jpg"
+              alt="Mechanic working on car engine"
+              style={{ objectFit: "cover" }}
+              fill
+              priority
+            />
+          </div>
+        </div>
       </div>
-    </div>
+  );
+}
+
+export default function AuthPage() {
+  return (
+    <Suspense>
+      <AuthPageInner />
+    </Suspense>
   );
 }
