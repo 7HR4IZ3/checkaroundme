@@ -15,7 +15,7 @@ import { useAuth } from "@/components/auth/provider";
 
 import { useSearchParams } from "next/navigation";
 
-export function LoginForm({ onToggle }: { onToggle: () => void }) {
+function LoginForm({ onToggle }: { onToggle: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -105,7 +105,7 @@ export function LoginForm({ onToggle }: { onToggle: () => void }) {
   );
 }
 
-export function SignUpForm({ onToggle }: { onToggle: () => void }) {
+function SignUpForm({ onToggle }: { onToggle: () => void }) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("+44 65762354");
