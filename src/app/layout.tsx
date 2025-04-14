@@ -1,5 +1,3 @@
-import type { Metadata } from "next";
-
 import { Geist, Geist_Mono } from "next/font/google";
 import { Inter } from "next/font/google";
 
@@ -59,11 +57,11 @@ export default function RootLayout({
       <body className={inter.className}>
         <TrpcProvider>
           <AuthProvider>
-            <Header />
-            <main>
-              <Suspense fallback={<Loading />}>{children}</Suspense>
-            </main>
-            <Footer />
+            <Suspense fallback={<Loading />}>
+              <Header />
+              <main>{children}</main>
+              <Footer />
+            </Suspense>
           </AuthProvider>
         </TrpcProvider>
       </body>
