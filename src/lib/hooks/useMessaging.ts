@@ -33,14 +33,14 @@ export function useMessaging() {
 
       try {
         setLoading(true);
-        const result = await ConversationService.getUserConversations(user.id);
+        const result = await ConversationService.getUserConversations(user.$id);
 
         const conversationsWithDetails: ConversationWithDetails[] =
           result.conversations.map((conv) => ({
             conversation: conv,
-            lastMessage: result.lastMessages[conv.id] || null,
-            unreadCount: result.unreadCounts[conv.id] || 0,
-            participants: result.participants[conv.id] || [],
+            lastMessage: result.lastMessages[conv.$id] || null,
+            unreadCount: result.unreadCounts[conv.$id] || 0,
+            participants: result.participants[conv.$id] || [],
           }));
 
         // Sort by last message timestamp, newest first
@@ -58,7 +58,7 @@ export function useMessaging() {
 
         // Set active conversation to the one with most recent message if not already set
         if (!activeConversation && conversationsWithDetails.length > 0) {
-          setActiveConversation(conversationsWithDetails[0].conversation.id);
+          setActiveConversation(conversationsWithDetails[0].conversation.$id);
         }
       } catch (err) {
         console.error("Error loading conversations:", err);
@@ -92,12 +92,12 @@ export function useMessaging() {
         setMessages(result.reverse()); // Reverse to get oldest first
 
         // Mark messages as read
-        await MessageService.markMessagesAsRead(activeConversation, user.id);
+        await MessageService.markMessagesAsRead(activeConversation, user.$id);
 
         // Update unread count in conversations list
         setConversations((prev) =>
           prev.map((conv) =>
-            conv.conversation.id === activeConversation
+            conv.conversation.$id === activeConversation
               ? { ...conv, unreadCount: 0 }
               : conv
           )
@@ -122,7 +122,7 @@ export function useMessaging() {
     try {
       const newMessage = await MessageService.sendMessage(
         activeConversation,
-        user.id,
+        user.$id,
         text,
         image
       );
@@ -133,7 +133,7 @@ export function useMessaging() {
       // Update conversations list with new last message
       setConversations((prev) =>
         prev.map((conv) =>
-          conv.conversation.id === activeConversation
+          conv.conversation.$id === activeConversation
             ? {
                 ...conv,
                 lastMessage: newMessage,
@@ -162,12 +162,12 @@ export function useMessaging() {
     try {
       // Create or get conversation
       const conversation = await ConversationService.getOrCreateConversation([
-        user.id,
+        user.$id,
         otherUserId,
       ]);
 
       // Set as active conversation
-      setActiveConversation(conversation.id);
+      setActiveConversation(conversation.$id);
 
       // Send initial message if provided
       if (initialMessage) {
