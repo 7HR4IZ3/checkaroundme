@@ -85,7 +85,7 @@ export function FiltersPanel() {
 
 
   return (
-    <div className="w-full max-w-xs p-6 space-y-6 border rounded-lg bg-card text-card-foreground shadow-md"> {/* Adjust max-w as needed */}
+    <div className="sticky top-[88px] z-30 w-full max-w-xs p-6 space-y-6 border rounded-lg bg-card text-card-foreground shadow-md"> {/* Adjust max-w as needed */}
       <h2 className="text-xl font-semibold">Filters</h2>
 
       {/* Price Section */}
@@ -165,13 +165,13 @@ export function FiltersPanel() {
            className="flex-1 bg-muted hover:bg-muted/80 text-muted-foreground" // More specific styling for the grey button
            onClick={handleGoBack}
         >
-           Go back
+           Reset
          </Button>
          <Button
            className="flex-1" // Default primary button
            onClick={handleConfirm}
         >
-           Yes, confirm
+           Apply
          </Button>
       </div>
     </div>

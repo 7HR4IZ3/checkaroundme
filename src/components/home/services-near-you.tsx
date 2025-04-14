@@ -28,15 +28,17 @@ const ServicesNearYou = () => {
     );
   }, []);
 
-  const { data: businesses, isLoading, error } = trpc.getNearbyBusinesses.useQuery(
-    coords
-      ? { longitude: coords.longitude, latitude: coords.latitude }
-      : // Don't run query if no coords yet
-        { longitude: 0, latitude: 0 },
-    {
-      enabled: !!coords, // Only run when coords are available
-    }
-  );
+  // const { data: businesses, isLoading, error } = trpc.getNearbyBusinesses.useQuery(
+  //   coords
+  //     ? { longitude: coords.longitude, latitude: coords.latitude }
+  //     : // Don't run query if no coords yet
+  //       { longitude: 0, latitude: 0 },
+  //   {
+  //     enabled: !!coords, // Only run when coords are available
+  //   }
+  // );
+
+  const { data: businesses, isLoading, error } = trpc.listBusinesses.useQuery({ limit: 7 });
 
   if (geoLoading) {
     return (
@@ -51,18 +53,18 @@ const ServicesNearYou = () => {
     );
   }
 
-  if (geoError) {
-    return (
-      <div className="bg-gray-50 py-16">
-        <div className="container px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-8">
-            Services Near You
-          </h2>
-          <div className="text-red-600">{geoError}</div>
-        </div>
-      </div>
-    );
-  }
+  // if (geoError) {
+  //   return (
+  //     <div className="bg-gray-50 py-16">
+  //       <div className="container px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto">
+  //         <h2 className="text-2xl font-semibold text-gray-800 mb-8">
+  //           Services Near You
+  //         </h2>
+  //         <div className="text-red-600">{geoError}</div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   if (isLoading) {
     return (
@@ -97,7 +99,7 @@ const ServicesNearYou = () => {
           Services Near You
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {businesses?.map((business) => (
+          {businesses?.businesses.map((business) => (
             <ListingCard key={business.$id} hideButton={true} business={business} />
           ))}
         </div>

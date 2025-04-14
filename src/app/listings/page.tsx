@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import CategoryNav from "@/components/listing/category-nav";
 import FilterSortBar from "@/components/listing/filter-sort-bar";
 import ListingCard from "@/components/listing/listing-card";
@@ -9,16 +9,27 @@ import MapPlaceholder from "@/components/map/placeholder";
 import { trpc } from "@/lib/trpc/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FiltersPanel } from "@/components/ui/filters";
+import Loading from "@/components/ui/loading";
 
 export default function Home() {
+  // Prefetch
+  trpc.getAllCategories.usePrefetchQuery();
+
+
+  // State for FilterSortBar special filters (e.g., "Open Now", "Offers Delivery")
+  const [filterBarCategories, setFilterBarCategories] = useState<string[]>([]);
+
+  // Handler for FilterSortBar special filters (multi-select)
+  const onChangeFilterBarCategories = useCallback((categories: string[]) => {
+    setFilterBarCategories(categories);
+  }, []);
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Parse categories from URL (comma-separated)
-  const categoriesParam = searchParams.get("categories");
-  const selectedCategories = categoriesParam
-    ? categoriesParam.split(",").filter(Boolean)
-    : [];
+  // Parse category from URL (single-select)
+  const categoryParam = searchParams.get("categories");
+  const selectedCategory =
+    categoryParam && categoryParam.length > 0 ? categoryParam : null;
 
   // Parse query and location from URL
   const queryParam = searchParams.get("query") || "";
@@ -33,12 +44,12 @@ export default function Home() {
   // Filters panel state
   const [filtersPanelOpen, setFiltersPanelOpen] = useState(false);
 
-  // Handler to update categories in URL
-  const onChangeCategories = useCallback(
-    (categories: string[]) => {
+  // Handler to update category in URL (single-select)
+  const onChangeCategory = useCallback(
+    (category: string | null) => {
       const params = new URLSearchParams(searchParams.toString());
-      if (categories.length > 0) {
-        params.set("categories", categories.join(","));
+      if (category) {
+        params.set("categories", category);
       } else {
         params.delete("categories");
       }
@@ -72,42 +83,55 @@ export default function Home() {
     [router, searchParams, limit]
   );
 
-  // Query businesses with categories, query, location, and pagination
+  // Query businesses with category, query, location, and pagination
   const { data: list, isLoading } = trpc.listBusinesses.useQuery({
-    categories: selectedCategories,
+    categories: selectedCategory ? [selectedCategory] : [],
     query: queryParam,
     location: locationParam,
     limit,
     offset,
   });
 
-  if (!list || isLoading) {
-    return null;
-  }
-
   // Calculate pagination
   const currentPage = Math.floor(offset / limit) + 1;
-  const totalPages = Math.max(1, Math.ceil(list.total / limit));
+  const totalPages = useMemo(
+    () => {
+      if (!list || isLoading) return 1
+      return Math.max(1, Math.ceil(list.total / limit))
+    },
+    [isLoading]
+  );
 
   return (
     <>
-      <CategoryNav />
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <CategoryNav
+        selectedCategory={selectedCategory}
+        onChangeCategory={onChangeCategory}
+      />
+      <div className="container flex flex-row mx-auto px-4 py-8 min-h-[70vh]">
+        {/* Filters Sidebar for large screens */}
+        <div className="hidden lg:block w-1/4">
+          <FiltersPanel />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-3/4">
           {/* Listings Section */}
           <div className="lg:col-span-2">
             <h1 className="text-2xl font-semibold mb-4 text-gray-800">
               Auto Mechanics near Lekki, Lagos
             </h1>
             <FilterSortBar
-              selectedCategories={selectedCategories}
-              onChangeCategories={onChangeCategories}
+              selectedCategories={filterBarCategories}
+              onChangeCategories={onChangeFilterBarCategories}
               onOpenFiltersPanel={onOpenFiltersPanel}
             />
             <div className="space-y-6">
-              {list.businesses.map((business, index) => (
-                <ListingCard key={index} business={business} />
-              ))}
+              {!list || isLoading ? (
+                <Loading />
+              ) : (
+                list.businesses.map((business, index) => (
+                  <ListingCard key={index} business={business} />
+                ))
+              )}
             </div>
             <Pagination
               currentPage={currentPage}
@@ -122,29 +146,31 @@ export default function Home() {
           </div>
         </div>
       </div>
-      {/* Right-side Filters Panel (simple modal for now) */}
-      {filtersPanelOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/30">
-          <div className="h-full bg-white shadow-lg w-full max-w-xs">
-            <div className="flex justify-end p-2">
-              <button
-                className="text-gray-500 hover:text-gray-800 text-2xl"
-                onClick={onCloseFiltersPanel}
-                aria-label="Close filters"
-              >
-                &times;
-              </button>
+      {/* Right-side Filters Panel (modal for mobile/tablet only) */}
+      <div className="lg:hidden">
+        {filtersPanelOpen && (
+          <div className="fixed inset-0 z-50 flex justify-end bg-black/30">
+            <div className="h-full bg-white shadow-lg w-full max-w-xs">
+              <div className="flex justify-end p-2">
+                <button
+                  className="text-gray-500 hover:text-gray-800 text-2xl"
+                  onClick={onCloseFiltersPanel}
+                  aria-label="Close filters"
+                >
+                  &times;
+                </button>
+              </div>
+              <FiltersPanel />
             </div>
-            <FiltersPanel />
+            {/* Click outside to close */}
+            <div
+              className="flex-1"
+              onClick={onCloseFiltersPanel}
+              aria-label="Close filters overlay"
+            />
           </div>
-          {/* Click outside to close */}
-          <div
-            className="flex-1"
-            onClick={onCloseFiltersPanel}
-            aria-label="Close filters overlay"
-          />
-        </div>
-      )}
+        )}
+      </div>
     </>
   );
 }

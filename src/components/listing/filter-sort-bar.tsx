@@ -30,7 +30,12 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
   return (
     <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
       <div className="flex flex-wrap gap-2">
-        <Button variant="outline" size="sm" onClick={onOpenFiltersPanel}>
+        <Button
+          className="lg:hidden"
+          variant="outline"
+          size="sm"
+          onClick={onOpenFiltersPanel}
+        >
           <FaSlidersH /> Filters
         </Button>
         {CATEGORIES.map((cat) => (

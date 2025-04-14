@@ -1,29 +1,76 @@
 import React from 'react';
-import Link from 'next/link';
 import { FaEllipsisH, FaChevronDown } from 'react-icons/fa';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import { trpc } from "@/lib/trpc/client";
 
+type CategoryNavProps = {
+  selectedCategory: string | null;
+  onChangeCategory: (category: string | null) => void;
+};
 
-const CategoryNav = () => {
-  const { data: categories = [] } = trpc.getAllCategories.useQuery();
+const CategoryNav: React.FC<CategoryNavProps> = ({
+  selectedCategory,
+  onChangeCategory,
+}) => {
+  const { data: categories = [], isLoading } = trpc.getAllCategories.useQuery();
+
+  // Handle single-select category
+  const handleCategoryClick = (categoryName: string) => {
+    if (selectedCategory === categoryName) {
+      onChangeCategory(null); // Deselect if already selected
+    } else {
+      onChangeCategory(categoryName);
+    }
+  };
 
   return (
     <nav className="bg-white border-b border-gray-200 py-3">
-      <div className="container mx-auto px-4 flex items-center justify-center space-x-8">
-        {categories.map((category) => (
-          <Link
-            key={category.$id}
-            href={`/search/${encodeURIComponent(category.name.toLowerCase().replace(/\s+/g, '-'))}`}
-            className="flex items-center space-x-2 pb-3 text-gray-600 hover:text-blue-600"
-          >
-            <FaEllipsisH size={18} />
-            <span>{category.name}</span>
-          </Link>
-        ))}
-        <button className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 pb-3">
-           <span>More</span>
-           <FaChevronDown size={12} />
-        </button>
+      <div className="container mx-auto px-4 flex items-center justify-center space-x-4">
+        {categories.slice(0, 5).map((category) => {
+          const isSelected = selectedCategory === category.name;
+          return (
+            <button
+              key={category.$id}
+              type="button"
+              onClick={() => handleCategoryClick(category.name)}
+              className={`flex items-center space-x-2 p-2 px-3 rounded-full border transition
+                ${isSelected
+                  ? 'bg-blue-100 text-blue-700 border-blue-400 font-semibold'
+                  : 'text-gray-600 hover:text-blue-600 border-transparent hover:bg-gray-100'
+                }`}
+              aria-pressed={isSelected}
+            >
+              <FaEllipsisH size={18} />
+              <span>{category.name}</span>
+            </button>
+          );
+        })}
+        {categories.length > 5 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 p-2 px-3 rounded-full border border-transparent hover:bg-gray-100 transition">
+                <span>More</span>
+                <FaChevronDown size={12} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {categories.slice(5).map((category) => (
+                <DropdownMenuItem
+                  key={category.$id}
+                  onSelect={() => handleCategoryClick(category.name)}
+                  className={selectedCategory === category.name ? "bg-blue-100 text-blue-700 font-semibold" : ""}
+                >
+                  {category.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
     </nav>
   );

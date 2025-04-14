@@ -5,7 +5,11 @@ import React from "react";
  * Uses Tailwind CSS for styling.
  */
 const Loading: React.FC = () => (
-  <div className="flex items-center justify-center py-8" role="status" aria-label="Loading">
+  <div
+    className="flex items-center justify-center min-h-screen w-full"
+    role="status"
+    aria-label="Loading"
+  >
     <svg
       className="animate-spin h-8 w-8 text-gray-500"
       xmlns="http://www.w3.org/2000/svg"

@@ -13,27 +13,43 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 
 import { useAuth } from "@/lib/hooks/useAuth";
-import { useSearchParams } from "next/navigation";
+import { redirect, useRouter, useSearchParams } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
 
 function LoginForm({ onToggle }: { onToggle: () => void }) {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState("");
 
   const login = trpc.login.useMutation();
-  const auth = useAuth();
+  const googleLogin = trpc.loginWithGoogle.useMutation();
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
 
     console.log("Logging in with:", { email, password });
-    auth.login("email", { email, password });
+    const result = await login.mutateAsync({ email, password });
+    if (result.success) {
+      if (document.cookie.includes("cham_appwrite_session")) {
+        console.log("Session cookie found in browser");
+      } else {
+        console.log("Session cookie not found in browser");
+      }
+      router.push("/");
+    } else {
+      // ... error handling
+    }
   };
 
-  const handleGoogleSignIn = () => {
-    console.log("Signing in with Google...");
-    const session = trpc.login
+  const handleGoogleSignIn = async () => {
+    try {
+      const redirectUrl = window.location.origin + "/api/auth/oauth-callback";
+      const url = await googleLogin.mutateAsync({ redirectUrl });
+      window.location.href = url;
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+      alert("Failed to initiate Google sign-in.");
+    }
   };
 
   return (
@@ -75,7 +91,31 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
         </div>
 
         <Button type="submit" className="w-full mt-6 h-11">
-          Login
+          {login.isPending ? (
+            <svg
+              className="animate-spin h-8 w-8 text-gray-500"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              />
+            </svg>
+          ) : (
+            "Login"
+          )}
         </Button>
       </form>
 
@@ -110,6 +150,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
 }
 
 function SignUpForm({ onToggle }: { onToggle: () => void }) {
+  const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("+44 65762354");
@@ -117,8 +158,11 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
   const [termsAccepted, setTermsAccepted] = useState(true);
   const [isRecaptchaVerified, setIsRecaptchaVerified] = useState(false);
 
-  const auth = useAuth();
-  const handleRegister = (event: React.FormEvent) => {
+  const login = trpc.login.useMutation();
+  const register = trpc.register.useMutation();
+  const googleLogin = trpc.loginWithGoogle.useMutation();
+
+  const handleRegister = async (event: React.FormEvent) => {
     event.preventDefault();
     console.log("Registering with:", {
       fullName,
@@ -131,12 +175,42 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
       alert("Please accept the terms and conditions.");
       return;
     }
-    auth.login();
+    try {
+      await register.mutateAsync({
+        name: fullName,
+        email,
+        password,
+        phone,
+      });
+
+      // Login user
+      console.log("Logging in with:", { email, password });
+      const result = await login.mutateAsync({ email, password });
+      if (result.success) {
+        if (document.cookie.includes("cham_appwrite_session")) {
+          console.log("Session cookie found in browser");
+        } else {
+          console.log("Session cookie not found in browser");
+        }
+        router.push("/");
+      } else {
+        // ... error handling
+      }
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      alert(error?.message || "Registration failed.");
+    }
   };
 
-  const handleGoogleSignIn = () => {
-    console.log("Signing in with Google...");
-    auth.login();
+  const handleGoogleSignIn = async () => {
+    try {
+      const redirectUrl = window.location.origin + "/api/auth/oauth-callback";
+      const url = await googleLogin.mutateAsync({ redirectUrl });
+      window.location.href = url;
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+      alert("Failed to initiate Google sign-in.");
+    }
   };
 
   return (
@@ -248,7 +322,31 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
           className="w-full mt-6 h-11"
           disabled={!termsAccepted}
         >
-          Register Account
+          {register.isPending || login.isPending ? (
+            <svg
+              className="animate-spin h-8 w-8 text-gray-500"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+              />
+            </svg>
+          ) : (
+            "Register Account"
+          )}
         </Button>
       </form>
 
@@ -283,42 +381,47 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
 }
 
 function AuthPageInner() {
+  const auth = useAuth();
   const params = useSearchParams();
   const [isLogin, setIsLogin] = useState(!params.has("signup"));
 
+  if (auth.isAuthenticated) return redirect("/");
+
   return (
-      <div className="flex flex-col p-8 bg-background">
-        <div className="mb-6">
+    <div className="flex flex-col p-8 bg-background">
+      <div className="mb-6">
+        <Link href="/">
           <Image
             src="/images/logo.png"
             alt="Checkaroundme"
             width={200}
             height={40}
           />
+        </Link>
+      </div>
+      <div className="flex flex-col md:flex-row">
+        <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 lg:p-16 h-[80vh]">
+          <div className="w-full max-w-md space-y-6">
+            {isLogin ? (
+              <LoginForm onToggle={() => setIsLogin(false)} />
+            ) : (
+              <SignUpForm onToggle={() => setIsLogin(true)} />
+            )}
+          </div>
         </div>
-        <div className="flex flex-col md:flex-row">
-          <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 lg:p-16 h-[80vh]">
-            <div className="w-full max-w-md space-y-6">
-              {isLogin ? (
-                <LoginForm onToggle={() => setIsLogin(false)} />
-              ) : (
-                <SignUpForm onToggle={() => setIsLogin(true)} />
-              )}
-            </div>
-          </div>
 
-          <div className="hidden md:block md:w-1/2 relative">
-            <Image
-              className="rounded-xl"
-              src="/images/signin-placeholder.jpg"
-              alt="Mechanic working on car engine"
-              style={{ objectFit: "cover" }}
-              fill
-              priority
-            />
-          </div>
+        <div className="hidden md:block md:w-1/2 relative">
+          <Image
+            className="rounded-xl"
+            src="/images/signin-placeholder.jpg"
+            alt="Mechanic working on car engine"
+            style={{ objectFit: "cover" }}
+            fill
+            priority
+          />
         </div>
       </div>
+    </div>
   );
 }
 

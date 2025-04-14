@@ -5,51 +5,39 @@ import { useState, ReactNode, useEffect, useMemo } from "react";
 import { AuthContext } from "@/lib/hooks/useAuth";
 import { trpc } from "@/lib/trpc/client";
 import { User } from "@/lib/schema";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 
 export default function AuthProvider({ children }: { children: ReactNode }) {
-  const { data: currentUser, isLoading: loadingCurrentUser } = trpc.getCurrentUser.useQuery();
+  const router = useRouter();
+  const { data: currentUser, isLoading: loadingCurrentUser } =
+    trpc.getCurrentUser.useQuery();
 
   const [user, isAuthenticated] = useMemo(() => {
     if (currentUser) {
-      return [currentUser, true]
+      return [currentUser, true];
     } else {
       return [null, false];
     }
-  }, [loadingCurrentUser])
+  }, [loadingCurrentUser]);
 
   const signInMutation = trpc.login.useMutation();
+  const signoutMutation = trpc.logout.useMutation();
 
   const login = async (
     method: "email" | "google",
     data: { email: string; password: string }
   ) => {
-    const router = useRouter();
-
+    console.log(data);
     try {
       if (method === "google") {
       } else {
-        signInMutation.mutate(
-          data, {
-            onSuccess: (result) => {
-              if (result.success) {
-                console.log("Sign-in successful:", result);
-                console.log("Cookies after sign-in:", document.cookie);
-                if (document.cookie.includes('cham_appwrite_session')) {
-                  console.log("Session cookie found in browser");
-                } else {
-                  console.log("Session cookie not found in browser");
-                }
-                router.push("/");
-              } else {
-                // ... error handling
-              }
-            },
-            onError: (error) => {
-              // ... error handling
-            },
-          },
-        );
+        const result = await signInMutation.mutateAsync(data);
+        if (result.success) {
+          window.location.assign("/");
+          window.location.reload();
+        } else {
+          // ... error handling
+        }
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -59,6 +47,9 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
+      await signoutMutation.mutateAsync();
+      window.location.assign("/auth");
+      window.location.reload();
     } catch (error) {
       console.error("Logout error:", error);
       throw error;

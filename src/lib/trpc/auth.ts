@@ -39,15 +39,15 @@ export function createAuthProcedures(
         return await AuthService.login(input.email, input.password);
       }),
 
-    // loginWithGoogle: t.procedure
-    //   .input(
-    //     z.object({
-    //       redirectUrl: z.string().url(),
-    //     })
-    //   )
-    //   .mutation(async ({ input }) => {
-    //     return await AuthService.loginWithGoogle(input.redirectUrl);
-    //   }),
+    loginWithGoogle: t.procedure
+      .input(
+        z.object({
+          redirectUrl: z.string().url(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        return await AuthService.loginWithGoogle(input.redirectUrl);
+      }),
 
     getCurrentUser: t.procedure.input(z.void()).query(async () => {
       return await AuthService.getCurrentUser();

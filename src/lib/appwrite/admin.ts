@@ -1,4 +1,4 @@
-import { Account, Client } from "node-appwrite";
+import { Account, Client } from "appwrite";
 import { cookies } from "next/headers";
 
 export async function createAdminClient() {

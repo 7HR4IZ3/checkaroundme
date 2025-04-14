@@ -1,13 +1,37 @@
-// components/Categories.js
-'use client'; // Required for react-slick
+"use client";
 
-import React from 'react';;
-import Image from 'next/image';
+import React, { useCallback } from "react";
+import Image from "next/image";
 import { trpc } from "@/lib/trpc/client";
-import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from '../ui/carousel';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "../ui/carousel";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const Categories = function () {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: categories = [] } = trpc.getAllCategories.useQuery();
+
+  const goToCategory = useCallback(
+    (category: string | null) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (category) {
+        params.set("categories", category);
+      } else {
+        params.delete("categories");
+      }
+      // Reset to first page when filters change
+      params.set("offset", "0");
+      router.replace(`/listings?${params.toString()}`);
+    },
+    [router, searchParams]
+  );
+
   return (
     <div className="bg-white py-12">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -21,8 +45,14 @@ const Categories = function () {
         >
           <CarouselContent className="-ml-2 md:-ml-4">
             {categories.map((category, index) => (
-              <CarouselItem key={category.$id || index} className="pl-2 md:pl-4 basis-1/2 md:basis-1/4 lg:basis-1/5">
-                <div className="flex flex-col items-center text-center cursor-pointer group">
+              <CarouselItem
+                key={category.$id || index}
+                className="pl-2 md:pl-4 basis-1/2 md:basis-1/4 lg:basis-1/5"
+              >
+                <div
+                  className="flex flex-col items-center text-center cursor-pointer group"
+                  onClick={() => goToCategory(category.name)}
+                >
                   <div className="w-50 h-50 sm:w-40 sm:h-40 rounded-full p-1 bg-gradient-to-br from-[#F3B53F] via-[#FF4D00] to-[#AE06C9] transition duration-200">
                     <div className="w-full h-full rounded-full overflow-hidden">
                       <Image
@@ -35,7 +65,9 @@ const Categories = function () {
                       />
                     </div>
                   </div>
-                  <p className="mt-3 text-sm font-medium text-gray-700 group-hover:text-blue-600">{category.name}</p>
+                  <p className="mt-3 text-sm font-medium text-gray-700 group-hover:text-blue-600">
+                    {category.name}
+                  </p>
                 </div>
               </CarouselItem>
             ))}

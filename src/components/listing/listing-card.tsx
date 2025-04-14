@@ -29,7 +29,7 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
       />
       <div className="px-4 flex flex-col justify-between flex-grow">
         <div>
-          <Link href="/business">
+          <Link href={`/business/${business.$id}`}>
             <h3 className="text-lg font-semibold text-gray-800 mb-1">
               {business.name}
             </h3>

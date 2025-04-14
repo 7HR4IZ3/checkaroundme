@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import {
@@ -21,11 +21,12 @@ import React, { useState, useCallback } from "react";
 
 const Header = () => {
   const auth = useAuth();
-  const pathname = usePathname();
   const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
 
-  const [search, setSearch] = useState("");
-  const [location, setLocation] = useState("");
+  const [search, setSearch] = useState(params.get("query") || "");
+  const [location, setLocation] = useState(params.get("location") || "");
 
   // Handler to perform search
   const handleSearch = useCallback(() => {

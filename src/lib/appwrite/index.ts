@@ -8,6 +8,8 @@ import {
   OAuthProvider,
   Query,
   Storage,
+  Users,
+  Role,
 } from "node-appwrite";
 import { cookies } from "next/headers";
 import {
@@ -34,6 +36,7 @@ client
   .setKey(process.env.APPWRITE_API_KEY!);
 
 // Initialize services
+const users = new Users(client);
 const account = new Account(client);
 const databases = new Databases(client);
 const storage = new Storage(client);
@@ -78,9 +81,9 @@ export const AuthService = {
         USERS_COLLECTION_ID,
         newAccount.$id,
         {
-          fullName: name,
           phone,
-          avatarUrl: avatars.getInitials(name).toString(),
+          fullName: name,
+          avatarUrl: null,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         }
@@ -121,7 +124,7 @@ export const AuthService = {
       return await account.createOAuth2Token(
         OAuthProvider.Google,
         redirectUrl,
-        `${redirectUrl}/auth?failure=true`
+        `${redirectUrl}?failure=true`
       );
     } catch (error) {
       console.error("Google login error:", error);
@@ -132,6 +135,22 @@ export const AuthService = {
   // Get current user
   async getCurrentUser(): Promise<User | null> {
     try {
+      // const session = await cookies().then((cookies) =>
+      //   cookies.get("cham_appwrite_session")
+      // );
+
+      // if (!session?.value) {
+      //   throw new Error("Unauthenticated user");
+      // }
+
+      // console.log(session.value, process.env.APPWRITE_API_KEY, process.env.APPWRITE_PROJECT_ID)
+
+      // const currentSession = await account.getSession(session.value);
+
+      // console.log(currentSession)
+
+      // const currentAccount = await users.get(currentSession.userId);
+
       const { account } = await createAdminClient();
       const currentAccount = await account.get();
 
@@ -151,7 +170,17 @@ export const AuthService = {
   // Logout user
   async logout(): Promise<void> {
     try {
-      await account.deleteSession("current");
+      const session = await cookies().then((cookies) =>
+        cookies.get("cham_appwrite_session")
+      );
+
+      if (!session?.value) {
+        throw new Error("Unauthenticated user");
+      }
+
+      cookies().then((cookies) => cookies.delete("cham_appwrite_session"));
+
+      account.deleteSession(session.value);
     } catch (error) {
       console.error("Logout error:", error);
       throw error;
@@ -310,8 +339,8 @@ export const BusinessService = {
       const filters = [];
 
       // Add category filter if categories are provided
-      if (categories.length > 0) {
-        filters.push(Query.contains("categories", categories));
+      if (categories.length === 1) {
+        filters.push(Query.equal("categories", categories[0]));
       }
 
       // Add name search if query is provided
@@ -514,15 +543,18 @@ export const BusinessImagesService = {
         }
       }
 
+      const imageID = ID.unique();
+
       // Create image record
       const newImage = await databases.createDocument(
         DATABASE_ID,
         BUSINESS_IMAGES_COLLECTION_ID,
-        ID.unique(),
+        imageID,
         {
           businessId,
           title: title || "",
           isPrimary,
+          imageUrl: getImageURl(imageID),
           createdAt: new Date().toISOString(),
           uploadedBy: userID || null,
         }
@@ -551,13 +583,7 @@ export const BusinessImagesService = {
         throw new Error("No primary business image");
       }
 
-      const image = result.documents[0];
-      const response = {
-        ...image,
-        imageUrl: getImageURl(image.$id),
-      };
-
-      return response as unknown as BusinessImage;
+      return result.documents[0] as unknown as BusinessImage;
     } catch (error) {
       console.error("Get business images error:", error);
       throw error;
@@ -572,12 +598,7 @@ export const BusinessImagesService = {
         [Query.equal("businessId", businessId)]
       );
 
-      return result.documents.map((image) => {
-        return {
-          ...image,
-          imageUrl: getImageURl(image.$id),
-        };
-      }) as unknown as BusinessImage[];
+      return result.documents as unknown as BusinessImage[];
     } catch (error) {
       console.error("Get business images error:", error);
       throw error;

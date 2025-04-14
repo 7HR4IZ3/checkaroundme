@@ -3,7 +3,7 @@ import Image from 'next/image';
 
 const MapPlaceholder = () => {
   return (
-    <div className="w-full h-[600px] lg:h-full sticky top-[88px] bg-gray-300 rounded-lg overflow-hidden">
+    <div className="w-full lg:h-[50vh] sticky top-[88px] bg-gray-300 rounded-lg overflow-hidden">
       {/* You would replace this with a real map component */}
       <Image
         src="/images/map-placeholder.png" // Replace with the actual map image crop you provided

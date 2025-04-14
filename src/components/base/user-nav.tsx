@@ -13,13 +13,16 @@ import { LogOut, MessageSquare, Store, User, ChevronDown } from "lucide-react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { useRouter } from "next/navigation";
 
-// Define placeholder user data (replace with actual logic)
+import { SignOutModal } from "@/components/ui/SignOutModal";
+import { useState } from "react";
 
 export function UserNav() {
   const auth = useAuth();
   const router = useRouter();
+  const [showSignOut, setShowSignOut] = useState(false);
 
   return (
+    <>
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
@@ -88,7 +91,7 @@ export function UserNav() {
 
         <DropdownMenuItem
           className="text-base py-2 cursor-pointer group"
-          onClick={() => auth.logout()}
+          onClick={() => setShowSignOut(true)}
         >
           <LogOut className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-primary" />
           <span>Sign out</span>
@@ -96,5 +99,17 @@ export function UserNav() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+      <SignOutModal
+        open={showSignOut}
+        onClose={() => {
+          setShowSignOut(false);
+          auth.logout();
+        }}
+        onConfirm={() => {
+          setShowSignOut(false);
+          auth.logout();
+        }}
+      />
+    </>
   );
 }
