@@ -1,5 +1,7 @@
-// app/business-page/page.tsx
+"use client";
+
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   Star,
   CheckCircle,
@@ -68,8 +70,8 @@ const RatingBar = ({
   stars: number;
   percentage: number;
 }) => (
-  <div className="flex items-center gap-2 text-sm">
-    <span className="w-8 text-right">
+  <div className="flex items-center gap-2 text-xs">
+    <span className="w-10 text-right">
       {stars} star{stars > 1 ? "s" : ""}
     </span>
     <div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
@@ -83,6 +85,7 @@ const RatingBar = ({
 );
 
 export default function BusinessPage() {
+  const router = useRouter();
   const businessData = {
     name: "Mobile Mercedes Mechanic",
     rating: 5.0,
@@ -213,8 +216,10 @@ export default function BusinessPage() {
                   count={businessData.reviewCount}
                 />
               </div>
+            </div>
+            <div className="flex items-center gap-1 mb-2 text-sm">
               {businessData.isVerified && (
-                <div className="flex items-center gap-1 text-sm text-blue-600">
+                <div className="flex items-center gap-1 text-green-600">
                   <CheckCircle className="w-4 h-4" />
                   <span>Verified</span>
                 </div>
@@ -238,8 +243,8 @@ export default function BusinessPage() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline">
-                <Pencil className="mr-2 h-4 w-4" /> Write a review
+              <Button variant="outline" className="bg-[#2E57A9] text-white">
+                <Star className="mr-2 h-4 w-4" /> Write a review
               </Button>
               <Button variant="outline">
                 <ImagePlus className="mr-2 h-4 w-4" /> Add a photo
@@ -306,7 +311,7 @@ export default function BusinessPage() {
                 </div>
               )}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-sm text-gray-700">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm text-gray-700">
               {businessData.services.map((service) => (
                 <p key={service}>{service}</p>
               ))}
@@ -393,7 +398,7 @@ export default function BusinessPage() {
               <div className="flex-1 w-full space-y-1">
                 {/* Add actual percentages based on review distribution */}
                 <RatingBar stars={5} percentage={100} />
-                <RatingBar stars={4} percentage={0} />
+                <RatingBar stars={4} percentage={60} />
                 <RatingBar stars={3} percentage={0} />
                 <RatingBar stars={2} percentage={0} />
                 <RatingBar stars={1} percentage={0} />
@@ -460,81 +465,31 @@ export default function BusinessPage() {
         <div className="md:col-span-1 space-y-6">
           {/* Action Buttons */}
           <div className="space-y-2">
-            <Button className="w-full" size="lg">
-              <MessageSquare className="mr-2 h-4 w-4" /> Message business
+            <Button
+              variant="ghost"
+              className="w-full justify-between bg-[]"
+              size="lg"
+              onClick={() => router.push("/messages")}
+            >
+              Message business <MessageSquare className="mr-2 h-4 w-4" />
             </Button>
-            {/* The design shows icons only for call/directions, adjust styling as needed */}
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" className="w-full">
-                <Phone className="h-4 w-4" />
-                <span className="ml-2 hidden sm:inline">
-                  {businessData.phone}
-                </span>{" "}
-                {/* Show text on larger screens */}
-              </Button>
-              <Button variant="outline" className="w-full">
+            <Button variant="ghost" className="w-full justify-between">
+              <span className="ml-2 hidden sm:inline">
+                {businessData.phone}
+              </span>{" "}
+              <Phone className="h-4 w-4" />
+            </Button>
+            <div className="flex items-center justify-start flex-col">
+              <Button variant="ghost" className="w-full justify-between">
+                <span className="ml-2 hidden sm:inline">Get Directions</span>{" "}
                 <MapPin className="h-4 w-4" />
-                <span className="ml-2 hidden sm:inline">
-                  Get Directions
-                </span>{" "}
-                {/* Show text on larger screens */}
               </Button>
-            </div>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-gray-600" /> Location
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
               <p className="text-sm font-medium">{businessData.addressLine1}</p>
               <p className="text-sm text-gray-600">
                 {businessData.addressLine2}
               </p>
-              <Button variant="link" className="p-0 h-auto text-sm mt-2">
-                Get directions
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Optional: Can repeat Opening Hours here if desired, or link to section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Clock className="w-5 h-5 text-gray-600" /> Opening Hours
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-1 text-sm">
-              {businessData.openingHours.map((item) => (
-                <div
-                  key={item.day}
-                  className={`flex justify-between ${
-                    item.day === currentDay ? "font-semibold" : ""
-                  }`}
-                >
-                  <span>{item.day}</span>
-                  <span
-                    className={
-                      item.hours === "Closed"
-                        ? "text-red-600"
-                        : item.day === currentDay && businessData.isOpen
-                        ? "text-green-600"
-                        : ""
-                    }
-                  >
-                    {item.hours}
-                    {item.day === currentDay && businessData.isOpen && (
-                      <span className="ml-2 text-green-600 text-xs">
-                        Open now
-                      </span>
-                    )}
-                  </span>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
       <Separator className="my-12" />
@@ -543,23 +498,35 @@ export default function BusinessPage() {
         <h2 className="text-xl font-semibold mb-6">People also viewed</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {businessData.peopleAlsoViewed.map((item, index) => (
-            <Card key={index} className="overflow-hidden">
+            <Card
+              key={index}
+              className="overflow-hidden p-2 text-sm" // reduce overall padding + font size
+            >
               <CardContent className="p-0">
-                <div className="aspect-square w-full relative bg-muted">
-                  <Image
-                    src={item.image} // Replace with actual image source
-                    alt={item.name}
-                    fill
-                    style={{ objectFit: "cover" }}
-                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
-                  />
+                <div className="p-1">
+                  {" "}
+                  {/* smaller image padding */}
+                  <div className="relative w-full aspect-square bg-muted rounded-md overflow-hidden">
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      fill
+                      style={{ objectFit: "cover" }}
+                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
+                    />
+                  </div>
                 </div>
-                <div className="p-3">
-                  <p className="font-semibold text-sm truncate">{item.name}</p>
+                <div className="p-2">
+                  {" "}
+                  {/* smaller content padding */}
+                  <p className="font-semibold text-xs truncate">{item.name}</p>
                   <div className="flex items-center gap-1 mt-1">
                     <StarRating rating={item.rating} />
                   </div>
-                  <Badge variant="secondary" className="mt-2 text-xs">
+                  <Badge
+                    variant="secondary"
+                    className="mt-1 text-[11px] py-0.5 px-1.5"
+                  >
                     {item.category}
                   </Badge>
                 </div>

@@ -1,3 +1,5 @@
+'use client';
+
 import Hero from "@/components/home/hero";
 import Categories from "@/components/home/categories";
 import ServicesNearYou from "@/components/home/services-near-you";

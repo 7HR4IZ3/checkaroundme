@@ -6,6 +6,7 @@ import { Inter } from "next/font/google";
 import Header from "@/components/base/header";
 import Footer from "@/components/base/footer";
 import AuthProvider from "@/components/auth/provider";
+import { TrpcProvider } from "@/lib/trpc/provider";
 
 import "./globals.css";
 
@@ -54,11 +55,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <AuthProvider>
-          <Header />
-          <main>{children}</main>
-          <Footer />
-        </AuthProvider>
+        <TrpcProvider>
+          <AuthProvider>
+            <Header />
+            <main>{children}</main>
+            <Footer />
+          </AuthProvider>
+        </TrpcProvider>
       </body>
     </html>
   );

@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useAuth } from "../auth/provider";
 import { usePathname } from "next/navigation";
-import { UserNav } from "./user-nav";
+import { Search } from "lucide-react";
+import { useAuth } from "@/lib/hooks/useAuth";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -14,11 +14,35 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
+import { UserNav } from "./user-nav";
+
+import { useRouter } from "next/navigation";
+import React, { useState, useCallback } from "react";
 
 const Header = () => {
   const auth = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
+
+  const [search, setSearch] = useState("");
+  const [location, setLocation] = useState("");
+
+  // Handler to perform search
+  const handleSearch = useCallback(() => {
+    const params = new URLSearchParams();
+    if (search.trim()) params.set("query", search.trim());
+    if (location.trim()) params.set("location", location.trim());
+    // Always reset to first page on new search
+    params.set("offset", "0");
+    router.push(`/listings?${params.toString()}`);
+  }, [router, search, location]);
+
+  // Allow Enter key to trigger search from either input
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
 
   if (!auth.isAuthenticated && pathname == "/auth") {
     return null;
@@ -37,23 +61,33 @@ const Header = () => {
         </Link>
 
         <div className="flex justify-between items-center space-x-2">
-
-
           <div className="flex items-center border border-gray-300 rounded-full w-2/3">
             <Input
               type="text"
               placeholder="Search..."
               className="w-2/5 px-4 py-2 focus:outline-none rounded-l-full"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={handleKeyDown}
             />
             <div className="w-px h-6 bg-gray-300"></div>
             <Input
               type="text"
               placeholder="Location..."
               className="w-3/5 px-4 py-2 focus:outline-none rounded-r-full"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              onKeyDown={handleKeyDown}
             />
           </div>
 
-          <Button size="icon" variant="default" className="rounded-full">
+          <Button
+            size="icon"
+            variant="default"
+            className="rounded-full bg-[#2E57A9]"
+            onClick={handleSearch}
+            aria-label="Search"
+          >
             <Search className="h-4 w-4" />
           </Button>
 

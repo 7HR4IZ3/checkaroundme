@@ -1,45 +1,80 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { useState, ReactNode, useEffect, useMemo } from "react";
+
+import { AuthContext } from "@/lib/hooks/useAuth";
+import { trpc } from "@/lib/trpc/client";
+import { User } from "@/lib/schema";
 import { useRouter } from "next/navigation";
 
-interface AuthContextType {
-  isAuthenticated: boolean;
-  login: () => void;
-  logout: () => void;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-}
-
 export default function AuthProvider({ children }: { children: ReactNode }) {
-  const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    typeof localStorage !== "undefined" &&
-      localStorage.getItem("isAuthenticated") === "true"
-  );
+  const { data: currentUser, isLoading: loadingCurrentUser } = trpc.getCurrentUser.useQuery();
 
-  const login = () => {
-    setIsAuthenticated(true);
-    localStorage.setItem("isAuthenticated", "true");
-    router.push("/");
+  const [user, isAuthenticated] = useMemo(() => {
+    if (currentUser) {
+      return [currentUser, true]
+    } else {
+      return [null, false];
+    }
+  }, [loadingCurrentUser])
+
+  const signInMutation = trpc.login.useMutation();
+
+  const login = async (
+    method: "email" | "google",
+    data: { email: string; password: string }
+  ) => {
+    const router = useRouter();
+
+    try {
+      if (method === "google") {
+      } else {
+        signInMutation.mutate(
+          data, {
+            onSuccess: (result) => {
+              if (result.success) {
+                console.log("Sign-in successful:", result);
+                console.log("Cookies after sign-in:", document.cookie);
+                if (document.cookie.includes('cham_appwrite_session')) {
+                  console.log("Session cookie found in browser");
+                } else {
+                  console.log("Session cookie not found in browser");
+                }
+                router.push("/");
+              } else {
+                // ... error handling
+              }
+            },
+            onError: (error) => {
+              // ... error handling
+            },
+          },
+        );
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error;
+    }
   };
 
-  const logout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem("isAuthenticated");
-    router.push("/auth");
+  const logout = async () => {
+    try {
+    } catch (error) {
+      console.error("Logout error:", error);
+      throw error;
+    } finally {
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        user,
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

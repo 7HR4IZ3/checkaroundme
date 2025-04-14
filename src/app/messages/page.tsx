@@ -43,7 +43,7 @@ const mockContacts: ChatContact[] = [
 
 const mockMessages: Message[] = [
     { id: "m1", sender: "other", avatarUrl: "/placeholder-avatars/vincent.jpg", text: "Hi Janet, reaching out to inform you about the product with Kyle about the Dash & Cams case. We have all the files you requested set for the meet. Regards.", timestamp: "2:35 PM" },
-    { id: "m2", sender: "other", avatarUrl: "/placeholder-avatars/vincent.jpg", imageUrl: "/placeholder-images/screenshot.png", imageName: "Screensho.png", imageSize: "1.9 mb", timestamp: "2:36 PM"},
+    { id: "m2", sender: "other", avatarUrl: "/placeholder-avatars/vincent.jpg", imageUrl: "/images/message-image.png", imageName: "Screenshot.png", imageSize: "1.9 mb", timestamp: "2:36 PM"},
     { id: "m3", sender: "me", text: "Hi Janet, reaching out to inform you about the meeting with Kyle about the Dash & Cams case. We have all the files you requested set for the meet. Regards.", timestamp: "2:38 PM", avatarUrl: "/placeholder-avatars/mary.jpg" }, // Added user avatar for outgoing message display
 ];
 
@@ -61,6 +61,7 @@ const currentUserAvatar = "/placeholder-avatars/mary.jpg"; // User's avatar for 
 export default function MessagesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [messageInput, setMessageInput] = useState("");
+  const [messages, setMessages] = useState(mockMessages);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(mockContacts[1].id); // Default to Mimi Oko who has unread msgs
 
   // Filter contacts based on search term (simple implementation)
@@ -72,12 +73,23 @@ export default function MessagesPage() {
     if (messageInput.trim()) {
       console.log("Sending message:", messageInput);
       // Add logic to append message to state/API
+      // Assuming you want to append new message locally, we'll keep messages as a state
+      setMessages(prevMessages => [
+        ...prevMessages,
+        {
+          id: `m${prevMessages.length + 1}`,
+          sender: "me",
+          text: messageInput.trim(),
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          avatarUrl: currentUserAvatar,
+        },
+      ]);
       setMessageInput("");
     }
   };
 
   return (
-    <div className="flex h-screen border bg-card text-card-foreground"> {/* Use h-screen or adjust height as needed */}
+    <div className="flex h-[90vh] border bg-card text-card-foreground"> {/* Use h-screen or adjust height as needed */}
       {/* Left Column: Chat List */}
       <div className="w-1/3 border-r flex flex-col">
         {/* Header & Search */}
@@ -158,7 +170,7 @@ export default function MessagesPage() {
 
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-background/50">
-          {mockMessages.map((message) => (
+          {messages.map((message) => (
             <div
               key={message.id}
               className={`flex gap-3 ${

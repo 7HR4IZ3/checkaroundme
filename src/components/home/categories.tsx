@@ -1,25 +1,13 @@
 // components/Categories.js
 'use client'; // Required for react-slick
 
-import React from 'react';
-import Slider from 'react-slick';
+import React from 'react';;
 import Image from 'next/image';
-import { FaArrowRight } from 'react-icons/fa';
+import { trpc } from "@/lib/trpc/client";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from '../ui/carousel';
 
-// Sample category data (replace with your actual data)
-const categories = [
-  { name: 'Auto Service Mechanic', image: '/images/cat-placeholder.png' },
-  { name: 'Plumbers', image: '/images/cat-placeholder.png' },
-  { name: 'Restaurants', image: '/images/cat-placeholder.png' },
-  { name: 'Electricians', image: '/images/cat-placeholder.png' },
-  { name: 'Cleaners', image: '/images/cat-placeholder.png' },
-  { name: 'Movers', image: '/images/cat-placeholder.png' },
-  { name: 'Painters', image: '/images/cat-placeholder.png' },
-  { name: 'Handymen', image: '/images/cat-placeholder.png' },
-];
-
-const Categories = () => {
+const Categories = function () {
+  const { data: categories = [] } = trpc.getAllCategories.useQuery();
   return (
     <div className="bg-white py-12">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -33,17 +21,19 @@ const Categories = () => {
         >
           <CarouselContent className="-ml-2 md:-ml-4">
             {categories.map((category, index) => (
-              <CarouselItem key={index} className="pl-2 md:pl-4 basis-1/2 md:basis-1/4 lg:basis-1/5">
+              <CarouselItem key={category.$id || index} className="pl-2 md:pl-4 basis-1/2 md:basis-1/4 lg:basis-1/5">
                 <div className="flex flex-col items-center text-center cursor-pointer group">
-                  <div className="w-50 h-50 sm:w-40 sm:h-40 rounded-full overflow-hidden border-3 border-red-500 transition duration-200">
-                    <Image
-                      src={category.image}
-                      alt={category.name}
-                      width={200}
-                      height={200}
-                      objectFit="cover"
-                      className="w-full h-full"
-                    />
+                  <div className="w-50 h-50 sm:w-40 sm:h-40 rounded-full p-1 bg-gradient-to-br from-[#F3B53F] via-[#FF4D00] to-[#AE06C9] transition duration-200">
+                    <div className="w-full h-full rounded-full overflow-hidden">
+                      <Image
+                        src={category.imageUrl || "/images/cat-placeholder.png"}
+                        alt={category.name}
+                        width={200}
+                        height={200}
+                        objectFit="cover"
+                        className="w-full h-full"
+                      />
+                    </div>
                   </div>
                   <p className="mt-3 text-sm font-medium text-gray-700 group-hover:text-blue-600">{category.name}</p>
                 </div>

@@ -10,16 +10,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LogOut, MessageSquare, Store, User, ChevronDown } from "lucide-react";
-import { useAuth } from "../auth/provider";
+import { useAuth } from "@/lib/hooks/useAuth";
 import { useRouter } from "next/navigation";
 
 // Define placeholder user data (replace with actual logic)
-const userData = {
-  shortName: "Mary",
-  fullName: "May Echenim",
-  avatarUrl: "/avatars/mary.png", // Placeholder path for the main avatar
-  profileAvatarUrl: "/avatars/may.png", // Placeholder path for the dropdown avatar
-};
 
 export function UserNav() {
   const auth = useAuth();
@@ -35,10 +29,10 @@ export function UserNav() {
           <Avatar className="h-9 w-9 border">
             {" "}
             {/* Added border like in design */}
-            <AvatarImage src={userData.avatarUrl} alt={userData.shortName} />
-            <AvatarFallback>{userData.shortName.charAt(0)}</AvatarFallback>
+            <AvatarImage src={auth.user!.avatarUrl} alt={auth.user!.fullName.split(" ")[0]} />
+            <AvatarFallback>{auth.user!.fullName.split(" ")[0].charAt(0)}</AvatarFallback>
           </Avatar>
-          <span className="text-base font-medium">{userData.shortName}</span>
+          <span className="text-base font-medium">{auth.user!.fullName.split(" ")[0]}</span>
           {/* ChevronDown indicates dropdown possibility */}
           <ChevronDown className="h-4 w-4 text-muted-foreground" />
         </Button>
@@ -50,11 +44,11 @@ export function UserNav() {
         <div className="flex items-center space-x-3 p-2 mb-2">
           <Avatar className="h-9 w-9">
             <AvatarImage
-              src={userData.profileAvatarUrl}
-              alt={userData.fullName}
+              src={auth.user!.avatarUrl}
+              alt={auth.user!.fullName}
             />
             <AvatarFallback>
-              {userData.fullName
+              {auth.user!.fullName
                 .split(" ")
                 .map((n) => n[0])
                 .join("")}
@@ -62,7 +56,7 @@ export function UserNav() {
           </Avatar>
           <div>
             <p className="text-sm font-semibold leading-none">
-              {userData.fullName}
+              {auth.user!.fullName}
             </p>
             {/* Use Next.js Link for navigation */}
             <Link href="/profile" passHref legacyBehavior>

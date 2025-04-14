@@ -11,25 +11,29 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { useAuth } from "@/components/auth/provider";
 
+import { useAuth } from "@/lib/hooks/useAuth";
 import { useSearchParams } from "next/navigation";
+import { trpc } from "@/lib/trpc/client";
 
 function LoginForm({ onToggle }: { onToggle: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState("");
 
+  const login = trpc.login.useMutation();
   const auth = useAuth();
 
-  const handleLogin = (event: React.FormEvent) => {
+  const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
+
     console.log("Logging in with:", { email, password });
-    auth.login();
+    auth.login("email", { email, password });
   };
 
   const handleGoogleSignIn = () => {
     console.log("Signing in with Google...");
-    auth.login();
+    const session = trpc.login
   };
 
   return (

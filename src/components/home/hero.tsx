@@ -33,7 +33,7 @@ const Hero = () => {
           community
         </span>
         <Button
-          className="bg-blue-600 hover:bg-blue-700 h-12 text-white font-semibold rounded-full flex items-center justify-center w-35"
+          className="bg-[#2E57A9] hover:bg-blue-700 h-12 text-white font-semibold rounded-full flex items-center justify-center w-35"
           onClick={() => router.push("/listings")}
         >
           <span className="text-xs">EXPLORE</span>

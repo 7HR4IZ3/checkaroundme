@@ -6,7 +6,7 @@ const MapPlaceholder = () => {
     <div className="w-full h-[600px] lg:h-full sticky top-[88px] bg-gray-300 rounded-lg overflow-hidden">
       {/* You would replace this with a real map component */}
       <Image
-        src="/map-placeholder.png" // Replace with the actual map image crop you provided
+        src="/images/map-placeholder.png" // Replace with the actual map image crop you provided
         alt="Map Placeholder"
         layout="fill"
         objectFit="cover"
