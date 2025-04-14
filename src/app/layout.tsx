@@ -9,6 +9,8 @@ import AuthProvider from "@/components/auth/provider";
 import { TrpcProvider } from "@/lib/trpc/provider";
 
 import "./globals.css";
+import { Suspense } from "react";
+import Loading from "@/components/ui/loading";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -58,7 +60,9 @@ export default function RootLayout({
         <TrpcProvider>
           <AuthProvider>
             <Header />
-            <main>{children}</main>
+            <main>
+              <Suspense fallback={<Loading />}>{children}</Suspense>
+            </main>
             <Footer />
           </AuthProvider>
         </TrpcProvider>
