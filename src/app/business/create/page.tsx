@@ -41,7 +41,7 @@ export default function BusinessCreateForm() {
   const [businessCategory, setBusinessCategory] = useState("");
   const [servicesOffered, setServicesOffered] = useState<string[]>([]);
   const [availableHours, setAvailableHours] = useState<
-    { day: string; hours: { start: string; end: string } | { closed: true } }[]
+    { day: string; hours: { start?: string; end?: string, closed?: boolean } }[]
   >([
     { day: "Mon", hours: { start: "9:00 AM", end: "6:00 PM" } },
     { day: "Tue", hours: { start: "9:00 AM", end: "6:00 PM" } },
