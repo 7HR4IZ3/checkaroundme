@@ -1,16 +1,18 @@
 import { createContext, useContext } from 'react';
-import { createSessionClient } from '../appwrite/session';
 import { User } from '../schema';
+import type { Models } from 'appwrite';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  user: User | null;
+  user: Models.User<Models.Preferences> | null,
+  profile: User | null;
   login: any; logout: any
 }
 
 export const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   user: null,
+  profile: null,
   login: null,
   logout: null
 });

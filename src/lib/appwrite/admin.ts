@@ -6,17 +6,15 @@ export async function createAdminClient() {
     cookies => cookies.get("cham_appwrite_session")
   );
 
-  if (!session?.value) {
-    throw new Error("Unauthenticated user");
+  const client = new Client()
+  .setEndpoint(process.env.APPWRITE_ENDPOINT!)
+  .setProject(process.env.APPWRITE_PROJECT_ID!)
+  
+  if (session?.value) {
+    client.setSession(session.value);
   }
 
-  const client = new Client()
-    .setEndpoint(process.env.APPWRITE_ENDPOINT!)
-    .setProject(process.env.APPWRITE_PROJECT_ID!)
-    .setSession(session.value);
-
   const account = new Account(client);
-
   return { client, account }
 }
 

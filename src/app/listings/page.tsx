@@ -15,7 +15,6 @@ export default function Home() {
   // Prefetch
   trpc.getAllCategories.usePrefetchQuery();
 
-
   // State for FilterSortBar special filters (e.g., "Open Now", "Offers Delivery")
   const [filterBarCategories, setFilterBarCategories] = useState<string[]>([]);
 
@@ -94,13 +93,10 @@ export default function Home() {
 
   // Calculate pagination
   const currentPage = Math.floor(offset / limit) + 1;
-  const totalPages = useMemo(
-    () => {
-      if (!list || isLoading) return 1
-      return Math.max(1, Math.ceil(list.total / limit))
-    },
-    [isLoading]
-  );
+  const totalPages = useMemo(() => {
+    if (!list || isLoading) return 1;
+    return Math.max(1, Math.ceil(list.total / limit));
+  }, [isLoading]);
 
   return (
     <>
@@ -109,10 +105,6 @@ export default function Home() {
         onChangeCategory={onChangeCategory}
       />
       <div className="container flex flex-row mx-auto px-4 py-8 min-h-[70vh]">
-        {/* Filters Sidebar for large screens */}
-        <div className="hidden lg:block w-1/4">
-          <FiltersPanel />
-        </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-3/4">
           {/* Listings Section */}
           <div className="lg:col-span-2">
@@ -147,30 +139,29 @@ export default function Home() {
         </div>
       </div>
       {/* Right-side Filters Panel (modal for mobile/tablet only) */}
-      <div className="lg:hidden">
-        {filtersPanelOpen && (
-          <div className="fixed inset-0 z-50 flex justify-end bg-black/30">
-            <div className="h-full bg-white shadow-lg w-full max-w-xs">
-              <div className="flex justify-end p-2">
-                <button
-                  className="text-gray-500 hover:text-gray-800 text-2xl"
-                  onClick={onCloseFiltersPanel}
-                  aria-label="Close filters"
-                >
-                  &times;
-                </button>
-              </div>
-              <FiltersPanel />
+
+      {filtersPanelOpen && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/30">
+          <div className="h-full bg-white shadow-lg w-full max-w-xs">
+            <div className="flex justify-end p-2">
+              <button
+                className="text-gray-500 hover:text-gray-800 text-2xl"
+                onClick={onCloseFiltersPanel}
+                aria-label="Close filters"
+              >
+                &times;
+              </button>
             </div>
-            {/* Click outside to close */}
-            <div
-              className="flex-1"
-              onClick={onCloseFiltersPanel}
-              aria-label="Close filters overlay"
-            />
+            <FiltersPanel />
           </div>
-        )}
-      </div>
+          {/* Click outside to close */}
+          <div
+            className="flex-1"
+            onClick={onCloseFiltersPanel}
+            aria-label="Close filters overlay"
+          />
+        </div>
+      )}
     </>
   );
 }

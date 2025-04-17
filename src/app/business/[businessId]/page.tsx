@@ -39,7 +39,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import Loading from "@/components/ui/loading";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useAuth } from "@/lib/hooks/useClientAuth";
 import ListingCard from "@/components/listing/listing-card";
 
 // Helper component for star ratings
@@ -93,15 +93,32 @@ export default function BusinessPage() {
   const { user } = useAuth();
   const router = useRouter();
   const params = useParams();
-  const businessId = typeof params.businessId === "string" ? params.businessId : Array.isArray(params.businessId) ? params.businessId[0] : "";
+  const businessId =
+    typeof params.businessId === "string"
+      ? params.businessId
+      : Array.isArray(params.businessId)
+      ? params.businessId[0]
+      : "";
 
   // tRPC queries
-  const { data: business, isLoading: isBusinessLoading, error: businessError } =
-    trpc.getBusinessById.useQuery({ businessId }, { enabled: !!businessId });
-  const { data: images, isLoading: isImagesLoading, error: imagesError } =
-    trpc.getBusinessImages.useQuery({ businessId }, { enabled: !!businessId });
-  const { data: hours, isLoading: isHoursLoading, error: hoursError } =
-    trpc.getBusinessHours.useQuery({ businessId }, { enabled: !!businessId });
+  const {
+    data: business,
+    isLoading: isBusinessLoading,
+    error: businessError,
+  } = trpc.getBusinessById.useQuery({ businessId }, { enabled: !!businessId });
+  const {
+    data: images,
+    isLoading: isImagesLoading,
+    error: imagesError,
+  } = trpc.getBusinessImages.useQuery(
+    { businessId },
+    { enabled: !!businessId }
+  );
+  const {
+    data: hours,
+    isLoading: isHoursLoading,
+    error: hoursError,
+  } = trpc.getBusinessHours.useQuery({ businessId }, { enabled: !!businessId });
   const { data: reviews, isLoading: isReviewsLoading } =
     trpc.getBusinessReviews.useQuery({ businessId }, { enabled: !!businessId });
 
@@ -120,9 +137,7 @@ export default function BusinessPage() {
   }
   if (!business) {
     return (
-      <div className="p-8 text-center text-gray-600">
-        Business not found.
-      </div>
+      <div className="p-8 text-center text-gray-600">Business not found.</div>
     );
   }
 
@@ -196,9 +211,13 @@ export default function BusinessPage() {
                 const today = openingHours.find((h) => h.day === currentDay);
                 if (!today) return null;
                 if (today.hours === "Closed") {
-                  return <span className="text-red-600 font-semibold">Closed</span>;
+                  return (
+                    <span className="text-red-600 font-semibold">Closed</span>
+                  );
                 }
-                return <span className="text-green-600 font-semibold">Open</span>;
+                return (
+                  <span className="text-green-600 font-semibold">Open</span>
+                );
               })()}
               <span>
                 {(() => {
@@ -331,8 +350,7 @@ export default function BusinessPage() {
                         className={
                           item.hours === "Closed"
                             ? "text-red-600"
-                            : item.day === currentDay &&
-                              item.hours !== "Closed"
+                            : item.day === currentDay && item.hours !== "Closed"
                             ? "text-green-600"
                             : ""
                         }
@@ -383,9 +401,7 @@ export default function BusinessPage() {
                     <div className="flex items-start gap-4">
                       <Avatar>
                         {/* <AvatarImage src={review.avatar} alt={review.author} /> */}
-                        <AvatarFallback>
-                          {review.userId}
-                        </AvatarFallback>
+                        <AvatarFallback>{review.userId}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
                         {/* <p className="font-semibold">{review.author}</p>
@@ -444,9 +460,7 @@ export default function BusinessPage() {
               Message business <MessageSquare className="mr-2 h-4 w-4" />
             </Button>
             <Button variant="ghost" className="w-full justify-between">
-              <span className="ml-2 hidden sm:inline">
-                {business.phone}
-              </span>{" "}
+              <span className="ml-2 hidden sm:inline">{business.phone}</span>{" "}
               <Phone className="h-4 w-4" />
             </Button>
             <div className="flex items-center justify-start flex-col">
@@ -455,9 +469,7 @@ export default function BusinessPage() {
                 <MapPin className="h-4 w-4" />
               </Button>
               <p className="text-sm font-medium">{business.addressLine1}</p>
-              <p className="text-sm text-gray-600">
-                {business.addressLine2}
-              </p>
+              <p className="text-sm text-gray-600">{business.addressLine2}</p>
             </div>
           </div>
         </div>

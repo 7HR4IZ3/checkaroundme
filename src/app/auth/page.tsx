@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useAuth } from "@/lib/hooks/useClientAuth";
 import { redirect, useRouter, useSearchParams } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
 
@@ -20,6 +20,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(true);
 
   const login = trpc.login.useMutation();
   const googleLogin = trpc.loginWithGoogle.useMutation();
@@ -88,6 +89,20 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
             onChange={(e) => setPassword(e.target.value)}
             className="mt-1"
           />
+        </div>
+
+        <div className="flex items-center space-x-2 pt-2">
+          <Checkbox
+            id="terms"
+            checked={termsAccepted}
+            onCheckedChange={(checked) => setTermsAccepted(checked === true)}
+          />
+          <Label
+            htmlFor="terms"
+            className="text-sm text-muted-foreground font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            I agree to the <Link href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Terms of Service</Link> and <Link href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Privacy Policy</Link>
+          </Label>
         </div>
 
         <Button type="submit" className="w-full mt-6 h-11">
@@ -289,7 +304,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
             htmlFor="terms"
             className="text-sm text-muted-foreground font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
-            I agree to terms & conditions
+            I agree to the <Link href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Terms of Service</Link> and <Link href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Privacy Policy</Link>
           </Label>
         </div>
 

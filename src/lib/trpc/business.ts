@@ -111,6 +111,17 @@ export function createBusinessProcedures(
         );
       }),
 
+    uploadTempBusinessImage: t.procedure
+      .input(
+        z.object({
+          file: z.any(), // File upload handling may need to be adapted for your setup
+        })
+      )
+      // .output(businessImageSchema)
+      .mutation(async ({ input }) => {
+        return await BusinessImagesService.uploadTempBusinessImage(input.file);
+      }),
+
     getBusinessImage: t.procedure
       .input(z.object({ businessId: z.string() }))
       // .output(businessImageSchema)

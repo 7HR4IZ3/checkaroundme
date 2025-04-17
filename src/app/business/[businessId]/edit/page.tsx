@@ -123,14 +123,20 @@ export default function BusinessEditForm() {
     }
   };
 
+  const [isUploading, setIsUploading] = useState(false);
+
   const handleImageUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const files = event.target.files;
     if (files && files.length > 0 && businessId) {
+      setIsUploading(true);
       try {
         const file = files[0];
-        // Optionally show a loading indicator here
+        if (file.size > 5 * 1024 * 1024) {
+          throw new Error('Image size must be less than 5MB');
+        }
+        
         const result = await uploadBusinessImage.mutateAsync({
           businessId,
           file,
@@ -144,8 +150,12 @@ export default function BusinessEditForm() {
           },
         ]);
       } catch (err) {
-        // Optionally show error UI
-        console.error("Failed to upload image", err);
+        setErrors({
+          ...errors,
+          imageUpload: err instanceof Error ? err.message : 'Failed to upload image'
+        });
+      } finally {
+        setIsUploading(false);
       }
     }
   };
@@ -169,30 +179,60 @@ export default function BusinessEditForm() {
     // Add reset logic or navigation
   };
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSaving, setIsSaving] = useState(false);
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!businessName.trim()) {
+      newErrors.businessName = 'Business name is required';
+    }
+    
+    if (phoneNumber && !/^[0-9]{10,15}$/.test(phoneNumber)) {
+      newErrors.phoneNumber = 'Please enter a valid phone number';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSave = async () => {
     if (!businessId) return;
+    
+    if (!validateForm()) return;
+    
+    setIsSaving(true);
     try {
       await updateBusiness.mutateAsync({
         businessId,
         data: {
           name: businessName,
           about: aboutBusiness,
-          addressLine1: businessAddress, // You may want to split this if needed
+          addressLine1: businessAddress,
           phone: phoneNumber,
           categories: businessCategory ? [businessCategory] : [],
           services: servicesOffered,
-          // Add other fields as needed
         },
       });
-      // Optionally show a success message or redirect
+      // TODO: Add success toast/notification
     } catch (err) {
-      // Optionally show error UI
-      console.error("Failed to save business", err);
+      setErrors({
+        ...errors,
+        form: err instanceof Error ? err.message : 'Failed to save business'
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 border rounded-lg shadow-sm bg-card text-card-foreground space-y-6">
+    <div className="max-w-4xl mx-auto p-6 border rounded-lg shadow-sm bg-card text-card-foreground space-y-6 relative">
+      {errors.form && (
+        <div className="p-4 mb-6 text-sm text-destructive bg-destructive/10 rounded-md">
+          {errors.form}
+        </div>
+      )}
       {/* Business Name */}
       <div>
         <Label htmlFor="businessName" className="font-semibold">
@@ -204,9 +244,16 @@ export default function BusinessEditForm() {
         <Input
           id="businessName"
           value={businessName}
-          onChange={(e) => setBusinessName(e.target.value)}
+          onChange={(e) => {
+            setBusinessName(e.target.value);
+            setErrors({...errors, businessName: ''});
+          }}
           placeholder="Enter business name"
+          className={errors.businessName ? 'border-destructive' : ''}
         />
+        {errors.businessName && (
+          <p className="text-xs text-destructive mt-1">{errors.businessName}</p>
+        )}
         <p className="text-xs text-muted-foreground mt-1">
           Input full name, ensure there are no special characters
         </p>
@@ -259,18 +306,34 @@ export default function BusinessEditForm() {
           {/* Add Photo Button */}
           <Label
             htmlFor="imageUpload"
-            className="flex items-center justify-center aspect-square border-2 border-dashed border-muted-foreground rounded-lg cursor-pointer hover:border-primary hover:bg-muted/50 transition-colors"
+            className={`flex items-center justify-center aspect-square border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+              isUploading
+                ? 'border-primary bg-muted/50'
+                : errors.imageUpload
+                  ? 'border-destructive'
+                  : 'border-muted-foreground hover:border-primary hover:bg-muted/50'
+            }`}
           >
-            <Plus className="h-10 w-10 text-muted-foreground" />
-            <span className="sr-only">Add photo/video</span>
-            <Input
-              id="imageUpload"
-              type="file"
-              className="sr-only" // Hide the default input
-              accept="image/*, video/*" // Accept images and videos
-              onChange={handleImageUpload}
-            />
+            {isUploading ? (
+              <div className="animate-spin h-5 w-5 border-2 border-primary rounded-full border-t-transparent" />
+            ) : (
+              <>
+                <Plus className="h-10 w-10 text-muted-foreground" />
+                <span className="sr-only">Add photo/video</span>
+                <Input
+                  id="imageUpload"
+                  type="file"
+                  className="sr-only"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={isUploading}
+                />
+              </>
+            )}
           </Label>
+          {errors.imageUpload && (
+            <p className="text-xs text-destructive mt-1">{errors.imageUpload}</p>
+          )}
         </div>
       </div>
 
@@ -306,11 +369,19 @@ export default function BusinessEditForm() {
             id="phoneNumber"
             type="tel"
             value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
+            onChange={(e) => {
+              setPhoneNumber(e.target.value);
+              setErrors({...errors, phoneNumber: ''});
+            }}
             placeholder="Enter phone number"
-            className="flex-1"
+            className={`flex-1 ${errors.phoneNumber ? 'border-destructive' : ''}`}
             aria-label="Phone number"
           />
+          {errors.phoneNumber && (
+            <p className="text-xs text-destructive mt-1 col-span-2">
+              {errors.phoneNumber}
+            </p>
+          )}
         </div>
       </div>
 
@@ -386,7 +457,9 @@ export default function BusinessEditForm() {
         <Button variant="outline" onClick={handleCancel}>
           Cancel
         </Button>
-        <Button onClick={handleSave}>Save</Button>
+        <Button onClick={handleSave} disabled={isSaving}>
+          {isSaving ? 'Saving...' : 'Save'}
+        </Button>
       </div>
     </div>
   );

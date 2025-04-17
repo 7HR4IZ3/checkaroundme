@@ -1,6 +1,7 @@
 import React from "react";
 import { FaSlidersH, FaChevronDown } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 type FilterSortBarProps = {
   selectedCategories: string[];
@@ -18,6 +19,8 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
   onChangeCategories,
   onOpenFiltersPanel,
 }) => {
+  const [sortBy, setSortBy] = React.useState("recommended");
+
   const handleCategoryClick = (value: string) => {
     const isSelected = selectedCategories.includes(value);
     if (isSelected) {
@@ -31,7 +34,6 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
     <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
       <div className="flex flex-wrap gap-2">
         <Button
-          className="lg:hidden"
           variant="outline"
           size="sm"
           onClick={onOpenFiltersPanel}
@@ -51,10 +53,19 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
       </div>
       <div className="flex items-center">
         <span className="text-sm text-gray-600 mr-2">Sort:</span>
-        <button className="flex items-center text-sm font-medium text-gray-700 hover:text-blue-600" type="button">
-          Recommended
-          <FaChevronDown className="ml-1" size={10} />
-        </button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 text-capital" type="button">
+              {sortBy}
+              <FaChevronDown className="ml-1" size={10} />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56">
+            <DropdownMenuItem onClick={() => setSortBy("recommended")}>Recommended</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSortBy("price")}>Price</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSortBy("distance")}>Distance</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );

@@ -1,3 +1,5 @@
+import "dotenv/config";
+
 import {
   Account,
   Avatars,
@@ -25,6 +27,7 @@ import {
   AuthSession,
 } from "../schema";
 import { createAdminClient } from "./admin";
+import { create } from "domain";
 
 // Appwrite configuration
 const client = new Client();
@@ -132,8 +135,48 @@ export const AuthService = {
     }
   },
 
+  async completeOauth2Login(userId: string, secret: string) {
+    try {
+      // Create user profile in database
+      await databases.createDocument(DATABASE_ID, USERS_COLLECTION_ID, userId, {
+        phone: null,
+        fullName: "",
+        avatarUrl: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+
+      const session = await account.createSession(userId, secret);
+      console.log(
+        userId,
+        secret,
+        session.$id,
+        session.secret,
+        session.providerAccessToken
+      );
+
+      await cookies().then((cookies) => {
+        cookies.set("cham_appwrite_session", session.secret, {
+          secure: process.env.NODE_ENV === "production",
+          httpOnly: true,
+          sameSite: "strict",
+          path: "/",
+          maxAge: 60 * 60 * 24 * 365, // 1 year
+        });
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error("Oauthh sesion error:", error);
+      throw error;
+    }
+  },
+
   // Get current user
-  async getCurrentUser(): Promise<User | null> {
+  async getCurrentUser(): Promise<{
+    user: Models.User<Models.Preferences>;
+    profile: User;
+  } | null> {
     try {
       // const session = await cookies().then((cookies) =>
       //   cookies.get("cham_appwrite_session")
@@ -152,15 +195,18 @@ export const AuthService = {
       // const currentAccount = await users.get(currentSession.userId);
 
       const { account } = await createAdminClient();
-      const currentAccount = await account.get();
+      const user = await account.get();
 
-      const user = await databases.getDocument(
+      const profile = await databases.getDocument(
         DATABASE_ID,
         USERS_COLLECTION_ID,
-        currentAccount.$id
+        user.$id
       );
 
-      return user as unknown as User;
+      return { user, profile } as unknown as {
+        user: Models.User<Models.Preferences>;
+        profile: User;
+      };
     } catch (error) {
       console.error("Get current user error:", error);
       return null;
@@ -170,6 +216,7 @@ export const AuthService = {
   // Logout user
   async logout(): Promise<void> {
     try {
+      const { account } = await createAdminClient();
       const session = await cookies().then((cookies) =>
         cookies.get("cham_appwrite_session")
       );
@@ -513,6 +560,24 @@ export const BusinessHoursService = {
 
 // Business Images Service
 export const BusinessImagesService = {
+  // Temporary upload image
+  async uploadTempBusinessImage(file: File): Promise<{ id: string, url: string, alt: string }> {
+    try {
+      const result = await storage.createFile(
+        BUSINESS_IMAGES_BUCKET_ID,
+        ID.unique(),
+        file
+      );
+      return {
+        id: result.$id, alt: file.name,
+        url: getImageURl(result.$id),
+      };
+    } catch (error) {
+      console.error("Upload temp image error:", error);
+      throw error;
+    }
+  },
+
   // Upload business image
   async uploadBusinessImage(
     businessId: string,

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { ConversationService, MessageService } from "../appwrite";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "./useClientAuth";
 import { Message, Conversation, User } from "../schema";
 
 interface ConversationWithDetails {

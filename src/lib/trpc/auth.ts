@@ -53,6 +53,20 @@ export function createAuthProcedures(
       return await AuthService.getCurrentUser();
     }),
 
+    completeOauthLogin: t.procedure
+      .input(
+        z.object({
+          userId: z.string(),
+          secret: z.string(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        return await AuthService.completeOauth2Login(
+          input.userId,
+          input.secret
+        );
+      }),
+
     logout: t.procedure.input(z.void()).mutation(async () => {
       return await AuthService.logout();
     }),

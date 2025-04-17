@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Search } from "lucide-react";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { Search, Briefcase } from "lucide-react";
+import { useAuth } from "@/lib/hooks/useClientAuth";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -92,21 +92,24 @@ const Header = () => {
             <Search className="h-4 w-4" />
           </Button>
 
-          <NavigationMenu>
-            <NavigationMenuList>
-              <NavigationMenuItem>
-                <NavigationMenuTrigger>For Business</NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <Link
-                    href="/for-business/register"
-                    className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                  >
-                    Switch to user
-                  </Link>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
+          {auth.isAuthenticated && (
+            <NavigationMenu>
+              <NavigationMenuList>
+                <NavigationMenuItem>
+                  <NavigationMenuTrigger>For User</NavigationMenuTrigger>
+                  <NavigationMenuContent>
+                    <Link
+                      href="/business/create"
+                      className="flex items-center select-none space-x-2 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground w-[10vw]"
+                    >
+                      <Briefcase className="h-4 w-4" />
+                      <span>Add a business</span>
+                    </Link>
+                  </NavigationMenuContent>
+                </NavigationMenuItem>
+              </NavigationMenuList>
+            </NavigationMenu>
+          )}
         </div>
 
         {auth.isAuthenticated ? (

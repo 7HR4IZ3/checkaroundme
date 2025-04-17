@@ -2,6 +2,8 @@
 
 import React, { useCallback } from "react";
 import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
+
 import { trpc } from "@/lib/trpc/client";
 import {
   Carousel,
@@ -10,12 +12,21 @@ import {
   CarouselPrevious,
   CarouselNext,
 } from "../ui/carousel";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Skeleton } from "../ui/skeleton";
+
+const CategorySkeleton = () => {
+  return (
+    <div className="flex flex-col items-center text-center">
+      <Skeleton className="w-40 h-40 rounded-full mb-3" />
+      <Skeleton className="h-4 w-24" />
+    </div>
+  );
+};
 
 const Categories = function () {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { data: categories = [] } = trpc.getAllCategories.useQuery();
+  const { data: categories = [], isLoading } = trpc.getAllCategories.useQuery();
 
   const goToCategory = useCallback(
     (category: string | null) => {
@@ -44,11 +55,20 @@ const Categories = function () {
           className="w-full"
         >
           <CarouselContent className="-ml-2 md:-ml-4">
-            {categories.map((category, index) => (
-              <CarouselItem
-                key={category.$id || index}
-                className="pl-2 md:pl-4 basis-1/2 md:basis-1/4 lg:basis-1/5"
-              >
+            {isLoading
+              ? Array.from({ length: 5 }).map((_, index) => (
+                  <CarouselItem
+                    key={`skeleton-${index}`}
+                    className="pl-2 md:pl-4 basis-1/2 md:basis-1/4 lg:basis-1/5"
+                  >
+                    <CategorySkeleton />
+                  </CarouselItem>
+                ))
+              : categories.map((category, index) => (
+                  <CarouselItem
+                    key={category.$id || index}
+                    className="pl-2 md:pl-4 basis-1/2 md:basis-1/4 lg:basis-1/5"
+                  >
                 <div
                   className="flex flex-col items-center text-center cursor-pointer group"
                   onClick={() => goToCategory(category.name)}

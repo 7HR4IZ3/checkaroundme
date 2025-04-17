@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, ReactNode, useEffect, useMemo } from "react";
+import { ReactNode, useMemo } from "react";
 
-import { AuthContext } from "@/lib/hooks/useAuth";
+import { AuthContext } from "@/lib/hooks/useClientAuth";
 import { trpc } from "@/lib/trpc/client";
-import { User } from "@/lib/schema";
-import { redirect, useRouter } from "next/navigation";
+import Loading from "../ui/loading";
 
 export default function AuthProvider({ children }: { children: ReactNode }) {
-  const router = useRouter();
   const { data: currentUser, isLoading: loadingCurrentUser } =
     trpc.getCurrentUser.useQuery();
 
@@ -22,6 +20,8 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInMutation = trpc.login.useMutation();
   const signoutMutation = trpc.logout.useMutation();
+
+  if (loadingCurrentUser) return <Loading />
 
   const login = async (
     method: "email" | "google",
@@ -61,7 +61,8 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       value={{
         isAuthenticated,
-        user,
+        user: user?.user ?? null,
+        profile: user?.profile ?? null,
         login,
         logout,
       }}
