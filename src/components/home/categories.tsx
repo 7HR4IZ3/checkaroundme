@@ -73,7 +73,7 @@ const Categories = function () {
                   className="flex flex-col items-center text-center cursor-pointer group"
                   onClick={() => goToCategory(category.name)}
                 >
-                  <div className="w-40 h-40 rounded-full p-1 bg-gradient-to-br from-[#F3B53F] via-[#FF4D00] to-[#AE06C9] transition duration-200">
+                  <div className="w-[10em] h-[10em] rounded-full p-1 bg-gradient-to-br from-[#F3B53F] via-[#FF4D00] to-[#AE06C9] transition duration-200">
                     <div className="w-full h-full rounded-full overflow-hidden">
                       <Image
                         src={category.imageUrl || "/images/cat-placeholder.png"}

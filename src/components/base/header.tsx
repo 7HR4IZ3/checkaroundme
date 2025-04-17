@@ -67,7 +67,7 @@ const Header = () => {
               <Input
                 type="text"
                 placeholder="Search..."
-                className="w-2/5 px-4 py-2 focus:outline-none rounded-l-full"
+                className="w-full md:w-2/5 px-4 py-2 focus:outline-none rounded-full md:rounded-none md:rounded-l-full"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={handleKeyDown}
