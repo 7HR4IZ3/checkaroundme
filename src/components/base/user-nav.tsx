@@ -42,7 +42,7 @@ export function UserNav() {
                 {auth.user.name.split(" ")[0].charAt(0)}
               </AvatarFallback>
             </Avatar>
-            <span className="text-base font-medium">
+            <span className="text-base font-medium sm-hidden md-block">
               {auth.user.name.split(" ")[0]}
             </span>
             {/* ChevronDown indicates dropdown possibility */}
