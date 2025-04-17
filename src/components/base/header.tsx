@@ -52,7 +52,7 @@ const Header = () => {
   return (
     <header className="bg-background sticky top-0 z-50 border-b">
       <nav className="mx-4 px-2 sm:px-6 lg:px-4 py-4 flex justify-between items-center gap-4">
-        <Link href="/">
+        <Link href="/" className="w-1/4">
           <Image
             src="/images/logo.png"
             alt="CheckAroundMe Logo"
@@ -61,39 +61,41 @@ const Header = () => {
           />
         </Link>
 
-        <div className="flex justify-between items-center space-x-2">
-          <div className="flex items-center border border-gray-300 rounded-full w-2/3">
-            <Input
-              type="text"
-              placeholder="Search..."
-              className="w-2/5 px-4 py-2 focus:outline-none rounded-l-full"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onKeyDown={handleKeyDown}
-            />
-            <div className="w-px h-6 bg-gray-300"></div>
-            <Input
-              type="text"
-              placeholder="Location..."
-              className="w-3/5 px-4 py-2 focus:outline-none rounded-r-full"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              onKeyDown={handleKeyDown}
-            />
+        <div className="flex justify-between items-center space-x-2 w-2/4">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center border border-gray-300 rounded-full">
+              <Input
+                type="text"
+                placeholder="Search..."
+                className="w-2/5 px-4 py-2 focus:outline-none rounded-l-full"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
+              <div className="w-px h-6 bg-gray-300 hidden md:block"></div>
+              <Input
+                type="text"
+                placeholder="Location..."
+                className="w-3/5 px-4 py-2 focus:outline-none rounded-r-full hidden md:block"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
+            </div>
+
+            <Button
+              size="icon"
+              variant="default"
+              className="rounded-full bg-[#2E57A9]"
+              onClick={handleSearch}
+              aria-label="Search"
+            >
+              <Search className="h-4 w-4" />
+            </Button>
           </div>
 
-          <Button
-            size="icon"
-            variant="default"
-            className="rounded-full bg-[#2E57A9]"
-            onClick={handleSearch}
-            aria-label="Search"
-          >
-            <Search className="h-4 w-4" />
-          </Button>
-
           {auth.isAuthenticated && (
-            <NavigationMenu>
+            <NavigationMenu className="hidden md:block">
               <NavigationMenuList>
                 <NavigationMenuItem>
                   <NavigationMenuTrigger>For User</NavigationMenuTrigger>
@@ -115,7 +117,7 @@ const Header = () => {
         {auth.isAuthenticated ? (
           <UserNav />
         ) : (
-          <div className="flex items-center space-x-1 sm:space-x-2">
+          <div className="flex items-center space-x-1 sm:space-x-2 w-1/4">
             <Button variant="ghost" asChild>
               <Link href="/auth">Sign in</Link>
             </Button>

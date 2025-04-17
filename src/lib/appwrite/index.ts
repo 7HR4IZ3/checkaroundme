@@ -28,6 +28,7 @@ import {
 } from "../schema";
 import { createAdminClient } from "./admin";
 import { create } from "domain";
+import { createSessionClient } from "./session";
 
 // Appwrite configuration
 const client = new Client();
@@ -178,23 +179,13 @@ export const AuthService = {
     profile: User;
   } | null> {
     try {
-      // const session = await cookies().then((cookies) =>
-      //   cookies.get("cham_appwrite_session")
-      // );
+      const session = await cookies().then((cookies) =>
+        cookies.get("cham_appwrite_session")
+      );
 
-      // if (!session?.value) {
-      //   throw new Error("Unauthenticated user");
-      // }
+      if (!session?.value) { return null }
 
-      // console.log(session.value, process.env.APPWRITE_API_KEY, process.env.APPWRITE_PROJECT_ID)
-
-      // const currentSession = await account.getSession(session.value);
-
-      // console.log(currentSession)
-
-      // const currentAccount = await users.get(currentSession.userId);
-
-      const { account } = await createAdminClient();
+      const { account } = await createSessionClient(session.value);
       const user = await account.get();
 
       const profile = await databases.getDocument(
@@ -561,7 +552,9 @@ export const BusinessHoursService = {
 // Business Images Service
 export const BusinessImagesService = {
   // Temporary upload image
-  async uploadTempBusinessImage(file: File): Promise<{ id: string, url: string, alt: string }> {
+  async uploadTempBusinessImage(
+    file: File
+  ): Promise<{ id: string; url: string; alt: string }> {
     try {
       const result = await storage.createFile(
         BUSINESS_IMAGES_BUCKET_ID,
@@ -569,7 +562,8 @@ export const BusinessImagesService = {
         file
       );
       return {
-        id: result.$id, alt: file.name,
+        id: result.$id,
+        alt: file.name,
         url: getImageURl(result.$id),
       };
     } catch (error) {

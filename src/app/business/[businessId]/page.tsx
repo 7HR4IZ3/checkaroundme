@@ -162,7 +162,7 @@ export default function BusinessPage() {
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       {" "}
       {/* Main container */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
+      <div className="container grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
         {/* Left Column */}
         <div className="md:col-span-2 space-y-8">
           {/* Business Info */}
@@ -234,9 +234,11 @@ export default function BusinessPage() {
               <Button variant="outline" className="bg-[#2E57A9] text-white">
                 <Star className="mr-2 h-4 w-4" /> Write a review
               </Button>
-              <Button variant="outline">
-                <ImagePlus className="mr-2 h-4 w-4" /> Add a photo
-              </Button>
+              {user?.$id === business.ownerId && (
+                <Button variant="outline">
+                  <ImagePlus className="mr-2 h-4 w-4" /> Add a photo
+                </Button>
+              )}
               <Button variant="outline">
                 <Share2 className="mr-2 h-4 w-4" /> Share
               </Button>
@@ -489,7 +491,7 @@ export default function BusinessPage() {
             {businesses?.businesses.map((business) => (
               <CarouselItem
                 key={business.$id}
-                className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/3"
+                className="basis-1/1 sm:basis-1/3 md:basis-1/4 lg:basis-1/3"
               >
                 <ListingCard hideButton={true} business={business} />
               </CarouselItem>

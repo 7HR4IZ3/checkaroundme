@@ -105,7 +105,7 @@ export default function Home() {
         onChangeCategory={onChangeCategory}
       />
       <div className="container flex flex-row mx-auto px-4 py-8 min-h-[70vh]">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-3/4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full md:w-3/4">
           {/* Listings Section */}
           <div className="lg:col-span-2">
             <h1 className="text-2xl font-semibold mb-4 text-gray-800">
@@ -142,7 +142,7 @@ export default function Home() {
 
       {filtersPanelOpen && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/30">
-          <div className="h-full bg-white shadow-lg w-full max-w-xs">
+          <div className="h-full bg-white w-full max-w-xs animate-in fade-in slide-in-from-left">
             <div className="flex justify-end p-2">
               <button
                 className="text-gray-500 hover:text-gray-800 text-2xl"

@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaEllipsisH, FaChevronDown } from 'react-icons/fa';
+import { FaChevronDown } from 'react-icons/fa';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -45,11 +45,12 @@ const CategoryNav: React.FC<CategoryNavProps> = ({
                 }`}
               aria-pressed={isSelected}
             >
-              <FaEllipsisH size={18} />
+              <i className='fa fa-car'></i>
               <span>{category.name}</span>
             </button>
           );
         })}
+
         {categories.length > 5 && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

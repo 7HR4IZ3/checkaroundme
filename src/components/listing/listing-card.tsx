@@ -12,23 +12,23 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
   business,
   hideButton = false,
 }) => {
-
   const { data: image } = trpc.getBusinessImage.useQuery({
     businessId: business.$id,
   });
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col sm:flex-row p-2">
-      <Image
-        src={image?.imageUrl!}
-        alt={business.name}
-        object-fit="cover"
-        height={100}
-        width={130}
-        className="rounded-lg bg-gray-200" // Background while loading
-      />
-      <div className="px-4 flex flex-col justify-between flex-grow">
-        <div>
+    <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-row p-2 relative align-between">
+      <div className="w-1/3 md:w-1/2 relative">
+        <Image
+          src={image?.imageUrl!}
+          alt={business.name}
+          object-fit="cover"
+          fill
+          className="rounded-xl bg-gray-200" // Background while loading
+        />
+      </div>
+      <div className="flex-grow px-4 py-4 flex flex-col justify-between">
+        <div className="my-auto">
           <Link href={`/business/${business.$id}`}>
             <h3 className="text-lg font-semibold text-gray-800 mb-1">
               {business.name}

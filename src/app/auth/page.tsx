@@ -99,9 +99,28 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
           />
           <Label
             htmlFor="terms"
-            className="text-sm text-muted-foreground font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            className="flex flex-row flex-rap text-sm text-muted-foreground font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 "
           >
-            I agree to the <Link href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Terms of Service</Link> and <Link href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Privacy Policy</Link>
+            <span>
+              I agree to the{" "}
+              <Link
+                href="/terms-of-service"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link
+                href="/privacy-policy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                Privacy Policy
+              </Link>
+            </span>
           </Label>
         </div>
 
@@ -304,7 +323,26 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
             htmlFor="terms"
             className="text-sm text-muted-foreground font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
-            I agree to the <Link href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Terms of Service</Link> and <Link href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Privacy Policy</Link>
+            <span>
+              I agree to the{" "}
+              <Link
+                href="/terms-of-service"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link
+                href="/privacy-policy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                Privacy Policy
+              </Link>
+            </span>
           </Label>
         </div>
 
@@ -403,8 +441,8 @@ function AuthPageInner() {
   if (auth.isAuthenticated) return redirect("/");
 
   return (
-    <div className="flex flex-col p-8 bg-background">
-      <div className="mb-6">
+    <div className="flex flex-col p-8 gap-6 bg-background">
+      <div className="my-auto">
         <Link href="/">
           <Image
             src="/images/logo.png"

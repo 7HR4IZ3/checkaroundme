@@ -59,7 +59,7 @@ const Categories = function () {
               ? Array.from({ length: 5 }).map((_, index) => (
                   <CarouselItem
                     key={`skeleton-${index}`}
-                    className="pl-2 md:pl-4 basis-1/2 md:basis-1/4 lg:basis-1/5"
+                    className="pl-2 md:pl-4 basis-1/3 md:basis-1/4 lg:basis-1/5"
                   >
                     <CategorySkeleton />
                   </CarouselItem>
@@ -67,13 +67,13 @@ const Categories = function () {
               : categories.map((category, index) => (
                   <CarouselItem
                     key={category.$id || index}
-                    className="pl-2 md:pl-4 basis-1/2 md:basis-1/4 lg:basis-1/5"
+                    className="pl-2 md:pl-4 basis-1/3 md:basis-1/4 lg:basis-1/5"
                   >
                 <div
                   className="flex flex-col items-center text-center cursor-pointer group"
                   onClick={() => goToCategory(category.name)}
                 >
-                  <div className="w-50 h-50 sm:w-40 sm:h-40 rounded-full p-1 bg-gradient-to-br from-[#F3B53F] via-[#FF4D00] to-[#AE06C9] transition duration-200">
+                  <div className="w-40 h-40 rounded-full p-1 bg-gradient-to-br from-[#F3B53F] via-[#FF4D00] to-[#AE06C9] transition duration-200">
                     <div className="w-full h-full rounded-full overflow-hidden">
                       <Image
                         src={category.imageUrl || "/images/cat-placeholder.png"}
