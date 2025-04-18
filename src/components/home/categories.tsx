@@ -36,11 +36,11 @@ const Categories = function () {
       } else {
         params.delete("categories");
       }
+
       // Reset to first page when filters change
       params.set("offset", "0");
       router.replace(`/listings?${params.toString()}`);
-    },
-    [router, searchParams]
+    }, [router, searchParams]
   );
 
   return (

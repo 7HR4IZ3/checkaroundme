@@ -25,27 +25,8 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata = {
   title: "Checkaroundme - Discover Local Businesses",
   description:
-    "Find and connect with amazing local businesses in your community.",
+    "Find and connect with amazing local businesses in your community."
 };
-
-export function Authenticated({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      <Header />
-      <main>{children}</main>
-      <Footer />
-    </>
-  );
-}
-
-export function Unauthenticated({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      <main>{children}</main>
-      <Footer />
-    </>
-  );
-}
 
 export default function RootLayout({
   children,

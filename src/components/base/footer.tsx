@@ -43,13 +43,13 @@ const Footer = () => {
           </div>
 
           {/* Account */}
-          <div>
+          {/* <div>
             <h3 className="text-lg font-semibold text-white mb-4">Account</h3>
             <ul className="space-y-2 text-sm">
               <li><Link href="/messages" className="hover:text-white hover:underline">My Messages</Link></li>
               <li><Link href="/login" className="hover:text-white hover:underline">Login / Register</Link></li>
             </ul>
-          </div>
+          </div> */}
 
           {/* Quick Link */}
           <div>
@@ -57,7 +57,8 @@ const Footer = () => {
             <ul className="space-y-2 text-sm">
               <li><Link href="/privacy-policy" className="hover:text-white hover:underline">Privacy Policy</Link></li>
               <li><Link href="/terms-of-service" className="hover:text-white hover:underline">Terms Of Service</Link></li>
-              <li><Link href="/contact" className="hover:text-white hover:underline">Contact Us</Link></li>
+              <li><Link href="/about-us" className="hover:text-white hover:underline">About Us</Link></li>
+              <li><Link href="/contact-us" className="hover:text-white hover:underline">Contact Us</Link></li>
             </ul>
           </div>
 

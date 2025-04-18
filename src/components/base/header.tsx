@@ -3,7 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Search, Briefcase } from "lucide-react";
+import { Search, Briefcase, Menu, User, UserPlus } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/hooks/useClientAuth";
 import {
   NavigationMenu,
@@ -61,13 +67,13 @@ const Header = () => {
           />
         </Link>
 
-        <div className="flex justify-between items-center space-x-2 w-2/4">
+        <div className="flex justify-center items-center space-x-2 flex-grow">
           <div className="flex items-center gap-2">
             <div className="flex items-center border border-gray-300 rounded-full">
               <Input
                 type="text"
                 placeholder="Search..."
-                className="w-full md:w-2/5 px-4 py-2 focus:outline-none rounded-full md:rounded-none md:rounded-l-full"
+                className="w-full md:w-2/5 px-4 py-2 focus:outline-none rounded-full md:rounded-none md:rounded-l-full md:border-r-0"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -76,7 +82,7 @@ const Header = () => {
               <Input
                 type="text"
                 placeholder="Location..."
-                className="w-3/5 px-4 py-2 focus:outline-none rounded-r-full hidden md:block"
+                className="w-3/5 px-4 py-2 focus:outline-none rounded-r-full hidden md:block md:rounded-none md:rounded-r-full md:border-l-0"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -86,11 +92,11 @@ const Header = () => {
             <Button
               size="icon"
               variant="default"
-              className="rounded-full bg-[#2E57A9]"
+              className="rounded-full bg-[#2E57A9] hidden md:flex"
               onClick={handleSearch}
               aria-label="Search"
             >
-              <Search className="h-4 w-4" />
+              <Search />
             </Button>
           </div>
 
@@ -114,19 +120,51 @@ const Header = () => {
           )}
         </div>
 
-        {auth.isAuthenticated ? (
-          <UserNav />
-        ) : (
-          <div className="flex items-center space-x-1 sm:space-x-2 w-1/4">
-            <Button variant="ghost" asChild>
-              <Link href="/auth">Sign in</Link>
-            </Button>
-            <span className="text-muted-foreground">/</span>
-            <Button variant="ghost" asChild>
-              <Link href="/auth?signup">Register</Link>
-            </Button>
-          </div>
-        )}
+        <div className="flex justify-end items-center">
+          {auth.isAuthenticated ? (
+            <UserNav />
+          ) : (
+            <>
+              <span className="items-center space-x-2 text-xs hidden md:flex">
+                <Button variant="ghost">
+                  <Link href="/auth">Sign in</Link>
+                </Button>
+                <span className="text-muted-foreground">/</span>
+                <Button variant="ghost">
+                  <Link href="/auth?signup">Register</Link>
+                </Button>
+              </span>
+
+              {/* Mobile menu */}
+
+              <DropdownMenu>
+                <DropdownMenuTrigger className="p-2">
+                  <Menu className="h-5 w-5" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem>
+                    <Link
+                      href="/auth"
+                      className="flex items-center select-none space-x-2 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                    >
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Sign in</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link
+                      href="/auth?signup"
+                      className="flex items-center select-none space-x-2 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                    >
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      <span>Register</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          )}
+        </div>
       </nav>
     </header>
   );
