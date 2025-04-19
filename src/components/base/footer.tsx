@@ -75,9 +75,9 @@ const Footer = () => {
               />
             </div>
             <div className="flex space-x-4">
-              <a href="#" aria-label="Facebook" className="text-gray-400 hover:text-white"><FaFacebookF size={18} /></a>
-              <a href="#" aria-label="Twitter" className="text-gray-400 hover:text-white"><FaTwitter size={18} /></a>
-              <a href="#" aria-label="Instagram" className="text-gray-400 hover:text-white"><FaInstagram size={18} /></a>
+              <a href="https://facebook.com/checkaroundme" aria-label="Facebook" className="text-gray-400 hover:text-white"><FaFacebookF size={18} /></a>
+              <a href="https://x.com/checkaroundme" aria-label="Twitter" className="text-gray-400 hover:text-white"><FaTwitter size={18} /></a>
+              <a href="https://instagram.com/checkaroundme" aria-label="Instagram" className="text-gray-400 hover:text-white"><FaInstagram size={18} /></a>
             </div>
           </div>
         </div>

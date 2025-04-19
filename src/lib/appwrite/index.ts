@@ -138,24 +138,26 @@ export const AuthService = {
 
   async completeOauth2Login(userId: string, secret: string) {
     try {
-      // Create user profile in database
-      await databases.createDocument(DATABASE_ID, USERS_COLLECTION_ID, userId, {
-        phone: null,
-        fullName: "",
-        avatarUrl: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      });
+      try {
+        // Check if user exists
+        await databases.getDocument(DATABASE_ID, USERS_COLLECTION_ID, userId);
+      } catch {
+        // Create user profile in database
+        await databases.createDocument(
+          DATABASE_ID,
+          USERS_COLLECTION_ID,
+          userId,
+          {
+            phone: null,
+            fullName: "",
+            avatarUrl: null,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          }
+        );
+      }
 
       const session = await account.createSession(userId, secret);
-      console.log(
-        userId,
-        secret,
-        session.$id,
-        session.secret,
-        session.providerAccessToken
-      );
-
       await cookies().then((cookies) => {
         cookies.set("cham_appwrite_session", session.secret, {
           secure: process.env.NODE_ENV === "production",
@@ -183,7 +185,9 @@ export const AuthService = {
         cookies.get("cham_appwrite_session")
       );
 
-      if (!session?.value) { return null }
+      if (!session?.value) {
+        return null;
+      }
 
       const { account } = await createSessionClient(session.value);
       const user = await account.get();
@@ -553,19 +557,32 @@ export const BusinessHoursService = {
 export const BusinessImagesService = {
   // Temporary upload image
   async uploadTempBusinessImage(
-    file: File
-  ): Promise<{ id: string; url: string; alt: string }> {
+    file: File,
+    userID: string
+  ): Promise<BusinessImage> {
+    console.log(file);
     try {
       const result = await storage.createFile(
         BUSINESS_IMAGES_BUCKET_ID,
         ID.unique(),
         file
       );
-      return {
-        id: result.$id,
-        alt: file.name,
-        url: getImageURl(result.$id),
-      };
+
+      const image = await databases.createDocument(
+        DATABASE_ID,
+        BUSINESS_IMAGES_COLLECTION_ID,
+        result.$id,
+        {
+          businessId: userID,
+          imageUrl: getImageURl(result.$id),
+          title: file.name,
+          isPrimary: false,
+          createdAt: new Date().toISOString(),
+          uploadedBy: userID,
+        }
+      );
+
+      return image as unknown as BusinessImage;
     } catch (error) {
       console.error("Upload temp image error:", error);
       throw error;
@@ -626,6 +643,31 @@ export const BusinessImagesService = {
     } catch (error) {
       console.error("Upload business image error:", error);
       throw error;
+    }
+  },
+
+  async uploadTempImagesToBusiness(
+    businessId: string,
+    images: BusinessImage[]
+  ): Promise<void> {
+    // Verify business exists
+    await BusinessService.getBusinessById(businessId);
+
+    let hasPrimaryimage = false;
+    for (const [index, image] of images.reverse().entries()) {
+      hasPrimaryimage = !hasPrimaryimage
+        ? image.isPrimary || index === images.length - 1
+        : false;
+
+      await databases.updateDocument(
+        DATABASE_ID,
+        BUSINESS_IMAGES_COLLECTION_ID,
+        image.$id,
+        {
+          businessId,
+          isPrimary: hasPrimaryimage,
+        }
+      );
     }
   },
 

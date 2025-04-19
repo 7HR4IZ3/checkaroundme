@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaChevronDown } from 'react-icons/fa';
+import { FaChevronDown, FaEllipsisH } from 'react-icons/fa';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -7,11 +7,24 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { trpc } from "@/lib/trpc/client";
+import { Ellipsis } from 'lucide-react';
+import { BakeryIcon, GymIcon, ResturantIcon, SalonIcon } from './svg';
 
 type CategoryNavProps = {
   selectedCategory: string | null;
   onChangeCategory: (category: string | null) => void;
 };
+
+// TODO: Change this hackish implementation!!
+const CatergoryIcon = ({ category }: { category: string}) => {
+  console.log(category)
+  if (category === "Restaurant") return <ResturantIcon />
+  if (category === "Salon") return <SalonIcon />
+  if (category === "Gym") return <GymIcon />
+  if (category === "Bakery") return <BakeryIcon />
+
+  return <Ellipsis />;
+}
 
 const CategoryNav: React.FC<CategoryNavProps> = ({
   selectedCategory,
@@ -45,7 +58,7 @@ const CategoryNav: React.FC<CategoryNavProps> = ({
                 }`}
               aria-pressed={isSelected}
             >
-              <i className='fa fa-car'></i>
+              <CatergoryIcon category={category.name} />
               <span>{category.name}</span>
             </button>
           );

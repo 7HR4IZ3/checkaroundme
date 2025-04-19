@@ -84,7 +84,9 @@ export default function Home() {
 
   // Query businesses with category, query, location, and pagination
   const { data: list, isLoading } = trpc.listBusinesses.useQuery({
-    categories: selectedCategory ? [selectedCategory] : [],
+    categories: selectedCategory
+      ? [selectedCategory, ...filterBarCategories]
+      : filterBarCategories,
     query: queryParam,
     location: locationParam,
     limit,
@@ -105,9 +107,9 @@ export default function Home() {
         onChangeCategory={onChangeCategory}
       />
       <div className="container flex flex-row mx-auto px-4 py-8 min-h-[70vh]">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full md:w-3/4">
+        <div className="flex flex-row gap-8 w-full">
           {/* Listings Section */}
-          <div className="lg:col-span-2">
+          <div className="w-2/3">
             <h1 className="text-2xl font-semibold mb-4 text-gray-800">
               Auto Mechanics near Lekki, Lagos
             </h1>
@@ -133,7 +135,7 @@ export default function Home() {
           </div>
 
           {/* Map Section */}
-          <div className="lg:col-span-1">
+          <div className="flex-grow">
             <MapPlaceholder />
           </div>
         </div>

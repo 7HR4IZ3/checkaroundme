@@ -162,9 +162,9 @@ export default function BusinessPage() {
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       {" "}
       {/* Main container */}
-      <div className="container grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
+      <div className="flex flex-col md:flex-row gap-8 lg:gap-12">
         {/* Left Column */}
-        <div className="md:col-span-2 space-y-8">
+        <div className="md:flex-grow space-y-8">
           {/* Business Info */}
           <section>
             <div className="flex items-center gap-2 mb-2">
@@ -450,23 +450,23 @@ export default function BusinessPage() {
         </div>
 
         {/* Right Column */}
-        <div className="md:col-span-1 space-y-6">
+        <div className="md:w-1/3 space-y-6">
           {/* Action Buttons */}
           <div className="space-y-2">
             <Button
               variant="ghost"
-              className="w-full justify-between bg-[]"
+              className="w-full flex justify-end md:justify-between flex-row-reverse md:flex-row"
               size="lg"
               onClick={() => router.push("/messages")}
             >
               Message business <MessageSquare className="mr-2 h-4 w-4" />
             </Button>
-            <Button variant="ghost" className="w-full justify-between">
+            <Button variant="ghost" className="w-full flex justify-end md:justify-between flex-row-reverse md:flex-row">
               <span className="ml-2 hidden sm:inline">{business.phone}</span>{" "}
               <Phone className="h-4 w-4" />
             </Button>
             <div className="flex items-center justify-start flex-col">
-              <Button variant="ghost" className="w-full justify-between">
+              <Button variant="ghost" className="w-full flex justify-end md:justify-between flex-row-reverse md:flex-row">
                 <span className="ml-2 hidden sm:inline">Get Directions</span>{" "}
                 <MapPin className="h-4 w-4" />
               </Button>
@@ -491,7 +491,7 @@ export default function BusinessPage() {
             {businesses?.businesses.map((business) => (
               <CarouselItem
                 key={business.$id}
-                className="basis-1/1 sm:basis-1/3 md:basis-1/4 lg:basis-1/3"
+                className="basis-1/1 md:basis-1/2"
               >
                 <ListingCard hideButton={true} business={business} />
               </CarouselItem>

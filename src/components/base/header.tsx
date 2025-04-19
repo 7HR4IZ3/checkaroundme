@@ -58,7 +58,7 @@ const Header = () => {
   return (
     <header className="bg-background sticky top-0 z-50 border-b">
       <nav className="mx-4 px-2 sm:px-6 lg:px-4 py-4 flex justify-between items-center gap-4">
-        <Link href="/" className="w-1/4">
+        <Link href="/" className="">
           <Image
             src="/images/logo.png"
             alt="CheckAroundMe Logo"
@@ -68,8 +68,8 @@ const Header = () => {
         </Link>
 
         <div className="flex justify-center items-center space-x-2 flex-grow">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center border border-gray-300 rounded-full">
+          <div className="flex items-center justify-center gap-2 w-full md:w-[40vw] lg:w-[40%]">
+            <div className="flex items-center border border-gray-300 rounded-full flex-grow">
               <Input
                 type="text"
                 placeholder="Search..."
@@ -136,6 +136,7 @@ const Header = () => {
               </span>
 
               {/* Mobile menu */}
+              <div className="md:hidden">
 
               <DropdownMenu>
                 <DropdownMenuTrigger className="p-2">
@@ -162,6 +163,7 @@ const Header = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              </div>
             </>
           )}
         </div>
@@ -171,3 +173,58 @@ const Header = () => {
 };
 
 export default Header;
+
+
+/*
+
+{Object.keys(availableHours).map((day) => (
+            <div key={day} className="flex justify-between">
+              <span>{day}</span>
+              <div className="flex flex-row">
+                <Checkbox
+                  className="flex items-center "
+                  defaultChecked={availableHours[day].closed}
+                  onCheckedChange={(ev) =>
+                    updateBusinessHours(day, "closed", ev.valueOf())
+                  }
+                />
+                <Input
+                  type="time"
+                  defaultValue={availableHours[day].start}
+                  onChange={(ev) =>
+                    updateBusinessHours(day, "start", ev.target.value)
+                  }
+                  disabled={availableHours[day].closed}
+                  name={day + "-start"}
+                ></Input>{" "}
+                -{" "}
+                <Input
+                  type="time"
+                  defaultValue={availableHours[day].end}
+                  onChange={(ev) =>
+                    updateBusinessHours(day, "end", ev.target.value)
+                  }
+                  disabled={availableHours[day].closed}
+                  name={day + "-end"}
+                ></Input>
+              </div>
+            </div>
+          ))}
+
+         
+  const updateBusinessHours = (
+    day: string,
+    type: "start" | "end" | "closed",
+    value: string | boolean
+  ) => {
+    console.log(day, type, value);
+    setAvailableHours((prev) => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        [type]: value,
+      },
+    }));
+  }; 
+
+*/

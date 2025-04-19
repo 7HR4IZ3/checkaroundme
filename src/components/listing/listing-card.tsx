@@ -17,8 +17,8 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
   });
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-row p-2 relative align-between">
-      <div className="w-1/3 md:w-1/2 relative">
+    <div className="h-[15em] bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-row p-2 relative">
+      <div className="w-[15em] m:w-1/2 relative">
         <Image
           src={image?.imageUrl!}
           alt={business.name}
@@ -28,16 +28,25 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
         />
       </div>
       <div className="flex-grow px-4 py-4 flex flex-col justify-between">
-        <div className="my-auto">
-          <Link href={`/business/${business.$id}`}>
-            <h3 className="text-lg font-semibold text-gray-800 mb-1">
-              {business.name}
-            </h3>
-          </Link>
-          <div className="flex items-center mb-2">
+        <div className="flex flex-col justify-between">
+          <div className="flex justify-between items-start">
+            <Link href={`/business/${business.$id}`}>
+              <h3 className="text-xl font-semibold text-gray-800">
+                {business.name}
+              </h3>
+            </Link>
+            <div className="flex items-center font-bold text-xs text-gray-500">
+              <FaMapMarkerAlt className="mr-1.5" />
+              <span>{business.addressLine1}</span>
+            </div>
+          </div>
+          <div className="flex items-center mt-1 mb-2">
             <RatingStars rating={business.rating} />
-            <span className="ml-2 text-sm text-gray-600">
-              {business.rating.toFixed(1)} ({business.reviewCount} reviews)
+            <span className="ml-2 text-sm font-bold text-gray-600 mr-2">
+              {business.rating.toFixed(1)}
+            </span>
+            <span>
+            ({business.reviewCount} {business.reviewCount === 1 ? "review" : "reviews"})
             </span>
           </div>
           <div className="flex flex-wrap gap-2 mb-1">
@@ -52,22 +61,18 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
           </div>
           <p className="text-sm text-gray-600 leading-relaxed mb-1">
             {business.description}..{" "}
-            <button className="text-blue-600 hover:underline text-sm">
+            {/* <button className="text-blue-600 hover:underline text-sm">
               more
-            </button>
+            </button> */}
           </p>
         </div>
-        <div className="flex flex-row sm:items-center justify-between pt-3 align-end mt-auto border-t border-gray-100">
-          <div className="flex items-center text-sm text-gray-500">
-            <FaMapMarkerAlt className="mr-1.5" />
-            <span>{business.addressLine1}</span>
-          </div>
-          {!hideButton && (
+        {!hideButton && (
+          <div className="flex flex-row sm:items-center justify-end align-end mt-auto">
             <Button size="sm" className="bg-[#2E57A9]">
               <FaCommentDots /> Write a message
             </Button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

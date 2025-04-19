@@ -59,12 +59,14 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
+      // @ts-ignore
       value={{
-        isAuthenticated,
+        isAuthenticated: isAuthenticated,
         user: user?.user ?? null,
         profile: user?.profile ?? null,
         login,
         logout,
+        isLoading: loadingCurrentUser,
       }}
     >
       {children}

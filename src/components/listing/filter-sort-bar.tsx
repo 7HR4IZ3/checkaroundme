@@ -22,6 +22,11 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
   const [sortBy, setSortBy] = React.useState("recommended");
 
   const handleCategoryClick = (value: string) => {
+    if (value === 'price_low_to_high' || value === 'price_high_to_low') {
+      onChangeCategories([value]); // Price sort is exclusive
+      return;
+    }
+
     const isSelected = selectedCategories.includes(value);
     if (isSelected) {
       onChangeCategories(selectedCategories.filter((cat) => cat !== value));
@@ -36,15 +41,29 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
         <Button
           variant="outline"
           size="sm"
-          onClick={onOpenFiltersPanel}
+          className="rounded-full"
+          onClick={onOpenFiltersPanel} // All categories
         >
-          <FaSlidersH /> Filters
+          <FaSlidersH className="mr-2" size={16} />
+          All
         </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="rounded-full">
+              Price <FaChevronDown className="ml-1" size={12} />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56">
+            <DropdownMenuItem onClick={() => handleCategoryClick('price_low_to_high')}>Price: Low to High</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleCategoryClick('price_high_to_low')}>Price: High to Low</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         {CATEGORIES.map((cat) => (
           <Button
             key={cat.value}
             variant={selectedCategories.includes(cat.value) ? "default" : "outline"}
             size="sm"
+            className="rounded-full"
             onClick={() => handleCategoryClick(cat.value)}
           >
             {cat.label}
@@ -52,13 +71,26 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
         ))}
       </div>
       <div className="flex items-center">
-        <span className="text-sm text-gray-600 mr-2">Sort:</span>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 text-capital" type="button">
-              {sortBy}
-              <FaChevronDown className="ml-1" size={10} />
-            </button>
+            <Button variant="ghost" size="sm">
+              Location: Lagos, Ikeja <FaChevronDown className="ml-1" size={12} />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56">
+            <div className="p-2 text-sm font-bold text-gray-700">LOCATION FILTER</div>
+            <DropdownMenuItem>Abuja FCT</DropdownMenuItem>
+            <DropdownMenuItem>Ibadan</DropdownMenuItem>
+            <DropdownMenuItem>Lagos</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <span className="text-sm text-gray-600 mx-2">Sort:</span>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm">
+              Recommended
+              <FaChevronDown className="ml-1" size={12} />
+            </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56">
             <DropdownMenuItem onClick={() => setSortBy("recommended")}>Recommended</DropdownMenuItem>

@@ -18,11 +18,13 @@ export const createUserSchema = userSchema.omit({
 });
 
 // User update schema (partial, omit id, createdAt, updatedAt, email, password)
-export const updateUserSchema = userSchema.omit({
-  $id: true,
-  createdAt: true,
-  updatedAt: true,
-}).partial();
+export const updateUserSchema = userSchema
+  .omit({
+    $id: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .partial();
 
 // Business schema
 export const businessSchema = z.object({
@@ -41,16 +43,19 @@ export const businessSchema = z.object({
   state: z.string().optional(),
   country: z.string().default("Nigeria"),
   postalCode: z.string().optional(),
-  coordinates: z.object({
-    latitude: z.number(),
-    longitude: z.number(),
-  }).optional(),
+  paymentOptions: z.array(z.string()).optional(),
+  coordinates: z
+    .object({
+      latitude: z.number(),
+      longitude: z.number(),
+    })
+    .optional(),
   phone: z.string().optional(),
   email: z.string().email().optional(),
   website: z.string().url().optional(),
   createdAt: z.date().default(() => new Date()),
   updatedAt: z.date().default(() => new Date()),
-  ownerId: z.string().uuid(), // Reference to user who owns this business
+  ownerId: z.string().uuid(),
 });
 
 // Business create schema (omit id, rating, reviewCount, createdAt, updatedAt)
@@ -63,14 +68,16 @@ export const createBusinessSchema = businessSchema.omit({
 });
 
 // Business update schema (partial, omit id, rating, reviewCount, createdAt, updatedAt, ownerId)
-export const updateBusinessSchema = businessSchema.omit({
-  $id: true,
-  rating: true,
-  reviewCount: true,
-  createdAt: true,
-  updatedAt: true,
-  ownerId: true,
-}).partial();
+export const updateBusinessSchema = businessSchema
+  .omit({
+    $id: true,
+    rating: true,
+    reviewCount: true,
+    createdAt: true,
+    updatedAt: true,
+    ownerId: true,
+  })
+  .partial();
 
 // Business Hours schema
 export const businessHoursSchema = z.object({
