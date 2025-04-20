@@ -1,9 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { FaArrowRight } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { ArrowRight } from "lucide-react";
 
 interface HeroProps {
   title?: string;
@@ -48,7 +48,7 @@ const Hero: React.FC<HeroProps> = ({ title, subtitles }) => {
           onClick={() => router.push("/listings")}
         >
           <span className="text-xs">EXPLORE</span>
-          <FaArrowRight style={{ transform: "rotate(-45deg)" }} className="" />
+          <ArrowRight style={{ transform: "rotate(-45deg)" }} className="" />
         </Button>
       </div>
     </div>

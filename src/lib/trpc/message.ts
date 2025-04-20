@@ -21,7 +21,7 @@ export function createMessageProcedures(
           image: z.any().optional(), // File upload handling may need to be adapted for your setup
         })
       )
-      .output(messageSchema)
+      // .output(messageSchema)
       .mutation(async ({ input }) => {
         const { conversationId, senderId, text, image } = input;
         return await MessageService.sendMessage(
@@ -40,7 +40,7 @@ export function createMessageProcedures(
           offset: z.number().optional(),
         })
       )
-      .output(z.array(messageSchema))
+      // .output(z.array(messageSchema))
       .query(async ({ input }) => {
         return await MessageService.getConversationMessages(
           input.conversationId,
@@ -56,7 +56,7 @@ export function createMessageProcedures(
           userId: z.string(),
         })
       )
-      .output(z.object({ success: z.boolean() }))
+      // .output(z.object({ success: z.boolean() }))
       .mutation(async ({ input }) => {
         await MessageService.markMessagesAsRead(
           input.conversationId,

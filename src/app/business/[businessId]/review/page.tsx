@@ -5,20 +5,55 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ArrowRight, Star } from "lucide-react"; // Import ArrowRight icon
+import { redirect, useParams } from "next/navigation";
+import { trpc } from "@/lib/trpc/client";
+import Loading, { LoadingSVG } from "@/components/ui/loading";
+import { useAuth } from "@/lib/hooks/useClientAuth";
 
 export default function ReviewForm() {
+  const params = useParams();
+  const { user, isAuthenticated } = useAuth();
+
+  const businessId = params.businessId as string;
+  if (!isAuthenticated || !businessId) {
+    return redirect("/");
+  }
+
+  const [loading, setLoading] = useState(false);
   const [reviewText, setReviewText] = useState("");
   const [rating, setRating] = useState<number | null>(null);
-  const minChars = 85;
 
-  const handleRating = (rate: number) => {
-    setRating(rate);
+  const review = trpc.createReview.useMutation();
+  const { data: business, isLoading } = trpc.getBusinessById.useQuery({
+    businessId,
+  });
+
+  if (isLoading) {
+    return <Loading />;
+  }
+
+
+  const handlePostReview = async () => {
+    // Add proper errors to UI
+    if (!rating) return;
+    if (!reviewText || reviewText.length < 85) return;
+
+    setLoading(true);
+
+    await review.mutateAsync({
+      businessId,
+      rating,
+      text: reviewText,
+      userId: user.$id,
+    });
+
+    redirect(`/business/${businessId}`);
   };
 
   return (
     // Simplified container styling
     <div className="container p-6 mx-auto h-[70vh]">
-      <h2 className="text-xl font-semibold my-8">Mobile Mercedes Mechanic</h2>
+      <h2 className="text-xl font-semibold my-8">{business?.name}</h2>
 
       {/* Rating section */}
       <div className="mb-4">
@@ -31,7 +66,7 @@ export default function ReviewForm() {
               key={star}
               variant={rating && rating >= star ? "default" : "outline"}
               size="icon"
-              onClick={() => handleRating(star)}
+              onClick={() => setRating(star)}
               aria-label={`Rate ${star} out of 5 stars`}
               className="bg-white hover:bg-white border-0"
             >
@@ -63,23 +98,41 @@ export default function ReviewForm() {
           <span className="text-xs px-2 py-1 bg-secondary rounded">Value</span>
         </div>
         {/* Label removed, placeholder updated */}
-        <Textarea
-          id="review-text"
-          placeholder="Reply review..." // Updated placeholder
-          value={reviewText}
-          onChange={(e) => setReviewText(e.target.value)}
-          className="min-h-[320px] border-0" // Keep min height, adjust if needed based on visual result
-        />
-        {/* Character count removed */}
+        <div className="relative">
+          <Textarea
+            id="review-text"
+            placeholder="Reply review..." // Updated placeholder
+            value={reviewText}
+            onChange={(e) => setReviewText(e.target.value)}
+            className="min-h-[320px] border-0" // Keep min height, adjust if needed based on visual result
+            minLength={85}
+          />
+          <div className={`absolute bottom-2 right-2 text-xs ${reviewText.length < 85 ? 'text-red-500' : 'text-muted-foreground'}`}>
+            {reviewText.length}/85
+          </div>
+        </div>
       </div>
 
       <Button
         // disabled logic removed, assuming button is always enabled or handled elsewhere
         className="w-1/4 rounded-full h-[4em] bg-[#2E57A9]"
-        // Add specific styling if needed to match the blue button, e.g., bg-blue-600 text-white hover:bg-blue-700
+        disabled={loading || reviewText.length < 85 || !rating}
+        onClick={handlePostReview}
       >
-        REPLY REVIEW
-        <ArrowRight className="ml-2 h-4 w-4" /> {/* Use ArrowRight icon */}
+        {loading ? (
+          <>
+            Posting Review...
+            <LoadingSVG />
+          </>
+        ) : (
+          <>
+            Post Review
+            <ArrowRight
+              className="ml-2 h-4 w-4"
+              style={{ transform: "rotate(-45deg)" }}
+            />
+          </>
+        )}
       </Button>
     </div>
   );

@@ -18,7 +18,7 @@ export function createConversationProcedures(
           userIds: z.array(z.string()),
         })
       )
-      .output(conversationSchema)
+      // .output(conversationSchema)
       .mutation(async ({ input }) => {
         return await ConversationService.getOrCreateConversation(input.userIds);
       }),
@@ -29,14 +29,14 @@ export function createConversationProcedures(
           userId: z.string(),
         })
       )
-      .output(
-        z.object({
-          conversations: z.array(conversationSchema),
-          lastMessages: z.record(z.string(), messageSchema),
-          unreadCounts: z.record(z.string(), z.number()),
-          participants: z.record(z.string(), z.array(userSchema)),
-        })
-      )
+      // .output(
+      //   z.object({
+      //     conversations: z.array(conversationSchema),
+      //     lastMessages: z.record(z.string(), messageSchema),
+      //     unreadCounts: z.record(z.string(), z.number()),
+      //     participants: z.record(z.string(), z.array(userSchema)),
+      //   })
+      // )
       .query(async ({ input }) => {
         return await ConversationService.getUserConversations(input.userId);
       }),

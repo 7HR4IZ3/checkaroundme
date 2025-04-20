@@ -237,7 +237,7 @@ export const UserService = {
   async getUserById(userId: string): Promise<Models.User<Models.Preferences>> {
     try {
       const user = await users.get(userId);
-      return user
+      return user;
     } catch (error) {
       console.error("Get user error:", error);
       throw error;
@@ -363,7 +363,8 @@ export const BusinessService = {
 
       await BusinessHoursService.setBusinessHours(updatedBusiness.$id, hours);
       await BusinessImagesService.uploadTempImagesToBusiness(
-        updatedBusiness.$id, images
+        updatedBusiness.$id,
+        images
       );
 
       return updatedBusiness as unknown as Business;
@@ -1045,9 +1046,9 @@ export const MessageService = {
     image?: File
   ): Promise<Message> {
     try {
-      let imageUrl = "";
-      let imageName = "";
-      let imageSize = "";
+      let imageUrl = null;
+      let imageName = null;
+      let imageSize = null;
 
       // Upload image if provided
       if (image) {
@@ -1072,10 +1073,10 @@ export const MessageService = {
         {
           conversationId,
           senderId,
-          text: text || "",
-          imageUrl: imageUrl || "",
-          imageName: imageName || "",
-          imageSize: imageSize || "",
+          text,
+          imageUrl,
+          imageName,
+          imageSize,
           isRead: false,
           createdAt: new Date().toISOString(),
         }
@@ -1205,24 +1206,23 @@ export const ConversationService = {
     conversations: Conversation[];
     lastMessages: Record<string, Message>;
     unreadCounts: Record<string, number>;
-    participants: Record<string, User[]>;
+    participants: Record<string, Models.User<Models.Preferences>[]>;
   }> {
     try {
       // Get all conversations
-      const conversations = await databases.listDocuments(
-        DATABASE_ID,
-        CONVERSATIONS_COLLECTION_ID
-      );
-
-      // Filter by user's participation (client-side)
-      const userConversations = conversations.documents.filter((conv) =>
-        conv.participants.includes(userId)
-      ) as unknown as Conversation[];
+      const userConversations = (
+        await databases.listDocuments(
+          DATABASE_ID,
+          CONVERSATIONS_COLLECTION_ID,
+          [Query.contains("participants", userId)]
+        )
+      ).documents as unknown as Conversation[];
 
       // Get last messages for each conversation
       const lastMessages: Record<string, Message> = {};
       const unreadCounts: Record<string, number> = {};
-      const participants: Record<string, User[]> = {};
+      const participants: Record<string, Models.User<Models.Preferences>[]> =
+        {};
 
       for (const conv of userConversations) {
         // Get last message
@@ -1259,16 +1259,11 @@ export const ConversationService = {
         const otherParticipantIds = conv.participants.filter(
           (id) => id !== userId
         );
-        const otherParticipants: User[] = [];
+        const otherParticipants: Models.User<Models.Preferences>[] = [];
 
         for (const participantId of otherParticipantIds) {
           try {
-            const user = await databases.getDocument(
-              DATABASE_ID,
-              USERS_COLLECTION_ID,
-              participantId
-            );
-            otherParticipants.push(user as unknown as User);
+            otherParticipants.push(await users.get(participantId));
           } catch (e) {
             console.error(`Error fetching user ${participantId}:`, e);
           }
