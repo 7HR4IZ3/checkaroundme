@@ -198,8 +198,6 @@ export default function BusinessPage() {
 
   const { data: businesses } = trpc.listBusinesses.useQuery({ limit: 5 });
 
-  console.log(reviews);
-
   // Loading and error states
   if (isBusinessLoading || isImagesLoading || isHoursLoading) {
     return <Loading />;
@@ -372,13 +370,17 @@ export default function BusinessPage() {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  className="bg-[#2E57A9] text-white"
-                  onClick={() => router.push(`/business/${businessId}/review`)}
-                >
-                  <Star className="mr-2 h-4 w-4" /> Write a review
-                </Button>
+                {isAuthenticated && (
+                  <Button
+                    variant="outline"
+                    className="bg-[#2E57A9] text-white"
+                    onClick={() =>
+                      router.push(`/business/${businessId}/review`)
+                    }
+                  >
+                    <Star className="mr-2 h-4 w-4" /> Write a review
+                  </Button>
+                )}
                 {user?.$id === business.ownerId && (
                   <Button
                     variant="outline"
@@ -564,21 +566,36 @@ export default function BusinessPage() {
                     {(() => {
                       // Calculate star distribution
                       const starCounts = [0, 0, 0, 0, 0];
-                      reviews?.reviews.forEach(review => {
+                      reviews?.reviews.forEach((review) => {
                         const stars = Math.round(review.rating);
                         if (stars >= 1 && stars <= 5) {
                           starCounts[stars - 1]++;
                         }
                       });
-                      
+
                       const totalReviews = reviews?.reviews.length || 1;
                       return (
                         <>
-                          <RatingBar stars={5} percentage={(starCounts[4] / totalReviews) * 100} />
-                          <RatingBar stars={4} percentage={(starCounts[3] / totalReviews) * 100} />
-                          <RatingBar stars={3} percentage={(starCounts[2] / totalReviews) * 100} />
-                          <RatingBar stars={2} percentage={(starCounts[1] / totalReviews) * 100} />
-                          <RatingBar stars={1} percentage={(starCounts[0] / totalReviews) * 100} />
+                          <RatingBar
+                            stars={5}
+                            percentage={(starCounts[4] / totalReviews) * 100}
+                          />
+                          <RatingBar
+                            stars={4}
+                            percentage={(starCounts[3] / totalReviews) * 100}
+                          />
+                          <RatingBar
+                            stars={3}
+                            percentage={(starCounts[2] / totalReviews) * 100}
+                          />
+                          <RatingBar
+                            stars={2}
+                            percentage={(starCounts[1] / totalReviews) * 100}
+                          />
+                          <RatingBar
+                            stars={1}
+                            percentage={(starCounts[0] / totalReviews) * 100}
+                          />
                         </>
                       );
                     })()}
@@ -587,7 +604,7 @@ export default function BusinessPage() {
                   <div className="flex-1 w-full flex items-center justify-center">
                     <Button
                       variant="link"
-                      onClick={() => router.push('/auth')}
+                      onClick={() => router.push("/auth")}
                       className="text-blue-600"
                     >
                       Sign in to see rating distribution

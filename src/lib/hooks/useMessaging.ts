@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import { ConversationService, MessageService } from "../appwrite";
 import { useAuth } from "./useClientAuth";
 import { Message, Conversation, User } from "../schema";
+import type { Models } from "appwrite";
 
 interface ConversationWithDetails {
   conversation: Conversation;
   lastMessage: Message | null;
   unreadCount: number;
-  participants: User[];
+  participants: Models.User<Models.Preferences>[];
 }
 
 export function useMessaging() {
