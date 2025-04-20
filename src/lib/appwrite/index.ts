@@ -25,6 +25,7 @@ import {
   Message,
   Conversation,
   AuthSession,
+  DaySchema,
 } from "../schema";
 import { createAdminClient } from "./admin";
 import { create } from "domain";
@@ -233,15 +234,10 @@ export const AuthService = {
 // User Service
 export const UserService = {
   // Get user by ID
-  async getUserById(userId: string): Promise<User> {
+  async getUserById(userId: string): Promise<Models.User<Models.Preferences>> {
     try {
-      const user = await databases.getDocument(
-        DATABASE_ID,
-        USERS_COLLECTION_ID,
-        userId
-      );
-
-      return user as unknown as User;
+      const user = await users.get(userId);
+      return user
     } catch (error) {
       console.error("Get user error:", error);
       throw error;
@@ -296,7 +292,9 @@ export const BusinessService = {
       Business,
       "$id" | "createdAt" | "updatedAt" | "rating" | "reviewCount"
     >,
-    userId: string
+    userId: string,
+    hours: { [key: string]: DaySchema },
+    images: { isPrimary: boolean; imageID: string }[]
   ): Promise<Business> {
     try {
       const newBusiness = await databases.createDocument(
@@ -305,12 +303,19 @@ export const BusinessService = {
         ID.unique(),
         {
           ...data,
-          ownerId: userId,
           rating: 0,
           reviewCount: 0,
+          ownerId: userId,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         }
+      );
+
+      await BusinessHoursService.setBusinessHours(newBusiness.$id, hours);
+
+      await BusinessImagesService.uploadTempImagesToBusiness(
+        newBusiness.$id,
+        images
       );
 
       return newBusiness as unknown as Business;
@@ -339,17 +344,26 @@ export const BusinessService = {
   // Update business
   async updateBusiness(
     businessId: string,
-    data: Partial<Business>
+    data: Partial<Business> & {
+      hours: { [key: string]: DaySchema };
+      images: { isPrimary: boolean; imageID: string }[];
+    }
   ): Promise<Business> {
+    const { hours, images, ...business } = data;
     try {
       const updatedBusiness = await databases.updateDocument(
         DATABASE_ID,
         BUSINESSES_COLLECTION_ID,
         businessId,
         {
-          ...data,
+          ...business,
           updatedAt: new Date().toISOString(),
         }
+      );
+
+      await BusinessHoursService.setBusinessHours(updatedBusiness.$id, hours);
+      await BusinessImagesService.uploadTempImagesToBusiness(
+        updatedBusiness.$id, images
       );
 
       return updatedBusiness as unknown as Business;
@@ -491,10 +505,9 @@ export const BusinessHoursService = {
   // Add/update business hours
   async setBusinessHours(
     businessId: string,
-    hours: Omit<BusinessHours, "$id">[]
+    hours: { [key: string]: DaySchema }
   ): Promise<BusinessHours[]> {
     try {
-      // Delete existing hours first
       const existing = await databases.listDocuments(
         DATABASE_ID,
         BUSINESS_HOURS_COLLECTION_ID,
@@ -512,17 +525,17 @@ export const BusinessHoursService = {
 
       // Create new hours
       const results = [];
-      for (const hour of hours) {
+      for (const hour in hours) {
         const newHour = await databases.createDocument(
           DATABASE_ID,
           BUSINESS_HOURS_COLLECTION_ID,
           ID.unique(),
           {
             businessId,
-            day: hour.day,
-            openTime: hour.openTime,
-            closeTime: hour.closeTime,
-            isClosed: hour.isClosed,
+            day: hour,
+            openTime: hours[hour].open,
+            closeTime: hours[hour].close,
+            isClosed: hours[hour].closed,
           }
         );
 
@@ -557,32 +570,38 @@ export const BusinessHoursService = {
 export const BusinessImagesService = {
   // Temporary upload image
   async uploadTempBusinessImage(
-    file: File,
-    userID: string
-  ): Promise<BusinessImage> {
-    console.log(file);
+    files: File[],
+    userID: string,
+    businessId?: string | null
+  ): Promise<BusinessImage[]> {
     try {
-      const result = await storage.createFile(
-        BUSINESS_IMAGES_BUCKET_ID,
-        ID.unique(),
-        file
-      );
+      const images: BusinessImage[] = [];
 
-      const image = await databases.createDocument(
-        DATABASE_ID,
-        BUSINESS_IMAGES_COLLECTION_ID,
-        result.$id,
-        {
-          businessId: userID,
-          imageUrl: getImageURl(result.$id),
-          title: file.name,
-          isPrimary: false,
-          createdAt: new Date().toISOString(),
-          uploadedBy: userID,
-        }
-      );
+      for (const file of files) {
+        const result = await storage.createFile(
+          BUSINESS_IMAGES_BUCKET_ID,
+          ID.unique(),
+          file
+        );
 
-      return image as unknown as BusinessImage;
+        const image = await databases.createDocument(
+          DATABASE_ID,
+          BUSINESS_IMAGES_COLLECTION_ID,
+          result.$id,
+          {
+            businessId: businessId || userID,
+            imageUrl: getImageURl(result.$id),
+            title: file.name,
+            isPrimary: false,
+            createdAt: new Date().toISOString(),
+            uploadedBy: userID,
+          }
+        );
+
+        images.push(image as unknown as BusinessImage);
+      }
+
+      return images;
     } catch (error) {
       console.error("Upload temp image error:", error);
       throw error;
@@ -648,11 +667,8 @@ export const BusinessImagesService = {
 
   async uploadTempImagesToBusiness(
     businessId: string,
-    images: BusinessImage[]
+    images: { isPrimary: boolean; imageID: string }[]
   ): Promise<void> {
-    // Verify business exists
-    await BusinessService.getBusinessById(businessId);
-
     let hasPrimaryimage = false;
     for (const [index, image] of images.reverse().entries()) {
       hasPrimaryimage = !hasPrimaryimage
@@ -662,7 +678,7 @@ export const BusinessImagesService = {
       await databases.updateDocument(
         DATABASE_ID,
         BUSINESS_IMAGES_COLLECTION_ID,
-        image.$id,
+        image.imageID,
         {
           businessId,
           isPrimary: hasPrimaryimage,
@@ -709,20 +725,7 @@ export const BusinessImagesService = {
   // Delete business image
   async deleteBusinessImage(imageId: string): Promise<void> {
     try {
-      const image = (await databases.getDocument(
-        DATABASE_ID,
-        BUSINESS_IMAGES_COLLECTION_ID,
-        imageId
-      )) as unknown as BusinessImage;
-
-      // Extract file ID from imageUrl
-      const url = new URL(image.imageUrl);
-      const fileId = url.pathname.split("/").pop();
-
-      if (fileId) {
-        await storage.deleteFile(BUSINESS_IMAGES_BUCKET_ID, fileId);
-      }
-
+      await storage.deleteFile(BUSINESS_IMAGES_BUCKET_ID, imageId);
       await databases.deleteDocument(
         DATABASE_ID,
         BUSINESS_IMAGES_COLLECTION_ID,
@@ -782,13 +785,6 @@ export const ReviewService = {
     offset: number = 0
   ): Promise<{ reviews: Review[]; total: number }> {
     try {
-      // Get total count
-      const total = await databases.listDocuments(
-        DATABASE_ID,
-        REVIEWS_COLLECTION_ID,
-        [Query.equal("businessId", businessId)]
-      );
-
       // Get paginated results
       const result = await databases.listDocuments(
         DATABASE_ID,
@@ -803,7 +799,7 @@ export const ReviewService = {
 
       return {
         reviews: result.documents as unknown as Review[],
-        total: total.total,
+        total: result.total,
       };
     } catch (error) {
       console.error("Get business reviews error:", error);
@@ -877,6 +873,32 @@ export const ReviewService = {
       }
     } catch (error) {
       console.error("React to review error:", error);
+      throw error;
+    }
+  },
+
+  // Reply to a review
+  async replyToReview(
+    reviewId: string,
+    replyText: string
+    // userId: string // Optional: Add userId if you need to verify the replier is the business owner
+  ): Promise<Review> {
+    try {
+      // TODO: Add authorization check here if needed (e.g., ensure userId owns the business associated with the review)
+
+      const updatedReview = await databases.updateDocument(
+        DATABASE_ID,
+        REVIEWS_COLLECTION_ID,
+        reviewId,
+        {
+          replyText: replyText, // Assuming 'replyText' field exists in your schema/collection
+          updatedAt: new Date().toISOString(), // Update timestamp
+        }
+      );
+
+      return updatedReview as unknown as Review;
+    } catch (error) {
+      console.error("Reply to review error:", error);
       throw error;
     }
   },

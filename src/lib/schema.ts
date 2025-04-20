@@ -1,8 +1,14 @@
 import { z } from "zod";
 
+export const daySchema = z.object({
+  open: z.string(),
+  close: z.string(),
+  closed: z.boolean(),
+});
+
 // User schema
 export const userSchema = z.object({
-  $id: z.string().uuid(),
+  $id: z.string(),
   fullName: z.string().min(2, "Name must be at least 2 characters"),
   phone: z.string().optional(),
   avatarUrl: z.string().url().optional(),
@@ -28,9 +34,8 @@ export const updateUserSchema = userSchema
 
 // Business schema
 export const businessSchema = z.object({
-  $id: z.string().uuid(),
+  $id: z.string(),
   name: z.string().min(3, "Business name must be at least 3 characters"),
-  description: z.string().optional(),
   about: z.string().optional(),
   categories: z.array(z.string()),
   services: z.array(z.string()).optional(),
@@ -55,7 +60,7 @@ export const businessSchema = z.object({
   website: z.string().url().optional(),
   createdAt: z.date().default(() => new Date()),
   updatedAt: z.date().default(() => new Date()),
-  ownerId: z.string().uuid(),
+  ownerId: z.string(),
 });
 
 // Business create schema (omit id, rating, reviewCount, createdAt, updatedAt)
@@ -81,8 +86,8 @@ export const updateBusinessSchema = businessSchema
 
 // Business Hours schema
 export const businessHoursSchema = z.object({
-  $id: z.string().uuid(),
-  businessId: z.string().uuid(),
+  $id: z.string(),
+  businessId: z.string(),
   day: z.enum(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]),
   openTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9] (AM|PM)$/), // Format: "9:00 AM"
   closeTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9] (AM|PM)$/), // Format: "6:00 PM"
@@ -91,20 +96,20 @@ export const businessHoursSchema = z.object({
 
 // Business Image schema
 export const businessImageSchema = z.object({
-  $id: z.string().uuid(),
-  businessId: z.string().uuid(),
+  $id: z.string(),
+  businessId: z.string(),
   imageUrl: z.string().url(),
   title: z.string().optional(),
   isPrimary: z.boolean().default(false),
   createdAt: z.date().default(() => new Date()),
-  uploadedBy: z.string().uuid().optional(), // User ID who uploaded
+  uploadedBy: z.string().optional(), // User ID who uploaded
 });
 
 // Review schema
 export const reviewSchema = z.object({
-  $id: z.string().uuid(),
-  businessId: z.string().uuid(),
-  userId: z.string().uuid(),
+  $id: z.string(),
+  businessId: z.string(),
+  userId: z.string(),
   rating: z.number().min(1).max(5),
   title: z.string().optional(),
   text: z.string().min(85, "Review must be at least 85 characters"),
@@ -117,27 +122,27 @@ export const reviewSchema = z.object({
 
 // Review Reaction schema (for likes/dislikes)
 export const reviewReactionSchema = z.object({
-  $id: z.string().uuid(),
-  reviewId: z.string().uuid(),
-  userId: z.string().uuid(),
+  $id: z.string(),
+  reviewId: z.string(),
+  userId: z.string(),
   type: z.enum(["like", "dislike"]),
   createdAt: z.date().default(() => new Date()),
 });
 
 // Category schema
 export const categorySchema = z.object({
-  $id: z.string().uuid(),
+  $id: z.string(),
   name: z.string(),
   description: z.string().optional(),
   imageUrl: z.string().url().optional(),
-  parentId: z.string().uuid().optional(), // For subcategories
+  parentId: z.string().optional(), // For subcategories
 });
 
 // Message schema
 export const messageSchema = z.object({
-  $id: z.string().uuid(),
-  conversationId: z.string().uuid(),
-  senderId: z.string().uuid(),
+  $id: z.string(),
+  conversationId: z.string(),
+  senderId: z.string(),
   text: z.string().optional(),
   imageUrl: z.string().url().optional(),
   imageName: z.string().optional(),
@@ -148,17 +153,17 @@ export const messageSchema = z.object({
 
 // Conversation schema
 export const conversationSchema = z.object({
-  $id: z.string().uuid(),
-  participants: z.array(z.string().uuid()), // Array of user IDs
-  lastMessageId: z.string().uuid().optional(),
+  $id: z.string(),
+  participants: z.array(z.string()), // Array of user IDs
+  lastMessageId: z.string().optional(),
   createdAt: z.date().default(() => new Date()),
   updatedAt: z.date().default(() => new Date()),
 });
 
 // Auth Session schema
 export const authSessionSchema = z.object({
-  $id: z.string().uuid(),
-  userId: z.string().uuid(),
+  $id: z.string(),
+  userId: z.string(),
   token: z.string(),
   expiresAt: z.date(),
   createdAt: z.date().default(() => new Date()),
@@ -175,3 +180,4 @@ export type Category = z.infer<typeof categorySchema>;
 export type Message = z.infer<typeof messageSchema>;
 export type Conversation = z.infer<typeof conversationSchema>;
 export type AuthSession = z.infer<typeof authSessionSchema>;
+export type DaySchema = z.infer<typeof daySchema>

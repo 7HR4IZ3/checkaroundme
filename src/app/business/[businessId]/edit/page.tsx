@@ -1,10 +1,9 @@
-// src/components/BusinessEditForm.tsx
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
-import Image from "next/image"; // Use next/image for optimization
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,35 +16,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card"; // For image previews
-import { X, Plus, Trash2 } from "lucide-react"; // Icons
-
-// Mock data structure for images and services
-interface BusinessImage {
-  id: string;
-  url: string;
-  alt: string;
-}
-
-// Mock available hours structure
+import { Card } from "@/components/ui/card";
+import { X, Plus, Trash2, MoreVertical } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useAuth } from "@/lib/hooks/useClientAuth";
+import { BusinessImage } from "@/lib/schema";
+import { LoadingSVG } from "@/components/ui/loading";
 
 export default function BusinessEditForm() {
-  // --- State Hooks ---
-  const [businessName, setBusinessName] = useState("");
-  const [aboutBusiness, setAboutBusiness] = useState("");
-  const [businessImages, setBusinessImages] = useState<BusinessImage[]>([]);
-  const [businessAddress, setBusinessAddress] = useState("");
-  const [phoneCountryCode, setPhoneCountryCode] = useState("+234");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [businessCategory, setBusinessCategory] = useState("");
-  const [servicesOffered, setServicesOffered] = useState<string[]>([]);
-  const [availableHours, setAvailableHours] = useState<
-    { day: string; hours: string }[]
-  >([]);
-  // Add state for adding new service if needed
-  // const [newService, setNewService] = useState("");
-
-  // --- tRPC: Get businessId from params and fetch data ---
+  const { user, isAuthenticated } = useAuth();
+  const router = useRouter();
   const params = useParams();
   const businessId =
     typeof params.businessId === "string"
@@ -53,6 +33,57 @@ export default function BusinessEditForm() {
       : Array.isArray(params.businessId)
       ? params.businessId[0]
       : "";
+
+  if (!isAuthenticated) {
+    router.push("/auth");
+    return null;
+  }
+
+  // --- State Hooks ---
+  const [businessName, setBusinessName] = useState("");
+  const [aboutBusiness, setAboutBusiness] = useState("");
+  const [addressLine1, setAddressLine1] = useState("");
+  const [addressLine2, setAddressLine2] = useState("");
+  const [city, setCity] = useState("");
+  const [country, setCountry] = useState("");
+  const [newService, setNewService] = useState("");
+  const [phoneCountryCode, setPhoneCountryCode] = useState("+234");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [businessCategory, setBusinessCategory] = useState("");
+  const [servicesOffered, setServicesOffered] = useState<string[]>([]);
+  const [isImageUploading, setIsImageUploading] = useState(false);
+  const [isImageDeleting, setIsImageDeleting] = useState<string[]>([]);
+
+  const [businessEmail, setBusinessEmail] = useState("");
+  const [businessWebsite, setBusinessWebsite] = useState("");
+  const [paymentOptions, setPaymentOptions] = useState<{
+    [key: string]: boolean;
+  }>({
+    cash: true,
+    transfer: true,
+  });
+  const [availableHours, setAvailableHours] = useState<{
+    [key: string]: { open: string; close: string; closed: boolean };
+  }>({
+    Mon: { open: "09:00", close: "18:00", closed: false },
+    Tue: { open: "09:00", close: "18:00", closed: false },
+    Wed: { open: "09:00", close: "18:00", closed: false },
+    Thu: { open: "09:00", close: "18:00", closed: false },
+    Fri: { open: "09:00", close: "18:00", closed: false },
+    Sat: { open: "09:00", close: "18:00", closed: false },
+    Sun: { open: "09:00", close: "18:00", closed: true },
+  });
+  const [createdBusinessId, setCreatedBusinessId] = useState<string | null>(
+    null
+  );
+
+  const [businessImages, setBusinessImages] = useState<BusinessImage[]>([]);
+
+  // --- tRPC mutations ---
+  const updateBusiness = trpc.updateBusiness.useMutation();
+  const deleteBusinessImage = trpc.deleteBusinessImage.useMutation();
+
+  const { data: businessCategories } = trpc.getAllCategories.useQuery();
 
   const {
     data: business,
@@ -78,195 +109,257 @@ export default function BusinessEditForm() {
     if (business) {
       setBusinessName(business.name ?? "");
       setAboutBusiness(business.about ?? "");
-      setBusinessAddress(
-        [business.addressLine1, business.addressLine2].filter(Boolean).join(" ")
-      );
+      setAddressLine1(business.addressLine1 ?? "");
       setPhoneNumber(business.phone ?? "");
       setBusinessCategory(business.categories?.[0] ?? "");
       setServicesOffered(business.services ?? []);
+      setPaymentOptions({
+        cash: business.paymentOptions?.includes("cash") ?? false,
+        transfer: business.paymentOptions?.includes("transfer") ?? false,
+      });
+      setBusinessEmail(business.email ?? "");
+      setBusinessWebsite(business.website ?? "");
+      setCity(business.city ?? "");
+      setCountry(business.country ?? "");
+
     }
     if (images) {
-      setBusinessImages(
-        images.map((img) => ({
-          id: img.$id,
-          url: img.imageUrl,
-          alt: img.title || "Business image",
-        }))
-      );
+      setBusinessImages(images);
     }
     if (hours) {
-      setAvailableHours(
-        hours.map((h) => ({
-          day: h.day,
-          hours: h.isClosed
-            ? "Closed"
-            : `${h.openTime ?? ""} - ${h.closeTime ?? ""}`,
-        }))
-      );
+      const formattedHours: any = {};
+
+      for (const hour of hours) {
+        formattedHours[hour.day] = {
+          open: hour.openTime ?? "",
+          close: hour.closeTime ?? "",
+          closed: hour.isClosed ?? false,
+        };
+      }
+
+      setAvailableHours(formattedHours);
     }
   }, [business, images, hours]);
 
-  // --- Handlers (Basic Placeholders) ---
-  // --- tRPC mutations ---
-  const updateBusiness = trpc.updateBusiness.useMutation();
-  const uploadBusinessImage = trpc.uploadBusinessImage.useMutation();
-  const deleteBusinessImage = trpc.deleteBusinessImage.useMutation();
-
+  const updateBusinessHours = (
+    day: string,
+    type: "start" | "end" | "closed",
+    value: string | boolean
+  ) => {
+    console.log(day, type, value);
+    setAvailableHours((prev) => ({
+      ...prev,
+      [day]: {
+        ...prev[day],
+        [type]: value,
+      },
+    }));
+  };
   // --- Handlers ---
   const handleImageDelete = async (idToDelete: string) => {
     try {
+      setIsImageDeleting((prev) => [...prev, idToDelete]);
       await deleteBusinessImage.mutateAsync({ imageId: idToDelete });
-      setBusinessImages((prev) => prev.filter((img) => img.id !== idToDelete));
+      setBusinessImages((prev) => prev.filter((img) => img.$id !== idToDelete));
+      setIsImageDeleting((prev) => prev.filter((id) => id !== idToDelete));
     } catch (err) {
-      // Optionally show error UI
       console.error("Failed to delete image", err);
     }
   };
 
-  const [isUploading, setIsUploading] = useState(false);
-
   const handleImageUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
+    setIsImageUploading(true);
+
     const files = event.target.files;
-    if (files && files.length > 0 && businessId) {
-      setIsUploading(true);
+
+    if (files && files.length > 0) {
       try {
-        const file = files[0];
-        if (file.size > 5 * 1024 * 1024) {
-          throw new Error('Image size must be less than 5MB');
+        const form = new FormData();
+        for (let index = 0; index < files.length; index++) {
+          const file = files.item(index);
+          if (!file) continue;
+
+          form.append("images", file, file.name);
         }
-        
-        const result = await uploadBusinessImage.mutateAsync({
-          businessId,
-          file,
+
+        form.append("userID", user.$id);
+        form.append("businessID", businessId);
+
+        const response = await fetch("/api/upload/images", {
+          method: "POST",
+          body: form,
         });
-        setBusinessImages((prev) => [
-          ...prev,
-          {
-            id: result.$id,
-            url: result.imageUrl,
-            alt: result.title || "Business image",
-          },
-        ]);
+
+        if (response.ok) {
+          const result: BusinessImage[] = await response.json();
+          setBusinessImages((prev) => [...prev, ...result]);
+        }
       } catch (err) {
-        setErrors({
-          ...errors,
-          imageUpload: err instanceof Error ? err.message : 'Failed to upload image'
-        });
-      } finally {
-        setIsUploading(false);
+        console.error("Failed to upload image", err);
       }
     }
+
+    setIsImageUploading(false);
+  };
+
+  const handleSetPaymentOption = (option: string, value: boolean) => {
+    setPaymentOptions((prev) => ({
+      ...prev,
+      [option]: value,
+    }));
   };
 
   const handleRemoveService = (serviceToRemove: string) => {
     setServicesOffered(
       servicesOffered.filter((service) => service !== serviceToRemove)
     );
-    console.log("Remove service:", serviceToRemove);
   };
 
-  // const handleAddService = () => {
-  //   if (newService.trim() && !servicesOffered.includes(newService.trim())) {
-  //     setServicesOffered([...servicesOffered, newService.trim()]);
-  //     setNewService(""); // Clear input
-  //   }
-  // };
-
-  const handleCancel = () => {
-    console.log("Cancel changes");
-    // Add reset logic or navigation
+  const handleAddService = () => {
+    const trimmedService = newService.trim();
+    if (trimmedService && !servicesOffered.includes(trimmedService)) {
+      setServicesOffered([...servicesOffered, trimmedService]);
+      setNewService(""); // Clear the input
+    }
   };
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSaving, setIsSaving] = useState(false);
-
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-    
-    if (!businessName.trim()) {
-      newErrors.businessName = 'Business name is required';
-    }
-    
-    if (phoneNumber && !/^[0-9]{10,15}$/.test(phoneNumber)) {
-      newErrors.phoneNumber = 'Please enter a valid phone number';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const isFormValid = () => {
+    return (
+      businessName.trim() !== "" &&
+      aboutBusiness.trim() !== "" &&
+      addressLine1.trim() !== "" &&
+      city.trim() !== "" &&
+      country.trim() !== "" 
+    );
   };
 
   const handleSave = async () => {
-    if (!businessId) return;
-    
-    if (!validateForm()) return;
-    
-    setIsSaving(true);
+    if (!isFormValid()) {
+      // Optionally show an error message to the user
+      console.error(
+        "Form is not valid. Please fill all required fields and agree to the terms."
+      );
+      return;
+    }
+
+    const userId = user.$id;
     try {
-      await updateBusiness.mutateAsync({
-        businessId,
-        data: {
+      console.log({
+        name: businessName,
+        about: aboutBusiness,
+        addressLine1,
+        addressLine2,
+        city,
+        country,
+        ownerId: userId,
+        phone: phoneNumber,
+        categories: businessCategory ? [businessCategory] : [],
+        services: servicesOffered,
+        userId,
+        paymentOptions: Object.keys(paymentOptions).filter(
+          (key) => paymentOptions[key]
+        ),
+        hours: availableHours,
+        images: businessImages.map(({ isPrimary, $id }) => ({
+          isPrimary,
+          imageID: $id,
+        })),
+        email: businessEmail, // Added business email
+        website: businessWebsite, // Added business website
+      });
+
+      const result = await updateBusiness.mutateAsync({
+        businessId, data: {
           name: businessName,
           about: aboutBusiness,
-          addressLine1: businessAddress,
+          addressLine1,
+          addressLine2,
+          city,
+          country,
           phone: phoneNumber,
           categories: businessCategory ? [businessCategory] : [],
           services: servicesOffered,
-        },
+          paymentOptions: Object.keys(paymentOptions).filter(
+            (key) => paymentOptions[key]
+          ),
+          // @ts-ignore
+          hours: availableHours,
+          images: businessImages.map(({ isPrimary, $id }) => ({
+            isPrimary,
+            imageID: $id,
+          })),
+          email: businessEmail,
+          website: businessWebsite,
+        }
       });
-      // TODO: Add success toast/notification
+      setCreatedBusinessId(result.$id);
+      // Optionally redirect to the new business page
+      router.push(`/business/${result.$id}`);
     } catch (err) {
-      setErrors({
-        ...errors,
-        form: err instanceof Error ? err.message : 'Failed to save business'
-      });
-    } finally {
-      setIsSaving(false);
+      console.error("Failed to create business", err);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 border rounded-lg shadow-sm bg-card text-card-foreground space-y-6 relative">
-      {errors.form && (
-        <div className="p-4 mb-6 text-sm text-destructive bg-destructive/10 rounded-md">
-          {errors.form}
+    <div className="container mx-auto py-8 px-4 md:px-8 lg:px-16 space-y-8">
+      <div className="flex justify-between items-start">
+        {/* <h1 className="text-2xl font-bold">Create a New Business</h1> */}
+        {/* Business Name */}
+        <div className="md:w-1/2">
+          <Label htmlFor="businessName" className="font-semibold">
+            <span className="text-destructive">*</span> Name of Business
+          </Label>
+          <p className="text-sm text-muted-foreground mb-2">
+            Input name of the business below
+          </p>
+          <Input
+            id="businessName"
+            value={businessName}
+            required
+            onChange={(e) => setBusinessName(e.target.value)}
+            placeholder="Enter business name"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Input full name, ensure there are no special characters
+          </p>
         </div>
-      )}
-      {/* Business Name */}
-      <div>
-        <Label htmlFor="businessName" className="font-semibold">
-          <span className="text-destructive">*</span> Name of Business
-        </Label>
-        <p className="text-sm text-muted-foreground mb-2">
-          Input name of the business below
-        </p>
-        <Input
-          id="businessName"
-          value={businessName}
-          onChange={(e) => {
-            setBusinessName(e.target.value);
-            setErrors({...errors, businessName: ''});
-          }}
-          placeholder="Enter business name"
-          className={errors.businessName ? 'border-destructive' : ''}
-        />
-        {errors.businessName && (
-          <p className="text-xs text-destructive mt-1">{errors.businessName}</p>
+
+        {businessId ? (
+          <div className="flex items-center gap-2">
+            <Button variant="destructive" className="rounded-4xl">
+              Disable Business
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <MoreVertical className="h-4 w-4" />
+              <span className="sr-only">More options</span>
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Button
+              className="rounded-4xl bg-[#2E57A9]"
+              onClick={handleSave}
+              disabled={updateBusiness.status === "pending" || !isFormValid()} // Disable if form is invalid or creating
+            >
+              {updateBusiness.status === "pending"
+                ? "Updating..."
+                : "Update Business"}
+            </Button>
+          </div>
         )}
-        <p className="text-xs text-muted-foreground mt-1">
-          Input full name, ensure there are no special characters
-        </p>
       </div>
 
       {/* About the Business */}
-      <div>
+      <div className="md:w-3/4">
         <Label htmlFor="aboutBusiness" className="font-semibold">
-          About the Business
+          <span className="text-destructive">*</span> About the Business
         </Label>
         <Textarea
           id="aboutBusiness"
           value={aboutBusiness}
+          required
           onChange={(e) => setAboutBusiness(e.target.value)}
           placeholder="Describe the business..."
           className="min-h-[100px] mt-2"
@@ -281,112 +374,201 @@ export default function BusinessEditForm() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
           {businessImages.map((image, index) => (
             <Card
-              key={image.id}
+              key={image.$id}
               className="relative group aspect-square overflow-hidden"
             >
-              <Image
-                src={image.url}
-                alt={image.alt}
-                fill // Use fill to cover the card area
-                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw" // Optimize image loading
-                style={{ objectFit: "cover" }} // Ensure image covers the area
-                priority={index < 3}
-              />
               <Button
-                variant="destructive"
+                variant="ghost"
                 size="icon"
-                className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => handleImageDelete(image.id)}
+                className="absolute top-1 right-[-5] z-2 h-6 w-6  transition-opacity p-1 bg-gray-100 hover:bg-gray-200" // Adjusted padding
+                onClick={() => handleImageDelete(image.$id)}
                 aria-label="Delete image"
+                // disabled={!businessId}
               >
-                <Trash2 className="h-4 w-4" />
+                <X className="h-4 w-4" /> {/* Changed icon to Trash2 */}
               </Button>
+              <Image
+                src={image.imageUrl}
+                alt={image.title || "Business Image"}
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                style={{ objectFit: "cover" }}
+                priority={index < 3}
+                className={
+                  isImageDeleting.includes(image.$id) ? "opacity-50" : ""
+                }
+              />
+
+              {isImageDeleting.includes(image.$id) && (
+                <div className="absolute top-1 flex items-center justify-center w-full h-full">
+                  <LoadingSVG />
+                </div>
+              )}
             </Card>
           ))}
+
+          {(isImageUploading) && (
+            <div className="flex items-center justify-center w-full h-full">
+              <LoadingSVG />
+            </div>
+          )}
+
           {/* Add Photo Button */}
           <Label
             htmlFor="imageUpload"
-            className={`flex items-center justify-center aspect-square border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
-              isUploading
-                ? 'border-primary bg-muted/50'
-                : errors.imageUpload
-                  ? 'border-destructive'
-                  : 'border-muted-foreground hover:border-primary hover:bg-muted/50'
-            }`}
+            className="flex flex-col items-center justify-center aspect-square cursor-pointer transition-colors"
           >
-            {isUploading ? (
-              <div className="animate-spin h-5 w-5 border-2 border-primary rounded-full border-t-transparent" />
-            ) : (
-              <>
-                <Plus className="h-10 w-10 text-muted-foreground" />
-                <span className="sr-only">Add photo/video</span>
-                <Input
-                  id="imageUpload"
-                  type="file"
-                  className="sr-only"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  disabled={isUploading}
-                />
-              </>
-            )}
+            {/* Slightly larger Plus icon */}
+            <Plus className="h-15 w-15 text-muted-foreground border border-input bg-gray-100 hover:bg-gray-200 rounded-full p-[5%]" />
+            <span className="sr-only">Add photo/video</span>{" "}
+            {/* Keep sr-only for accessibility */}
+            <Input
+              id="imageUpload"
+              type="file"
+              multiple
+              className="sr-only"
+              accept="image/*, video/*"
+              onChange={handleImageUpload}
+              // disabled={!businessId}
+            />
           </Label>
-          {errors.imageUpload && (
-            <p className="text-xs text-destructive mt-1">{errors.imageUpload}</p>
-          )}
         </div>
+        {/* {!businessId && (
+          <p className="text-xs text-muted-foreground">
+            You can upload images after creating the business.
+          </p>
+        )} */}
       </div>
 
       {/* Business Address */}
-      <div>
-        <Label htmlFor="businessAddress" className="font-semibold">
-          Business Address
+      {/* <div>
+        <Label htmlFor="addressLine2" className="font-semibold">
+          Business Address Line 2
         </Label>
         <Input
-          id="businessAddress"
-          value={businessAddress}
-          onChange={(e) => setBusinessAddress(e.target.value)}
-          placeholder="Enter business address"
+          id="addressLine2"
+          value={addressLine2}
+          onChange={(e) => setAddressLine2(e.target.value)}
+          placeholder="Enter address line 2"
           className="mt-2"
         />
+      </div> */}
+      <div className="flex flex-col md:flex-row gap-4 flex-wrap">
+        <div className="flex-grow">
+          <Label htmlFor="addressLine1" className="font-semibold">
+            <span className="text-destructive">*</span> Business Address Line 1
+          </Label>
+          <Input
+            id="addressLine1"
+            value={addressLine1}
+            required
+            onChange={(e) => setAddressLine1(e.target.value)}
+            placeholder="Enter address line 1"
+            className="mt-2"
+          />
+        </div>
+        <div className="">
+          <Label htmlFor="city" className="font-semibold">
+            <span className="text-destructive">*</span> City
+          </Label>
+          <Select value={city} onValueChange={setCity} required>
+            <SelectTrigger id="city" className="mt-2">
+              <SelectValue placeholder="Select city" />
+            </SelectTrigger>
+            <SelectContent>
+              {/* TODO: Populate dynamically based on selected country */}
+              <SelectItem value="Lagos">Lagos</SelectItem>
+              <SelectItem value="Abuja">Abuja</SelectItem>
+              <SelectItem value="Accra">Accra</SelectItem>
+              <SelectItem value="London">London</SelectItem>
+              <SelectItem value="New York">New York</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="">
+          <Label htmlFor="country" className="font-semibold">
+            <span className="text-destructive">*</span> Country
+          </Label>
+          <Select value={country} onValueChange={setCountry} required>
+            <SelectTrigger id="country" className="mt-2">
+              <SelectValue placeholder="Select country" />
+            </SelectTrigger>
+            <SelectContent>
+              {/* TODO: Populate with actual countries */}
+              <SelectItem value="Nigeria">Nigeria</SelectItem>
+              <SelectItem value="Ghana">Ghana</SelectItem>
+              <SelectItem value="United Kingdom">United Kingdom</SelectItem>
+              <SelectItem value="United States">United States</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Phone Number */}
+        <div className="flex-grow">
+          <Label htmlFor="phoneNumber" className="font-semibold">
+            Phone number
+          </Label>
+          <div className="flex gap-2 mt-2">
+            <Select
+              value={phoneCountryCode}
+              onValueChange={setPhoneCountryCode}
+            >
+              <SelectTrigger id="phoneCountryCode" className="w-24">
+                <SelectValue placeholder="Code" />
+              </SelectTrigger>
+              <SelectContent>
+                {/* TODO: Populate with actual country codes */}
+                <SelectItem value="+234">+234</SelectItem>
+                <SelectItem value="+1">+1</SelectItem>
+                <SelectItem value="+44">+44</SelectItem>
+                <SelectItem value="+233">+233</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input
+              id="phoneNumber"
+              type="tel"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              placeholder="Enter phone number"
+              className="flex-1"
+              aria-label="Phone number"
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Phone Number */}
-      <div>
-        <Label htmlFor="phoneNumber" className="font-semibold">
-          Phone number
-        </Label>
-        <div className="flex gap-2 mt-2">
+      {/* Business Email & Website */}
+      <div className="flex flex-col md:flex-row gap-4 flex-wrap">
+        <div className="flex-grow">
+          <Label htmlFor="businessEmail" className="font-semibold">
+            Business Email
+          </Label>
           <Input
-            // For simplicity, keeping country code as Input. Could be Select if needed.
-            id="phoneCountryCode"
-            value={phoneCountryCode}
-            onChange={(e) => setPhoneCountryCode(e.target.value)}
-            className="w-20"
-            aria-label="Country code"
+            id="businessEmail"
+            type="email"
+            value={businessEmail}
+            onChange={(e) => setBusinessEmail(e.target.value)}
+            placeholder="Enter business email"
+            className="mt-2"
           />
+        </div>
+        <div className="flex-grow">
+          <Label htmlFor="businessWebsite" className="font-semibold">
+            Business Website
+          </Label>
           <Input
-            id="phoneNumber"
-            type="tel"
-            value={phoneNumber}
-            onChange={(e) => {
-              setPhoneNumber(e.target.value);
-              setErrors({...errors, phoneNumber: ''});
-            }}
-            placeholder="Enter phone number"
-            className={`flex-1 ${errors.phoneNumber ? 'border-destructive' : ''}`}
-            aria-label="Phone number"
+            id="businessWebsite"
+            type="url"
+            value={businessWebsite}
+            onChange={(e) => setBusinessWebsite(e.target.value)}
+            placeholder="https://example.com"
+            className="mt-2"
           />
-          {errors.phoneNumber && (
-            <p className="text-xs text-destructive mt-1 col-span-2">
-              {errors.phoneNumber}
-            </p>
-          )}
         </div>
       </div>
 
       {/* Business Category */}
-      <div>
+      <div className="md:w-1/2">
         <Label htmlFor="businessCategory" className="font-semibold">
           Business Category
         </Label>
@@ -395,11 +577,11 @@ export default function BusinessEditForm() {
             <SelectValue placeholder="Select category" />
           </SelectTrigger>
           <SelectContent>
-            {/* Add more relevant categories */}
-            <SelectItem value="auto-mechanics">Auto Mechanics</SelectItem>
-            <SelectItem value="car-wash">Car Wash</SelectItem>
-            <SelectItem value="tyre-shop">Tyre Shop</SelectItem>
-            <SelectItem value="body-shop">Body Shop</SelectItem>
+            {businessCategories?.map((category) => (
+              <SelectItem key={category.$id} value={category.name}>
+                {category.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -407,12 +589,41 @@ export default function BusinessEditForm() {
       {/* Services Offered */}
       <div>
         <Label className="font-semibold block mb-2">Services Offered</Label>
+        <p className="text-sm text-muted-foreground mb-2">
+          Add or remove services your business offers
+        </p>
+        {/* Input to add new service */}
+        <div className="flex gap-2 mb-4">
+          <Input
+            value={newService}
+            onChange={(e) => setNewService(e.target.value)}
+            placeholder="Enter a service (e.g., Haircut)"
+            className="flex-grow"
+            onKeyDown={(e) => {
+              // Add service on Enter key press
+              if (e.key === "Enter") {
+                e.preventDefault(); // Prevent potential form submission
+                handleAddService();
+              }
+            }}
+          />
+          <Button
+            onClick={handleAddService}
+            type="button"
+            className="bg-[#2E57A9]"
+          >
+            {" "}
+            {/* Use type="button" to prevent form submission */}
+            Add Service
+          </Button>
+        </div>
+        {/* Display existing services */}
         <div className="flex flex-wrap gap-2">
           {servicesOffered.map((service) => (
             <Badge
               key={service}
               variant="secondary"
-              className="py-1 px-2 text-sm"
+              className="py-1 px-2 text-sm text-white bg-[#2E57A9]"
             >
               {service}
               <button
@@ -420,33 +631,89 @@ export default function BusinessEditForm() {
                 className="ml-1.5 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 aria-label={`Remove ${service}`}
               >
-                <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                <X className="h-3 w-3 text-white hover:text-foreground" />
               </button>
             </Badge>
           ))}
-          {/* Optional: Add Input for new service tags */}
-          {/*
-             <div className="flex gap-2 mt-2">
-               <Input
-                 value={newService}
-                 onChange={(e) => setNewService(e.target.value)}
-                 placeholder="Add a service"
-                 className="h-8"
-               />
-               <Button onClick={handleAddService} size="sm" variant="outline">Add</Button>
-            </div>
-            */}
         </div>
       </div>
 
-      {/* Available Hours (Display Only based on Design) */}
+      {/* Payment Options */}
       <div>
+        <Label className="font-semibold block mb-2">Payment Options</Label>
+        <p className="text-sm text-muted-foreground mb-2">
+          Select payment options your business accepts
+        </p>
+        <div className="flex gap-4 mt-2">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="cashPayment"
+              className="data-[state=checked]:bg-[#2E57A9]"
+              checked={paymentOptions.cash}
+              onCheckedChange={(ev) =>
+                handleSetPaymentOption("cash", ev.valueOf() as boolean)
+              }
+            />
+            <Label htmlFor="cashPayment">Cash Payment</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="transfer"
+              className="data-[state=checked]:bg-[#2E57A9]"
+              checked={paymentOptions.transfer}
+              onCheckedChange={(ev) =>
+                handleSetPaymentOption("transfer", ev.valueOf() as boolean)
+              }
+            />
+            <Label htmlFor="transfer">Transfer</Label>
+          </div>
+        </div>
+      </div>
+
+      {/* Available Hours */}
+      <div className="">
         <Label className="font-semibold block mb-2">Available hours</Label>
-        <div className="space-y-1 text-sm text-muted-foreground">
-          {availableHours.map((item) => (
-            <div key={item.day} className="flex justify-between">
-              <span>{item.day}</span>
-              <span>{item.hours}</span>
+        <div className="space-y-2 text-sm text-muted-foreground mt-2">
+          {Object.entries(availableHours).map(([day, hours]) => (
+            <div key={day} className="flex items-center gap-8">
+              <span className="w-1/5 font-medium text-card-foreground">
+                {day}
+              </span>
+              <div className="flex flex-row">
+                <Input
+                  type="time"
+                  className="border-0 border-bottom"
+                  value={availableHours[day].open}
+                  onChange={(ev) =>
+                    updateBusinessHours(day, "start", ev.target.value)
+                  }
+                  disabled={availableHours[day].closed}
+                  name={day + "-start"}
+                ></Input>{" "}
+                <span className="flex items-center">-</span>
+                <Input
+                  type="time"
+                  className="border-0 border-bottom"
+                  value={availableHours[day].close}
+                  onChange={(ev) =>
+                    updateBusinessHours(day, "end", ev.target.value)
+                  }
+                  disabled={availableHours[day].closed}
+                  name={day + "-end"}
+                ></Input>
+              </div>
+              <span className="flex items-center gap-3">
+                <Label htmlFor={day + "-closed"}>Closed</Label>
+                <Checkbox
+                  className="h-5 w-5 data-[state=checked]:bg-[#2E57A9]"
+                  id={day + "-closed"}
+                  name={day + "-closed"}
+                  checked={availableHours[day].closed}
+                  onCheckedChange={(ev) =>
+                    updateBusinessHours(day, "closed", ev.valueOf())
+                  }
+                />
+              </span>
             </div>
           ))}
         </div>
@@ -454,11 +721,19 @@ export default function BusinessEditForm() {
 
       {/* Action Buttons */}
       <div className="flex justify-end gap-4 pt-4">
-        <Button variant="outline" onClick={handleCancel}>
+        <Button
+          variant="outline"
+          onClick={() => router.back()}
+          className="rounded-full"
+        >
           Cancel
         </Button>
-        <Button onClick={handleSave} disabled={isSaving}>
-          {isSaving ? 'Saving...' : 'Save'}
+        <Button
+          onClick={handleSave}
+          disabled={updateBusiness.status === "pending" || !isFormValid()} // Disable if form is invalid or creating
+          className="rounded-full bg-[#2E57A9]"
+        >
+          {updateBusiness.status === "pending" ? "Updating..." : "Update"}
         </Button>
       </div>
     </div>

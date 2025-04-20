@@ -10,6 +10,7 @@ import {
   businessImageSchema,
   businessHoursSchema,
   businessSchema,
+  daySchema,
 } from "../schema";
 
 import type SuperJSON from "superjson";
@@ -26,11 +27,28 @@ export function createBusinessProcedures(
       .input(
         createBusinessSchema.extend({
           userId: z.string(),
+          hours: z.object({
+            Mon: daySchema,
+            Tue: daySchema,
+            Wed: daySchema,
+            Thu: daySchema,
+            Fri: daySchema,
+            Sat: daySchema,
+            Sun: daySchema,
+          }),
+          images: z.array(
+            z.object({ isPrimary: z.boolean(), imageID: z.string() })
+          ),
         })
       )
       .mutation(async ({ input }) => {
-        const { userId, ...data } = input;
-        return await BusinessService.createBusiness(data, userId);
+        const { userId, hours, images, ...data } = input;
+        return await BusinessService.createBusiness(
+          data,
+          userId,
+          hours,
+          images
+        );
       }),
 
     getBusinessById: t.procedure
@@ -43,7 +61,20 @@ export function createBusinessProcedures(
       .input(
         z.object({
           businessId: z.string(),
-          data: updateBusinessSchema,
+          data: updateBusinessSchema.extend({
+            hours: z.object({
+              Mon: daySchema,
+              Tue: daySchema,
+              Wed: daySchema,
+              Thu: daySchema,
+              Fri: daySchema,
+              Sat: daySchema,
+              Sun: daySchema,
+            }),
+            images: z.array(
+              z.object({ isPrimary: z.boolean(), imageID: z.string() })
+            ),
+          }),
         })
       )
       .mutation(async ({ input }) => {
@@ -115,11 +146,15 @@ export function createBusinessProcedures(
       .input(
         z.object({
           file: z.any(), // File upload handling may need to be adapted for your setup
+          userID: z.string(),
         })
       )
       // .output(businessImageSchema)
       .mutation(async ({ input }) => {
-        return await BusinessImagesService.uploadTempBusinessImage(input.file);
+        return await BusinessImagesService.uploadTempBusinessImage(
+          input.file,
+          input.userID
+        );
       }),
 
     getBusinessImage: t.procedure
@@ -149,7 +184,15 @@ export function createBusinessProcedures(
       .input(
         z.object({
           businessId: z.string(),
-          hours: z.array(businessHoursSchema.omit({ $id: true })),
+          hours: z.object({
+            Mon: daySchema,
+            Tue: daySchema,
+            Wed: daySchema,
+            Thu: daySchema,
+            Fri: daySchema,
+            Sat: daySchema,
+            Sun: daySchema,
+          }),
         })
       )
       // .output(z.array(businessHoursSchema))

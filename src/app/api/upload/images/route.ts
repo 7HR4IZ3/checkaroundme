@@ -7,15 +7,16 @@ export async function POST(req: NextRequest) {
   const formData = await req.formData();
 
   const userID = formData.get("userID") as string;
-  const file = formData.get("file") as File | null;
+  const businessId = formData.get("businessId") as string | null;
+  const files = formData.getAll("images") as File[] | null;
 
-  if (!file) {
+  if (!files) {
     return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
   }
 
   try {
     // Call the tRPC mutation, passing the File object directly
-    const result = await BusinessImagesService.uploadTempBusinessImage(file, userID);
+    const result = await BusinessImagesService.uploadTempBusinessImage(files, userID, businessId);
     return NextResponse.json(result);
   } catch (cause) {
     if (cause instanceof TRPCError) {

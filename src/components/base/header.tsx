@@ -137,32 +137,31 @@ const Header = () => {
 
               {/* Mobile menu */}
               <div className="md:hidden">
-
-              <DropdownMenu>
-                <DropdownMenuTrigger className="p-2">
-                  <Menu className="h-5 w-5" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem>
-                    <Link
-                      href="/auth"
-                      className="flex items-center select-none space-x-2 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                    >
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Sign in</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Link
-                      href="/auth?signup"
-                      className="flex items-center select-none space-x-2 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                    >
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      <span>Register</span>
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="p-2">
+                    <Menu className="h-5 w-5" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem>
+                      <Link
+                        href="/auth"
+                        className="flex items-center select-none space-x-2 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                      >
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Sign in</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Link
+                        href="/auth?signup"
+                        className="flex items-center select-none space-x-2 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                      >
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        <span>Register</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </>
           )}
@@ -173,58 +172,3 @@ const Header = () => {
 };
 
 export default Header;
-
-
-/*
-
-{Object.keys(availableHours).map((day) => (
-            <div key={day} className="flex justify-between">
-              <span>{day}</span>
-              <div className="flex flex-row">
-                <Checkbox
-                  className="flex items-center "
-                  defaultChecked={availableHours[day].closed}
-                  onCheckedChange={(ev) =>
-                    updateBusinessHours(day, "closed", ev.valueOf())
-                  }
-                />
-                <Input
-                  type="time"
-                  defaultValue={availableHours[day].start}
-                  onChange={(ev) =>
-                    updateBusinessHours(day, "start", ev.target.value)
-                  }
-                  disabled={availableHours[day].closed}
-                  name={day + "-start"}
-                ></Input>{" "}
-                -{" "}
-                <Input
-                  type="time"
-                  defaultValue={availableHours[day].end}
-                  onChange={(ev) =>
-                    updateBusinessHours(day, "end", ev.target.value)
-                  }
-                  disabled={availableHours[day].closed}
-                  name={day + "-end"}
-                ></Input>
-              </div>
-            </div>
-          ))}
-
-         
-  const updateBusinessHours = (
-    day: string,
-    type: "start" | "end" | "closed",
-    value: string | boolean
-  ) => {
-    console.log(day, type, value);
-    setAvailableHours((prev) => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        [type]: value,
-      },
-    }));
-  }; 
-
-*/

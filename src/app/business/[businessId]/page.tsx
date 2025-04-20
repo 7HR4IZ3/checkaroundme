@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
 import { useRouter } from "next/navigation";
+import { useRef, useState, ChangeEvent } from "react"; // Added imports
 import {
   Star,
   CheckCircle,
@@ -38,9 +39,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import Loading from "@/components/ui/loading";
+import Loading, { LoadingSVG } from "@/components/ui/loading";
 import { useAuth } from "@/lib/hooks/useClientAuth";
 import ListingCard from "@/components/listing/listing-card";
+import { Review } from "@/lib/schema";
 
 // Helper component for star ratings
 const StarRating = ({ rating, count }: { rating: number; count?: number }) => {
@@ -89,10 +91,74 @@ const RatingBar = ({
   </div>
 );
 
+const ReviewCard = ({ review }: { review: Review }) => {
+  const { data: user, isLoading } = trpc.getUserById.useQuery({
+    userId: review.userId,
+  });
+
+  const reactions = trpc.reactToReview.useMutation();
+
+  if (isLoading || !user)
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <LoadingSVG />
+      </div>
+    );
+
+  return (
+    <Card className="border-0 shadow-none">
+      <CardHeader>
+        <div className="flex items-start gap-4">
+          <Avatar>
+            {/* TODO: Replace with actual user avatar if available */}
+            <AvatarFallback>
+              {user.name.substring(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1">
+            {/* TODO: Replace userId with actual user name */}
+            <p className="font-semibold">{user?.name}</p>
+            {/* TODO: Add user location if available */}
+            {/* <p className="text-sm text-gray-500">{review}</p> */}
+            {/* Icons/Stats - Using Likes/Dislikes as placeholders for image icons */}
+            <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+              <span className="flex items-center gap-1">
+                <ThumbsUp className="w-3 h-3" /> {review.likes}
+              </span>
+              <span className="flex items-center gap-1">
+                <ThumbsDown className="w-3 h-3" /> {review.dislikes}
+              </span>
+            </div>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="">
+        {/* Star Rating & Date */}
+        <div className="flex items-center gap-2 mb-6">
+          <StarRating rating={review.rating} />
+          <span className="text-xs text-gray-500">
+            {new Date(review.createdAt).toDateString()}
+          </span>
+        </div>
+
+        {/* Review Text */}
+        <div className="text-sm text-gray-700 space-y-3 whitespace-pre-line">
+          {review.text.split("\n\n").map((paragraph, pIndex) => (
+            <p key={pIndex}>{paragraph}</p>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 export default function BusinessPage() {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const router = useRouter();
   const params = useParams();
+  const fileInputRef = useRef<HTMLInputElement>(null); // Added ref
+  const [isUploading, setIsUploading] = useState(false); // Added state
+  const utils = trpc.useUtils(); // For invalidating queries
   const businessId =
     typeof params.businessId === "string"
       ? params.businessId
@@ -123,6 +189,8 @@ export default function BusinessPage() {
     trpc.getBusinessReviews.useQuery({ businessId }, { enabled: !!businessId });
 
   const { data: businesses } = trpc.listBusinesses.useQuery({ limit: 5 });
+
+  console.log(reviews);
 
   // Loading and error states
   if (isBusinessLoading || isImagesLoading || isHoursLoading) {
@@ -158,9 +226,71 @@ export default function BusinessPage() {
     weekday: "short",
   });
 
+  // Handler for file input change
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || !businessId || !isAuthenticated) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    for (let index = 0; index < files.length; index++) {
+      const file = files.item(index);
+      if (!file) continue;
+
+      formData.append("images", file, file.name);
+    }
+
+    formData.append("userID", user.$id);
+    formData.append("businessId", businessId); // Add businessId to the form data
+
+    try {
+      const response = await fetch("/api/upload/images", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        // Consider showing an error message to the user
+        const errorData = await response
+          .json()
+          .catch(() => ({ message: "Upload failed" }));
+        console.error("Upload failed:", errorData.message);
+        throw new Error(errorData.message || "Upload failed");
+      }
+
+      // Invalidate the images query to refresh the list
+      await utils.getBusinessImages.invalidate({ businessId });
+      console.log("Image uploaded successfully!");
+      // Optionally show a success message (e.g., using a toast library)
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      // Optionally show an error message to the user
+    } finally {
+      setIsUploading(false);
+      // Reset file input value so the same file can be selected again if needed
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  // Handler for the button click
+  const handleAddPhotoClick = () => {
+    // Prevent clicking if already uploading
+    if (isUploading) return;
+    fileInputRef.current?.click();
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
-      {" "}
+      {/* Hidden File Input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/*" // Accept only image files
+        style={{ display: "none" }}
+      />
       {/* Main container */}
       <div className="flex flex-col md:flex-row gap-8 lg:gap-12">
         {/* Left Column */}
@@ -226,7 +356,7 @@ export default function BusinessPage() {
                 })()}
               </span>
               <Button variant="link" className="p-0 h-auto text-sm">
-                See hours
+                <a href="#hours">See hours</a>
               </Button>
             </div>
 
@@ -235,8 +365,20 @@ export default function BusinessPage() {
                 <Star className="mr-2 h-4 w-4" /> Write a review
               </Button>
               {user?.$id === business.ownerId && (
-                <Button variant="outline">
-                  <ImagePlus className="mr-2 h-4 w-4" /> Add a photo
+                <Button
+                  variant="outline"
+                  onClick={handleAddPhotoClick}
+                  disabled={isUploading} // Disable button while uploading
+                >
+                  {isUploading ? (
+                    <div className="mr-2 h-4 w-4 animate-spin">
+                      <LoadingSVG />
+                    </div>
+                  ) : (
+                    <>
+                      <ImagePlus className="mr-2 h-4 w-4" /> Add a photo
+                    </>
+                  )}
                 </Button>
               )}
               <Button variant="outline">
@@ -324,7 +466,7 @@ export default function BusinessPage() {
           <Separator />
 
           {/* Location & Hours */}
-          <section>
+          <section id="hours">
             <h2 className="text-xl font-semibold mb-4">Location & Hours</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Map Placeholder */}
@@ -373,9 +515,9 @@ export default function BusinessPage() {
 
           {/* Recommended Reviews */}
           <section>
-            <h2 className="text-xl font-semibold mb-4">Recommended reviews</h2>
+            <h2 className="text-xl font-semibold mb-4">Reviews</h2>
             {/* Overall Rating Summary */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6 p-4 border rounded-md">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6 p-4 rounded-md">
               <div className="text-center">
                 <p className="text-3xl font-bold">
                   {business.rating.toFixed(1)}
@@ -398,51 +540,7 @@ export default function BusinessPage() {
             {/* Individual Reviews */}
             <div className="space-y-6">
               {reviews?.reviews.map((review, index) => (
-                <Card key={index}>
-                  <CardHeader>
-                    <div className="flex items-start gap-4">
-                      <Avatar>
-                        {/* <AvatarImage src={review.avatar} alt={review.author} /> */}
-                        <AvatarFallback>{review.userId}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        {/* <p className="font-semibold">{review.author}</p>
-                        <p className="text-sm text-gray-500">
-                          {review.location}
-                        </p> */}
-                        <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                          <span className="flex items-center gap-1">
-                            {" "}
-                            <ThumbsUp className="w-3 h-3" /> {review.likes}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            {" "}
-                            <ThumbsDown className="w-3 h-3" /> {review.dislikes}
-                          </span>
-                          <span>·</span>
-                          <span>{review.createdAt.toDateString()}</span>
-                        </div>
-                      </div>
-                      <StarRating rating={review.rating} />
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {review.title && (
-                      <p className="font-semibold">{review.title}</p>
-                    )}
-                    {/* Handle potential newlines in review text */}
-                    <div className="text-sm text-gray-700 space-y-2 whitespace-pre-line">
-                      {review.text.split("\n\n").map((paragraph, pIndex) => (
-                        <p key={pIndex}>{paragraph}</p>
-                      ))}
-                    </div>
-                    {review.recommendation && (
-                      <p className="text-sm font-semibold text-gray-800 mt-3">
-                        {review.recommendation}
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
+                <ReviewCard review={review} key={index} />
               ))}
             </div>
             {/* Add "Load More Reviews" button if needed */}
@@ -461,12 +559,18 @@ export default function BusinessPage() {
             >
               Message business <MessageSquare className="mr-2 h-4 w-4" />
             </Button>
-            <Button variant="ghost" className="w-full flex justify-end md:justify-between flex-row-reverse md:flex-row">
+            <Button
+              variant="ghost"
+              className="w-full flex justify-end md:justify-between flex-row-reverse md:flex-row"
+            >
               <span className="ml-2 hidden sm:inline">{business.phone}</span>{" "}
               <Phone className="h-4 w-4" />
             </Button>
             <div className="flex items-center justify-start flex-col">
-              <Button variant="ghost" className="w-full flex justify-end md:justify-between flex-row-reverse md:flex-row">
+              <Button
+                variant="ghost"
+                className="w-full flex justify-end md:justify-between flex-row-reverse md:flex-row"
+              >
                 <span className="ml-2 hidden sm:inline">Get Directions</span>{" "}
                 <MapPin className="h-4 w-4" />
               </Button>

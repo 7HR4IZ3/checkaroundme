@@ -22,3 +22,4 @@ const RatingStars = ({ rating, starSize = 16 }: { rating: number, starSize?: num
 };
 
 export default RatingStars;
+

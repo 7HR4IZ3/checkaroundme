@@ -22,7 +22,7 @@ export function createReviewProcedures(
           recommendation: z.string().optional(),
         })
       )
-      .output(reviewSchema)
+      // .output(reviewSchema)
       .mutation(async ({ input }) => {
         const { businessId, userId, rating, text, title, recommendation } =
           input;
@@ -44,7 +44,7 @@ export function createReviewProcedures(
           offset: z.number().optional(),
         })
       )
-      .output(z.object({ reviews: z.array(reviewSchema), total: z.number() }))
+      // .output(z.object({ reviews: z.array(reviewSchema), total: z.number() }))
       .query(async ({ input }) => {
         return await ReviewService.getBusinessReviews(
           input.businessId,
@@ -61,11 +61,27 @@ export function createReviewProcedures(
           type: z.enum(["like", "dislike"]),
         })
       )
-      .output(z.object({ success: z.boolean() }))
+      // .output(z.object({ success: z.boolean() }))
       .mutation(async ({ input }) => {
         const { reviewId, userId, type } = input;
         await ReviewService.reactToReview(reviewId, userId, type);
         return { success: true };
+      }),
+
+    replyToReview: t.procedure
+      .input(
+        z.object({
+          reviewId: z.string(),
+          replyText: z.string().min(1, "Reply cannot be empty"),
+          // userId: z.string(), // Optional: Pass userId if needed for auth in ReviewService
+        })
+      )
+      // .output(reviewSchema) // Assuming replyToReview returns the updated review
+      .mutation(async ({ input }) => {
+        const { reviewId, replyText } = input;
+        // TODO: Potentially get userId from context if auth is implemented in tRPC middleware
+        // and pass it to ReviewService.replyToReview if needed for authorization.
+        return await ReviewService.replyToReview(reviewId, replyText);
       }),
   };
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
 import Image from "next/image";
@@ -21,6 +21,7 @@ import { X, Plus, Trash2, MoreVertical } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/lib/hooks/useClientAuth";
 import { BusinessImage } from "@/lib/schema";
+import { LoadingSVG } from "@/components/ui/loading";
 
 export default function BusinessCreateForm() {
   const { user, isAuthenticated } = useAuth();
@@ -34,37 +35,57 @@ export default function BusinessCreateForm() {
   // --- State Hooks ---
   const [businessName, setBusinessName] = useState("");
   const [aboutBusiness, setAboutBusiness] = useState("");
-  const [businessImages, setBusinessImages] = useState<BusinessImage[]>([]);
   const [addressLine1, setAddressLine1] = useState("");
   const [addressLine2, setAddressLine2] = useState("");
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("");
+  const [newService, setNewService] = useState("");
   const [phoneCountryCode, setPhoneCountryCode] = useState("+234");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [businessCategory, setBusinessCategory] = useState("");
   const [servicesOffered, setServicesOffered] = useState<string[]>([]);
+  const [isImageUploading, setIsImageUploading] = useState(false);
+  const [isImageDeleting, setIsImageDeleting] = useState<string[]>([]);
+
+  const [businessEmail, setBusinessEmail] = useState("");
+  const [businessWebsite, setBusinessWebsite] = useState("");
   const [paymentOptions, setPaymentOptions] = useState<{
-    cash: boolean;
-    transfer: boolean;
+    [key: string]: boolean;
   }>({
     cash: true,
     transfer: true,
   });
   const [availableHours, setAvailableHours] = useState<{
-    [key: string]: { start?: string; end?: string; closed?: boolean };
+    [key: string]: { open: string; close: string; closed: boolean };
   }>({
-    Mon: { start: "09:00", end: "18:00", closed: false },
-    Tue: { start: "09:00", end: "18:00", closed: false },
-    Wed: { start: "09:00", end: "18:00", closed: false },
-    Thu: { start: "09:00", end: "18:00", closed: false },
-    Fri: { start: "09:00", end: "18:00", closed: false },
-    Sat: { start: "09:00", end: "18:00", closed: false },
-    Sun: { start: "09:00", end: "18:00", closed: true },
+    Mon: { open: "09:00", close: "18:00", closed: false },
+    Tue: { open: "09:00", close: "18:00", closed: false },
+    Wed: { open: "09:00", close: "18:00", closed: false },
+    Thu: { open: "09:00", close: "18:00", closed: false },
+    Fri: { open: "09:00", close: "18:00", closed: false },
+    Sat: { open: "09:00", close: "18:00", closed: false },
+    Sun: { open: "09:00", close: "18:00", closed: true },
   });
   const [createdBusinessId, setCreatedBusinessId] = useState<string | null>(
     null
   );
-  const [newService, setNewService] = useState("");
+
+  const [businessImages, setBusinessImages] = useState<BusinessImage[]>([]);
+  const [agreedToTerms, setAgreedToTerms] = useState(false); // Added state for terms agreement
+
+  // --- tRPC mutations ---
+  const createBusiness = trpc.createBusiness.useMutation();
+  const deleteBusinessImage = trpc.deleteBusinessImage.useMutation();
+
+  const { data: tempBusinessImages, isLoading: isLoadingTempImages } =
+    trpc.getBusinessImages.useQuery({ businessId: user.$id });
+  const { data: businessCategories } = trpc.getAllCategories.useQuery();
+
+  useEffect(() => {
+    if (!isLoadingTempImages && tempBusinessImages) {
+      setBusinessImages(tempBusinessImages);
+    }
+  }, [isLoadingTempImages]);
 
   const updateBusinessHours = (
     day: string,
@@ -80,21 +101,13 @@ export default function BusinessCreateForm() {
       },
     }));
   };
-
-  const { data: businessCategories } = trpc.getAllCategories.useQuery();
-
-  // --- tRPC mutations ---
-  const createBusiness = trpc.createBusiness.useMutation();
-  // const uploadBusinessImage = trpc.uploadBusinessImage.useMutation();
-  const uploadTempBusinessImage = trpc.uploadTempBusinessImage.useMutation();
-  const deleteBusinessImage = trpc.deleteBusinessImage.useMutation();
-
   // --- Handlers ---
   const handleImageDelete = async (idToDelete: string) => {
-    if (!createdBusinessId) return;
     try {
+      setIsImageDeleting((prev) => [...prev, idToDelete]);
       await deleteBusinessImage.mutateAsync({ imageId: idToDelete });
       setBusinessImages((prev) => prev.filter((img) => img.$id !== idToDelete));
+      setIsImageDeleting((prev) => prev.filter((id) => id !== idToDelete));
     } catch (err) {
       console.error("Failed to delete image", err);
     }
@@ -103,29 +116,37 @@ export default function BusinessCreateForm() {
   const handleImageUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
+    setIsImageUploading(true);
+
     const files = event.target.files;
+
     if (files && files.length > 0) {
       try {
-        const file = files[0];
-        console.log(files);
-
         const form = new FormData();
-        form.append("file", file);
+        for (let index = 0; index < files.length; index++) {
+          const file = files.item(index);
+          if (!file) continue;
+
+          form.append("images", file, file.name);
+        }
+
         form.append("userID", user.$id);
 
-        const response = await fetch("/api/upload/image", {
+        const response = await fetch("/api/upload/images", {
           method: "POST",
           body: form,
         });
 
         if (response.ok) {
-          const result: BusinessImage = await response.json();
-          setBusinessImages((prev) => [...prev, result]);
+          const result: BusinessImage[] = await response.json();
+          setBusinessImages((prev) => [...prev, ...result]);
         }
       } catch (err) {
         console.error("Failed to upload image", err);
       }
     }
+
+    setIsImageUploading(false);
   };
 
   const handleSetPaymentOption = (option: string, value: boolean) => {
@@ -149,9 +170,49 @@ export default function BusinessCreateForm() {
     }
   };
 
+  const isFormValid = () => {
+    return (
+      businessName.trim() !== "" &&
+      aboutBusiness.trim() !== "" &&
+      addressLine1.trim() !== "" &&
+      city.trim() !== "" &&
+      country.trim() !== "" &&
+      agreedToTerms // Check if terms are agreed
+    );
+  };
+
   const handleSave = async () => {
+    if (!isFormValid()) {
+      // Optionally show an error message to the user
+      console.error(
+        "Form is not valid. Please fill all required fields and agree to the terms."
+      );
+      return;
+    }
+
     const userId = user.$id;
     try {
+      console.log({
+        name: businessName,
+        about: aboutBusiness,
+        addressLine1,
+        addressLine2,
+        city,
+        country,
+        ownerId: userId,
+        phone: phoneNumber,
+        categories: businessCategory ? [businessCategory] : [],
+        services: servicesOffered,
+        userId,
+        paymentOptions: Object.keys(paymentOptions).filter(
+          (key) => paymentOptions[key]
+        ),
+        hours: availableHours,
+        images: businessImages.map(({ isPrimary, $id }) => ({ isPrimary, imageID: $id })),
+        email: businessEmail, // Added business email
+        website: businessWebsite, // Added business website
+      });
+
       const result = await createBusiness.mutateAsync({
         name: businessName,
         about: aboutBusiness,
@@ -164,6 +225,14 @@ export default function BusinessCreateForm() {
         categories: businessCategory ? [businessCategory] : [],
         services: servicesOffered,
         userId,
+        paymentOptions: Object.keys(paymentOptions).filter(
+          (key) => paymentOptions[key]
+        ),
+        // @ts-ignore
+        hours: availableHours,
+        images: businessImages.map(({ isPrimary, $id }) => ({ isPrimary, imageID: $id })),
+        email: businessEmail, // Added business email
+        website: businessWebsite, // Added business website
       });
       setCreatedBusinessId(result.$id);
       // Optionally redirect to the new business page
@@ -175,37 +244,51 @@ export default function BusinessCreateForm() {
 
   return (
     <div className="container mx-auto py-8 px-4 md:px-8 lg:px-16 space-y-8">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-start">
         {/* <h1 className="text-2xl font-bold">Create a New Business</h1> */}
-        {createdBusinessId && (
+        {/* Business Name */}
+        <div className="md:w-1/2">
+          <Label htmlFor="businessName" className="font-semibold">
+            <span className="text-destructive">*</span> Name of Business
+          </Label>
+          <p className="text-sm text-muted-foreground mb-2">
+            Input name of the business below
+          </p>
+          <Input
+            id="businessName"
+            value={businessName}
+            required
+            onChange={(e) => setBusinessName(e.target.value)}
+            placeholder="Enter business name"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Input full name, ensure there are no special characters
+          </p>
+        </div>
+
+        {createdBusinessId ? (
           <div className="flex items-center gap-2">
-            {/* Removed size="sm" for default button size */}
-            <Button variant="destructive">Disable Business</Button>
+            <Button variant="destructive" className="rounded-4xl">
+              Disable Business
+            </Button>
             <Button variant="ghost" size="icon" className="h-8 w-8">
               <MoreVertical className="h-4 w-4" />
               <span className="sr-only">More options</span>
             </Button>
           </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Button
+              className="rounded-4xl bg-[#2E57A9]"
+              onClick={handleSave}
+              disabled={createBusiness.status === "pending" || !isFormValid()} // Disable if form is invalid or creating
+            >
+              {createBusiness.status === "pending"
+                ? "Creating..."
+                : "Create Business"}
+            </Button>
+          </div>
         )}
-      </div>
-      {/* Business Name */}
-      <div className="md:w-1/2">
-        <Label htmlFor="businessName" className="font-semibold">
-          <span className="text-destructive">*</span> Name of Business
-        </Label>
-        <p className="text-sm text-muted-foreground mb-2">
-          Input name of the business below
-        </p>
-        <Input
-          id="businessName"
-          value={businessName}
-          required
-          onChange={(e) => setBusinessName(e.target.value)}
-          placeholder="Enter business name"
-        />
-        <p className="text-xs text-muted-foreground mt-1">
-          Input full name, ensure there are no special characters
-        </p>
       </div>
 
       {/* About the Business */}
@@ -234,6 +317,16 @@ export default function BusinessCreateForm() {
               key={image.$id}
               className="relative group aspect-square overflow-hidden"
             >
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-1 right-[-5] z-2 h-6 w-6  transition-opacity p-1 bg-gray-100 hover:bg-gray-200" // Adjusted padding
+                onClick={() => handleImageDelete(image.$id)}
+                aria-label="Delete image"
+                // disabled={!createdBusinessId}
+              >
+                <X className="h-4 w-4" /> {/* Changed icon to Trash2 */}
+              </Button>
               <Image
                 src={image.imageUrl}
                 alt={image.title || "Business Image"}
@@ -241,19 +334,25 @@ export default function BusinessCreateForm() {
                 sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                 style={{ objectFit: "cover" }}
                 priority={index < 3}
+                className={
+                  isImageDeleting.includes(image.$id) ? "opacity-50" : ""
+                }
               />
-              <Button
-                variant="destructive"
-                size="icon"
-                className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity p-1" // Adjusted padding
-                onClick={() => handleImageDelete(image.$id)}
-                aria-label="Delete image"
-                // disabled={!createdBusinessId}
-              >
-                <Trash2 className="h-4 w-4" /> {/* Changed icon to Trash2 */}
-              </Button>
+
+              {isImageDeleting.includes(image.$id) && (
+                <div className="absolute top-1 flex items-center justify-center w-full h-full">
+                  <LoadingSVG />
+                </div>
+              )}
             </Card>
           ))}
+
+          {(isLoadingTempImages || isImageUploading) && (
+            <div className="flex items-center justify-center w-full h-full">
+              <LoadingSVG />
+            </div>
+          )}
+
           {/* Add Photo Button */}
           <Label
             htmlFor="imageUpload"
@@ -266,6 +365,7 @@ export default function BusinessCreateForm() {
             <Input
               id="imageUpload"
               type="file"
+              multiple
               className="sr-only"
               accept="image/*, video/*"
               onChange={handleImageUpload}
@@ -293,7 +393,7 @@ export default function BusinessCreateForm() {
           className="mt-2"
         />
       </div> */}
-      <div className="flex flex-col md:flex-row gap-4">
+      <div className="flex flex-col md:flex-row gap-4 flex-wrap">
         <div className="flex-grow">
           <Label htmlFor="addressLine1" className="font-semibold">
             <span className="text-destructive">*</span> Business Address Line 1
@@ -307,7 +407,7 @@ export default function BusinessCreateForm() {
             className="mt-2"
           />
         </div>
-        <div className="flex-1">
+        <div className="">
           <Label htmlFor="city" className="font-semibold">
             <span className="text-destructive">*</span> City
           </Label>
@@ -325,7 +425,7 @@ export default function BusinessCreateForm() {
             </SelectContent>
           </Select>
         </div>
-        <div className="flex-1">
+        <div className="">
           <Label htmlFor="country" className="font-semibold">
             <span className="text-destructive">*</span> Country
           </Label>
@@ -377,6 +477,36 @@ export default function BusinessCreateForm() {
         </div>
       </div>
 
+      {/* Business Email & Website */}
+      <div className="flex flex-col md:flex-row gap-4 flex-wrap">
+        <div className="flex-grow">
+          <Label htmlFor="businessEmail" className="font-semibold">
+            Business Email
+          </Label>
+          <Input
+            id="businessEmail"
+            type="email"
+            value={businessEmail}
+            onChange={(e) => setBusinessEmail(e.target.value)}
+            placeholder="Enter business email"
+            className="mt-2"
+          />
+        </div>
+        <div className="flex-grow">
+          <Label htmlFor="businessWebsite" className="font-semibold">
+            Business Website
+          </Label>
+          <Input
+            id="businessWebsite"
+            type="url"
+            value={businessWebsite}
+            onChange={(e) => setBusinessWebsite(e.target.value)}
+            placeholder="https://example.com"
+            className="mt-2"
+          />
+        </div>
+      </div>
+
       {/* Business Category */}
       <div className="md:w-1/2">
         <Label htmlFor="businessCategory" className="font-semibold">
@@ -411,13 +541,19 @@ export default function BusinessCreateForm() {
             className="flex-grow"
             onKeyDown={(e) => {
               // Add service on Enter key press
-              if (e.key === 'Enter') {
+              if (e.key === "Enter") {
                 e.preventDefault(); // Prevent potential form submission
                 handleAddService();
               }
             }}
           />
-          <Button onClick={handleAddService} type="button"> {/* Use type="button" to prevent form submission */}
+          <Button
+            onClick={handleAddService}
+            type="button"
+            className="bg-[#2E57A9]"
+          >
+            {" "}
+            {/* Use type="button" to prevent form submission */}
             Add Service
           </Button>
         </div>
@@ -427,7 +563,7 @@ export default function BusinessCreateForm() {
             <Badge
               key={service}
               variant="secondary"
-              className="py-1 px-2 text-sm"
+              className="py-1 px-2 text-sm text-white bg-[#2E57A9]"
             >
               {service}
               <button
@@ -435,7 +571,7 @@ export default function BusinessCreateForm() {
                 className="ml-1.5 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 aria-label={`Remove ${service}`}
               >
-                <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                <X className="h-3 w-3 text-white hover:text-foreground" />
               </button>
             </Badge>
           ))}
@@ -452,6 +588,7 @@ export default function BusinessCreateForm() {
           <div className="flex items-center space-x-2">
             <Checkbox
               id="cashPayment"
+              className="data-[state=checked]:bg-[#2E57A9]"
               checked={paymentOptions.cash}
               onCheckedChange={(ev) =>
                 handleSetPaymentOption("cash", ev.valueOf() as boolean)
@@ -462,6 +599,7 @@ export default function BusinessCreateForm() {
           <div className="flex items-center space-x-2">
             <Checkbox
               id="transfer"
+              className="data-[state=checked]:bg-[#2E57A9]"
               checked={paymentOptions.transfer}
               onCheckedChange={(ev) =>
                 handleSetPaymentOption("transfer", ev.valueOf() as boolean)
@@ -485,7 +623,7 @@ export default function BusinessCreateForm() {
                 <Input
                   type="time"
                   className="border-0 border-bottom"
-                  value={availableHours[day].start}
+                  value={availableHours[day].open}
                   onChange={(ev) =>
                     updateBusinessHours(day, "start", ev.target.value)
                   }
@@ -496,7 +634,7 @@ export default function BusinessCreateForm() {
                 <Input
                   type="time"
                   className="border-0 border-bottom"
-                  value={availableHours[day].end}
+                  value={availableHours[day].close}
                   onChange={(ev) =>
                     updateBusinessHours(day, "end", ev.target.value)
                   }
@@ -507,7 +645,7 @@ export default function BusinessCreateForm() {
               <span className="flex items-center gap-3">
                 <Label htmlFor={day + "-closed"}>Closed</Label>
                 <Checkbox
-                  className="h-5 w-5"
+                  className="h-5 w-5 data-[state=checked]:bg-[#2E57A9]"
                   id={day + "-closed"}
                   name={day + "-closed"}
                   checked={availableHours[day].closed}
@@ -521,9 +659,34 @@ export default function BusinessCreateForm() {
         </div>
       </div>
 
+      {/* Terms and Conditions Checkbox */}
+      <div className="flex items-center space-x-2 pt-4">
+        <Checkbox
+          id="terms"
+          checked={agreedToTerms}
+          onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
+          className="data-[state=checked]:bg-[#2E57A9]"
+          required
+        />
+        <Label
+          htmlFor="terms"
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        >
+          I agree to the{" "}
+          <a
+            href="/business/terms-of-service"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline text-blue-600 hover:text-blue-800"
+          >
+            Terms and Conditions
+          </a>
+          <span className="text-destructive">*</span>
+        </Label>
+      </div>
+
       {/* Action Buttons */}
       <div className="flex justify-end gap-4 pt-4">
-        {/* Added rounded-full to action buttons */}
         <Button
           variant="outline"
           onClick={() => router.back()}
@@ -533,10 +696,10 @@ export default function BusinessCreateForm() {
         </Button>
         <Button
           onClick={handleSave}
-          disabled={createBusiness.status === "pending" || !!createdBusinessId}
-          className="rounded-full"
+          disabled={createBusiness.status === "pending" || !isFormValid()} // Disable if form is invalid or creating
+          className="rounded-full bg-[#2E57A9]"
         >
-          {createBusiness.status === "pending" ? "Creating..." : "Save"}
+          {createBusiness.status === "pending" ? "Creating..." : "Create"}
         </Button>
       </div>
     </div>

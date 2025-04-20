@@ -497,78 +497,168 @@ async function seedReviews() {
   const businesses = await databases.listDocuments(
     DATABASE_ID,
     BUSINESSES_COLLECTION_ID,
-    [Query.limit(5)]
+    [Query.limit(5)] // Ensure we have businesses to link reviews to
   );
   const users = await databases.listDocuments(
     DATABASE_ID,
     USERS_COLLECTION_ID,
-    [Query.limit(5)]
+    [Query.limit(5)] // Ensure we have users to write reviews
   );
+
   if (businesses.total === 0 || users.total === 0) {
     console.log("Cannot seed reviews: need at least one business and one user.");
     return;
   }
-  const demoReviews = [
+
+  const allBusinesses = businesses.documents;
+  const allUsers = users.documents;
+
+  // More diverse demo reviews, linked to specific business/user indices
+  const demoReviewsData = [
+    // Reviews for Business 0 (Demo Pizza Place)
     {
+      businessIndex: 0,
+      userIndex: 1, // Bob
       rating: 5,
-      title: "Amazing Service!",
-      text: "The staff were super friendly and the food was delicious. Highly recommend to anyone looking for a great meal in town.",
-      recommendation: "Try the pepperoni special.",
+      title: "Best Pizza Ever!",
+      text: "Absolutely fantastic pizza, great crust and fresh toppings. The service was quick and friendly too. Will definitely be back!",
+      recommendation: "Try the Margherita.",
+      likes: 15,
+      dislikes: 1,
     },
     {
+      businessIndex: 0,
+      userIndex: 2, // Charlie
       rating: 4,
-      title: "Great Experience",
-      text: "Really enjoyed the atmosphere and the bread was fresh. Will visit again soon.",
-      recommendation: "Get the sourdough loaf.",
+      title: "Solid Pizza Joint",
+      text: "Good pizza, decent prices. A reliable spot for a casual meal.",
+      recommendation: null,
+      likes: 8,
+      dislikes: 0,
+    },
+    // Reviews for Business 1 (Sunrise Bakery)
+    {
+      businessIndex: 1,
+      userIndex: 0, // Alice
+      rating: 4,
+      title: "Lovely Bakery",
+      text: "The croissants were flaky and delicious. A bit pricey, but worth it for the quality.",
+      recommendation: "Get there early for the best selection.",
+      likes: 12,
+      dislikes: 2,
+    },
+    // Reviews for Business 2 (FitLife Gym)
+    {
+      businessIndex: 2,
+      userIndex: 3, // Diana
+      rating: 5,
+      title: "Excellent Gym Facilities",
+      text: "Clean, modern equipment and helpful staff. The classes are great too!",
+      recommendation: "Try the morning yoga class.",
+      likes: 25,
+      dislikes: 0,
     },
     {
+      businessIndex: 2,
+      userIndex: 4, // Ethan
+      rating: 4,
+      title: "Good Workout Spot",
+      text: "Gets a bit busy during peak hours, but overall a solid gym with everything you need.",
+      recommendation: null,
+      likes: 5,
+      dislikes: 1,
+    },
+    {
+      businessIndex: 2,
+      userIndex: 0, // Alice
       rating: 3,
-      title: "Good, but could improve",
-      text: "The gym equipment is modern, but it gets crowded in the evenings.",
-      recommendation: "Go in the morning for less crowd.",
+      title: "Decent, but Crowded",
+      text: "The equipment is good, but it's often hard to get on the machines I want in the evening. Wish they had more space.",
+      recommendation: "Avoid peak times if possible.",
+      likes: 2,
+      dislikes: 3,
     },
+    // Reviews for Business 4 (Glamour Salon)
     {
+      businessIndex: 4,
+      userIndex: 1, // Bob
       rating: 5,
-      title: "Book Lover's Paradise",
-      text: "So many books to choose from and a cozy reading corner. Loved it!",
-      recommendation: "Check out the new arrivals section.",
+      title: "Fantastic Haircut!",
+      text: "Got a great haircut here. The stylist listened to what I wanted and did an amazing job. Very professional.",
+      recommendation: "Ask for Sarah.",
+      likes: 18,
+      dislikes: 0,
     },
     {
+      businessIndex: 4,
+      userIndex: 3, // Diana
       rating: 4,
-      title: "Stylish Salon",
-      text: "Professional stylists and a relaxing atmosphere. My haircut was perfect.",
-      recommendation: "Book with Diana for the best style.",
+      title: "Nice Salon Experience",
+      text: "Relaxing atmosphere and friendly staff. Happy with my styling.",
+      recommendation: null,
+      likes: 9,
+      dislikes: 1,
     },
   ];
-  for (let i = 0; i < businesses.documents.length; i++) {
-    const business = businesses.documents[i];
-    const user = users.documents[i % users.documents.length];
-    const review = demoReviews[i % demoReviews.length];
+
+  let createdCount = 0;
+  for (const reviewData of demoReviewsData) {
+    // Ensure indices are valid
+    if (
+      reviewData.businessIndex >= allBusinesses.length ||
+      reviewData.userIndex >= allUsers.length
+    ) {
+      console.warn(
+        `Skipping review due to invalid index: Business ${reviewData.businessIndex}, User ${reviewData.userIndex}`
+      );
+      continue;
+    }
+
+    const business = allBusinesses[reviewData.businessIndex];
+    const user = allUsers[reviewData.userIndex];
+
+    // Check if this specific user already reviewed this specific business
     const existing = await databases.listDocuments(
       DATABASE_ID,
       REVIEWS_COLLECTION_ID,
       [Query.equal("businessId", business.$id), Query.equal("userId", user.$id)]
     );
-    if (existing.total > 0) continue;
-    await databases.createDocument(
-      DATABASE_ID,
-      REVIEWS_COLLECTION_ID,
-      ID.unique(),
-      {
-        businessId: business.$id,
-        userId: user.$id,
-        rating: review.rating,
-        title: review.title,
-        text: review.text,
-        recommendation: review.recommendation,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        likes: 0,
-        dislikes: 0,
-      }
-    );
+
+    if (existing.total > 0) {
+      // console.log(`Review by ${user.fullName} for ${business.name} already exists.`);
+      continue; // Skip if already exists
+    }
+
+    // Create the review document
+    try {
+      await databases.createDocument(
+        DATABASE_ID,
+        REVIEWS_COLLECTION_ID,
+        ID.unique(),
+        {
+          businessId: business.$id,
+          userId: user.$id,
+          rating: reviewData.rating,
+          title: reviewData.title,
+          text: reviewData.text,
+          recommendation: reviewData.recommendation,
+          createdAt: new Date(
+            Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000 // Random date within last 30 days
+          ).toISOString(),
+          updatedAt: new Date().toISOString(),
+          likes: reviewData.likes,
+          dislikes: reviewData.dislikes,
+        }
+      );
+      createdCount++;
+    } catch (error) {
+      console.error(
+        `Failed to create review for ${business.name} by ${user.fullName}:`,
+        error
+      );
+    }
   }
-  console.log("Reviews seeded for all businesses.");
+  console.log(`${createdCount} new reviews seeded.`);
 }
 
 async function seedReviewReactions() {
