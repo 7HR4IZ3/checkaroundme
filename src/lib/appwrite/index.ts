@@ -1112,7 +1112,7 @@ export const MessageService = {
         MESSAGES_COLLECTION_ID,
         [
           Query.equal("conversationId", conversationId),
-          Query.orderDesc("createdAt"), // Most recent first
+          Query.orderAsc("createdAt"), // Most recent first
           Query.limit(limit),
           Query.offset(offset),
         ]
