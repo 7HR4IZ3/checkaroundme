@@ -7,7 +7,7 @@ const Footer = () => {
   return (
     <footer className="bg-black text-gray-300 pt-16 pb-8">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
+        <div className="flex flex-row flex-wrap justify-between gap-8 mb-12">
           {/* Subscribe */}
           <div>
             <h3 className="text-lg font-semibold text-white mb-4">Subscribe</h3>
