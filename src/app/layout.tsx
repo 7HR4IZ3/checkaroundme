@@ -10,6 +10,8 @@ import "./globals.css";
 import { Suspense } from "react";
 import Loading from "@/components/ui/loading";
 
+import { Analytics } from "@vercel/analytics/react";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -25,7 +27,7 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata = {
   title: "Checkaroundme - Discover Local Businesses",
   description:
-    "Find and connect with amazing local businesses in your community."
+    "Find and connect with amazing local businesses in your community.",
 };
 
 export default function RootLayout({
@@ -45,6 +47,7 @@ export default function RootLayout({
             </Suspense>
           </AuthProvider>
         </TrpcProvider>
+        <Analytics mode="production" />
       </body>
     </html>
   );
