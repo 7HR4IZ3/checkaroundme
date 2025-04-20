@@ -290,335 +290,421 @@ export default function BusinessPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      {/* Hidden File Input */}
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileChange}
-        accept="image/*" // Accept only image files
-        style={{ display: "none" }}
-      />
-      {/* Main container */}
-      <div className="flex flex-col md:flex-row gap-8 lg:gap-12">
-        {/* Left Column */}
-        <div className="md:flex-grow space-y-8">
-          {/* Business Info */}
-          <section>
-            <div className="flex items-center gap-2 mb-2">
-              <h1 className="text-3xl font-bold">{business.name}</h1>
-              {user?.$id === business.ownerId && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="ml-2 flex items-center gap-1"
-                  onClick={() => router.push(`/business/${businessId}/edit`)}
-                >
-                  <Pencil className="w-4 h-4 mr-1" />
-                  Edit Business
-                </Button>
-              )}
-            </div>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-2">
-              <div className="flex items-center gap-1">
-                <span className="font-semibold text-yellow-500">
-                  {business.rating.toFixed(1)}
-                </span>
-                <StarRating
-                  rating={business.rating}
-                  count={business.reviewCount}
-                />
+    <>
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        {/* Hidden File Input */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          accept="image/*" // Accept only image files
+          style={{ display: "none" }}
+        />
+        {/* Main container */}
+        <div className="flex flex-col md:flex-row gap-8 lg:gap-12">
+          {/* Left Column */}
+          <div className="md:flex-grow space-y-8">
+            {/* Business Info */}
+            <section>
+              <div className="flex items-center gap-2 mb-2">
+                <h1 className="text-3xl font-bold">{business.name}</h1>
+                {user?.$id === business.ownerId && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="ml-2 flex items-center gap-1"
+                    onClick={() => router.push(`/business/${businessId}/edit`)}
+                  >
+                    <Pencil className="w-4 h-4 mr-1" />
+                    Edit Business
+                  </Button>
+                )}
               </div>
-            </div>
-            <div className="flex items-center gap-1 mb-2 text-sm">
-              {business.isVerified && (
-                <div className="flex items-center gap-1 text-green-600">
-                  <CheckCircle className="w-4 h-4" />
-                  <span>Verified</span>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-2">
+                <div className="flex items-center gap-1">
+                  <span className="font-semibold text-yellow-500">
+                    {business.rating.toFixed(1)}
+                  </span>
+                  <StarRating
+                    rating={business.rating}
+                    count={business.reviewCount}
+                  />
                 </div>
-              )}
-              {business.categories.map((cat) => (
-                <Badge key={cat} variant="outline">
-                  {cat}
-                </Badge>
-              ))}
-            </div>
-            <div className="flex items-center gap-2 text-sm mb-4">
-              {/* Compute isOpen and hoursToday from openingHours */}
-              {(() => {
-                const today = openingHours.find((h) => h.day === currentDay);
-                if (!today) return null;
-                if (today.hours === "Closed") {
-                  return (
-                    <span className="text-red-600 font-semibold">Closed</span>
-                  );
-                }
-                return (
-                  <span className="text-green-600 font-semibold">Open</span>
-                );
-              })()}
-              <span>
+              </div>
+              <div className="flex items-center gap-1 mb-2 text-sm">
+                {business.isVerified && (
+                  <div className="flex items-center gap-1 text-green-600">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Verified</span>
+                  </div>
+                )}
+                {business.categories.map((cat) => (
+                  <Badge key={cat} variant="outline">
+                    {cat}
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex items-center gap-2 text-sm mb-4">
+                {/* Compute isOpen and hoursToday from openingHours */}
                 {(() => {
                   const today = openingHours.find((h) => h.day === currentDay);
-                  return today ? today.hours : "";
+                  if (!today) return null;
+                  if (today.hours === "Closed") {
+                    return (
+                      <span className="text-red-600 font-semibold">Closed</span>
+                    );
+                  }
+                  return (
+                    <span className="text-green-600 font-semibold">Open</span>
+                  );
                 })()}
-              </span>
-              <Button variant="link" className="p-0 h-auto text-sm">
-                <a href="#hours">See hours</a>
-              </Button>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" className="bg-[#2E57A9] text-white">
-                <Star className="mr-2 h-4 w-4" /> Write a review
-              </Button>
-              {user?.$id === business.ownerId && (
-                <Button
-                  variant="outline"
-                  onClick={handleAddPhotoClick}
-                  disabled={isUploading} // Disable button while uploading
-                >
-                  {isUploading ? (
-                    <div className="mr-2 h-4 w-4 animate-spin">
-                      <LoadingSVG />
-                    </div>
-                  ) : (
-                    <>
-                      <ImagePlus className="mr-2 h-4 w-4" /> Add a photo
-                    </>
-                  )}
+                <span>
+                  {(() => {
+                    const today = openingHours.find(
+                      (h) => h.day === currentDay
+                    );
+                    return today ? today.hours : "";
+                  })()}
+                </span>
+                <Button variant="link" className="p-0 h-auto text-sm">
+                  <a href="#hours">See hours</a>
                 </Button>
-              )}
-              <Button variant="outline">
-                <Share2 className="mr-2 h-4 w-4" /> Share
-              </Button>
-            </div>
-          </section>
+              </div>
 
-          <Separator />
-
-          {/* Photos & Videos */}
-          <section>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Photos & Videos</h2>
-              <Button variant="link" className="text-sm">
-                See all {imageUrls.length} photos{" "}
-                <ChevronRight className="ml-1 h-4 w-4" />
-              </Button>
-            </div>
-            <Carousel
-              opts={{
-                align: "start",
-                loop: true,
-              }}
-              className="w-full"
-            >
-              <CarouselContent>
-                {imageUrls.map((imgSrc, index) => (
-                  <CarouselItem
-                    key={index}
-                    className="basis-1/2 sm:basis-1/3 lg:basis-1/4"
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" className="bg-[#2E57A9] text-white">
+                  <Star className="mr-2 h-4 w-4" /> Write a review
+                </Button>
+                {user?.$id === business.ownerId && (
+                  <Button
+                    variant="outline"
+                    onClick={handleAddPhotoClick}
+                    disabled={isUploading} // Disable button while uploading
                   >
-                    <div
-                      className="aspect-square relative bg-muted rounded-md overflow-hidden cursor-pointer"
-                      onClick={() => {
-                        setCurrentImageIndex(index);
-                        setIsModalOpen(true);
-                      }}
-                    >
-                      {/* Use next/image for optimized images */}
-                      <Image
-                        src={imgSrc}
-                        alt={`Business photo ${index + 1}`}
-                        fill
-                        style={{ objectFit: "cover" }}
-                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                        priority={index < 3}
-                      />
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2" />
-              <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2" />
-            </Carousel>
-          </section>
-
-          <Separator />
-
-          {/* Service Offered */}
-          <section>
-            <div className="flex items-center gap-2 mb-4">
-              <h2 className="text-xl font-semibold">Service Offered</h2>
-              {business.isVerified && (
-                <div className="flex items-center gap-1 text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
-                  <CheckCircle className="w-3 h-3" />
-                  <span>Verified Business</span>
-                </div>
-              )}
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm text-gray-700">
-              {(business.services ?? []).map((service) => (
-                <p key={service}>{service}</p>
-              ))}
-            </div>
-          </section>
-
-          <Separator />
-
-          {/* About the Business */}
-          <section>
-            <h2 className="text-xl font-semibold mb-2">About the Business</h2>
-            <p className="text-sm text-gray-700 leading-relaxed">
-              {business.about}
-              <Button variant="link" className="p-0 h-auto text-sm ml-1">
-                more
-              </Button>
-            </p>
-          </section>
-
-          <Separator />
-
-          {/* Location & Hours */}
-          <section id="hours">
-            <h2 className="text-xl font-semibold mb-4">Location & Hours</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Map Placeholder */}
-              <div className="aspect-video bg-muted rounded-md flex items-center justify-center text-gray-500">
-                {/* In a real app, embed a map here (e.g., Google Maps, Mapbox) */}
-                Map Placeholder
+                    {isUploading ? (
+                      <div className="mr-2 h-4 w-4 animate-spin">
+                        <LoadingSVG />
+                      </div>
+                    ) : (
+                      <>
+                        <ImagePlus className="mr-2 h-4 w-4" /> Add a photo
+                      </>
+                    )}
+                  </Button>
+                )}
+                <Button variant="outline">
+                  <Share2 className="mr-2 h-4 w-4" /> Share
+                </Button>
               </div>
-              {/* Address & Hours */}
-              <div>
-                <p className="font-medium mb-1">{business.addressLine1}</p>
-                <p className="text-sm text-gray-600 mb-4">
-                  {business.addressLine2}
-                </p>
+            </section>
 
-                <div className="space-y-1 text-sm">
-                  {openingHours.map((item) => (
-                    <div
-                      key={item.day}
-                      className={`flex justify-between ${
-                        item.day === currentDay ? "font-semibold" : ""
-                      }`}
+            <Separator />
+
+            {/* Photos & Videos */}
+            <section>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">Photos & Videos</h2>
+                <Button
+                  variant="link"
+                  className="text-sm"
+                  onClick={() => {
+                    setCurrentImageIndex(0);
+                    setIsModalOpen(true);
+                  }}
+                >
+                  See all {imageUrls.length} photos{" "}
+                  <ChevronRight className="ml-1 h-4 w-4" />
+                </Button>
+              </div>
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: true,
+                }}
+                className="w-full"
+              >
+                <CarouselContent>
+                  {imageUrls.map((imgSrc, index) => (
+                    <CarouselItem
+                      key={index}
+                      className="basis-1/2 sm:basis-1/3 lg:basis-1/4"
                     >
-                      <span>{item.day}</span>
-                      <span
-                        className={
-                          item.hours === "Closed"
-                            ? "text-red-600"
-                            : item.day === currentDay && item.hours !== "Closed"
-                            ? "text-green-600"
-                            : ""
-                        }
+                      <div
+                        className="aspect-square relative bg-muted rounded-md overflow-hidden cursor-pointer"
+                        onClick={() => {
+                          setCurrentImageIndex(index);
+                          setIsModalOpen(true);
+                        }}
                       >
-                        {item.hours}
-                        {item.day === currentDay && item.hours !== "Closed" && (
-                          <span className="ml-2 text-green-600">Open now</span>
-                        )}
-                      </span>
-                    </div>
+                        {/* Use next/image for optimized images */}
+                        <Image
+                          src={imgSrc}
+                          alt={`Business photo ${index + 1}`}
+                          fill
+                          style={{ objectFit: "cover" }}
+                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                          priority={index < 3}
+                        />
+                      </div>
+                    </CarouselItem>
                   ))}
+                </CarouselContent>
+                <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2" />
+                <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2" />
+              </Carousel>
+            </section>
+
+            <Separator />
+
+            {/* Service Offered */}
+            <section>
+              <div className="flex items-center gap-2 mb-4">
+                <h2 className="text-xl font-semibold">Service Offered</h2>
+                {business.isVerified && (
+                  <div className="flex items-center gap-1 text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
+                    <CheckCircle className="w-3 h-3" />
+                    <span>Verified Business</span>
+                  </div>
+                )}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm text-gray-700">
+                {(business.services ?? []).map((service) => (
+                  <p key={service}>{service}</p>
+                ))}
+              </div>
+            </section>
+
+            <Separator />
+
+            {/* About the Business */}
+            <section>
+              <h2 className="text-xl font-semibold mb-2">About the Business</h2>
+              <p className="text-sm text-gray-700 leading-relaxed">
+                {business.about}
+                <Button variant="link" className="p-0 h-auto text-sm ml-1">
+                  more
+                </Button>
+              </p>
+            </section>
+
+            <Separator />
+
+            {/* Location & Hours */}
+            <section id="hours">
+              <h2 className="text-xl font-semibold mb-4">Location & Hours</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Map Placeholder */}
+                <div className="aspect-video bg-muted rounded-md flex items-center justify-center text-gray-500">
+                  {/* In a real app, embed a map here (e.g., Google Maps, Mapbox) */}
+                  Map Placeholder
+                </div>
+                {/* Address & Hours */}
+                <div>
+                  <p className="font-medium mb-1">{business.addressLine1}</p>
+                  <p className="text-sm text-gray-600 mb-4">
+                    {business.addressLine2}
+                  </p>
+
+                  <div className="space-y-1 text-sm">
+                    {openingHours.map((item) => (
+                      <div
+                        key={item.day}
+                        className={`flex justify-between ${
+                          item.day === currentDay ? "font-semibold" : ""
+                        }`}
+                      >
+                        <span>{item.day}</span>
+                        <span
+                          className={
+                            item.hours === "Closed"
+                              ? "text-red-600"
+                              : item.day === currentDay &&
+                                item.hours !== "Closed"
+                              ? "text-green-600"
+                              : ""
+                          }
+                        >
+                          {item.hours}
+                          {item.day === currentDay &&
+                            item.hours !== "Closed" && (
+                              <span className="ml-2 text-green-600">
+                                Open now
+                              </span>
+                            )}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
 
-          <Separator />
+            <Separator />
 
-          {/* Recommended Reviews */}
-          <section>
-            <h2 className="text-xl font-semibold mb-4">Reviews</h2>
-            {/* Overall Rating Summary */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6 p-4 rounded-md">
-              <div className="text-center">
-                <p className="text-3xl font-bold">
-                  {business.rating.toFixed(1)}
-                </p>
-                <StarRating rating={business.rating} />
-                <p className="text-sm text-gray-600 mt-1">
-                  ({business.reviewCount} reviews)
-                </p>
+            {/* Recommended Reviews */}
+            <section>
+              <h2 className="text-xl font-semibold mb-4">Reviews</h2>
+              {/* Overall Rating Summary */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6 p-4 rounded-md">
+                <div className="text-center">
+                  <p className="text-3xl font-bold">
+                    {business.rating.toFixed(1)}
+                  </p>
+                  <StarRating rating={business.rating} />
+                  <p className="text-sm text-gray-600 mt-1">
+                    ({business.reviewCount} reviews)
+                  </p>
+                </div>
+                <div className="flex-1 w-full space-y-1">
+                  {/* Add actual percentages based on review distribution */}
+                  <RatingBar stars={5} percentage={100} />
+                  <RatingBar stars={4} percentage={60} />
+                  <RatingBar stars={3} percentage={0} />
+                  <RatingBar stars={2} percentage={0} />
+                  <RatingBar stars={1} percentage={0} />
+                </div>
               </div>
-              <div className="flex-1 w-full space-y-1">
-                {/* Add actual percentages based on review distribution */}
-                <RatingBar stars={5} percentage={100} />
-                <RatingBar stars={4} percentage={60} />
-                <RatingBar stars={3} percentage={0} />
-                <RatingBar stars={2} percentage={0} />
-                <RatingBar stars={1} percentage={0} />
+
+              {/* Individual Reviews */}
+              <div className="space-y-6">
+                {reviews?.reviews.map((review, index) => (
+                  <ReviewCard review={review} key={index} />
+                ))}
               </div>
-            </div>
+              {/* Add "Load More Reviews" button if needed */}
+            </section>
+          </div>
 
-            {/* Individual Reviews */}
-            <div className="space-y-6">
-              {reviews?.reviews.map((review, index) => (
-                <ReviewCard review={review} key={index} />
-              ))}
-            </div>
-            {/* Add "Load More Reviews" button if needed */}
-          </section>
-        </div>
-
-        {/* Right Column */}
-        <div className="md:w-1/3 space-y-6">
-          {/* Action Buttons */}
-          <div className="space-y-2">
-            <Button
-              variant="ghost"
-              className="w-full flex justify-end md:justify-between flex-row-reverse md:flex-row"
-              size="lg"
-              onClick={() => router.push("/messages")}
-            >
-              Message business <MessageSquare className="mr-2 h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              className="w-full flex justify-end md:justify-between flex-row-reverse md:flex-row"
-            >
-              <span className="ml-2 hidden sm:inline">{business.phone}</span>{" "}
-              <Phone className="h-4 w-4" />
-            </Button>
-            <div className="flex items-center justify-start flex-col">
+          {/* Right Column */}
+          <div className="md:w-1/3 space-y-6">
+            {/* Action Buttons */}
+            <div className="space-y-2">
+              <Button
+                variant="ghost"
+                className="w-full flex justify-end md:justify-between flex-row-reverse md:flex-row"
+                size="lg"
+                onClick={() => router.push("/messages")}
+              >
+                Message business <MessageSquare className="mr-2 h-4 w-4" />
+              </Button>
               <Button
                 variant="ghost"
                 className="w-full flex justify-end md:justify-between flex-row-reverse md:flex-row"
               >
-                <span className="ml-2 hidden sm:inline">Get Directions</span>{" "}
-                <MapPin className="h-4 w-4" />
+                <span className="ml-2 hidden sm:inline">{business.phone}</span>{" "}
+                <Phone className="h-4 w-4" />
               </Button>
-              <p className="text-sm font-medium">{business.addressLine1}</p>
-              <p className="text-sm text-gray-600">{business.addressLine2}</p>
+              <div className="flex items-center justify-start flex-col">
+                <Button
+                  variant="ghost"
+                  className="w-full flex justify-end md:justify-between flex-row-reverse md:flex-row"
+                >
+                  <span className="ml-2 hidden sm:inline">Get Directions</span>{" "}
+                  <MapPin className="h-4 w-4" />
+                </Button>
+                <p className="text-sm font-medium">{business.addressLine1}</p>
+                <p className="text-sm text-gray-600">{business.addressLine2}</p>
+              </div>
             </div>
           </div>
         </div>
+        <Separator className="my-12" />
+        {/* People also viewed */}
+        <section>
+          <h2 className="text-xl font-semibold mb-6">People also viewed</h2>
+          <Carousel
+            opts={{
+              align: "start",
+              loop: true,
+            }}
+            className="w-full"
+          >
+            <CarouselContent>
+              {businesses?.businesses.map((business) => (
+                <CarouselItem
+                  key={business.$id}
+                  className="basis-1/1 md:basis-1/2"
+                >
+                  <ListingCard hideButton={true} business={business} />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2" />
+            <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2" />
+          </Carousel>
+        </section>
       </div>
-      <Separator className="my-12" />
-      {/* People also viewed */}
-      <section>
-        <h2 className="text-xl font-semibold mb-6">People also viewed</h2>
-        <Carousel
-          opts={{
-            align: "start",
-            loop: true,
-          }}
-          className="w-full"
-        >
-          <CarouselContent>
-            {businesses?.businesses.map((business) => (
-              <CarouselItem
-                key={business.$id}
-                className="basis-1/1 md:basis-1/2"
+
+      {/* Image Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="md:max-w-[80vw] h-[80vh] bg-white p-0">
+          <DialogHeader className="px-6 pt-6">
+            <DialogTitle className="text-center text-xl">
+              Photo {currentImageIndex + 1} of {imageUrls.length}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="relative h-[calc(80vh-100px)] bg-white">
+            <Image
+              src={imageUrls[currentImageIndex]}
+              alt={`Business photo ${currentImageIndex + 1}`}
+              fill
+              style={{ objectFit: "contain" }}
+              className="p-4"
+            />
+            <div className="absolute inset-0 flex items-center justify-between px-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full bg-white/30 backdrop-blur-sm hover:bg-white/50"
+                disabled={currentImageIndex === 0}
+                onClick={() =>
+                  setCurrentImageIndex((prev) => Math.max(0, prev - 1))
+                }
               >
-                <ListingCard hideButton={true} business={business} />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2" />
-          <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2" />
-        </Carousel>
-      </section>
-    </div>
+                <ChevronLeft className="h-8 w-8" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full bg-white/30 backdrop-blur-sm hover:bg-white/50"
+                disabled={currentImageIndex === imageUrls.length - 1}
+                onClick={() =>
+                  setCurrentImageIndex((prev) =>
+                    Math.min(imageUrls.length - 1, prev + 1)
+                  )
+                }
+              >
+                <ChevronRight className="h-8 w-8" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Image preview gallery */}
+          {/* <div className="px-6 pb-6">
+            <div className="flex gap-2 overflow-x-auto py-4">
+              {imageUrls.map((imgSrc, index) => (
+                <div
+                  key={index}
+                  className={`flex-shrink-0 w-20 h-20 rounded-md overflow-hidden cursor-pointer border-2 ${
+                    currentImageIndex === index
+                      ? "border-blue-500"
+                      : "border-transparent"
+                  }`}
+                  onClick={() => setCurrentImageIndex(index)}
+                >
+                  <Image
+                    src={imgSrc}
+                    alt={`Preview ${index + 1}`}
+                    width={80}
+                    height={80}
+                    className="object-cover w-full h-full"
+                  />
+                </div>
+              ))}
+            </div>
+          </div> */}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
