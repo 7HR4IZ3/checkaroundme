@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, Phone, Send, ArrowUpCircle, File } from "lucide-react";
+import { Search, Phone, Send, ArrowUpCircle, File, ArrowLeft } from "lucide-react";
 import { trpc } from "@/lib/trpc/client";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/lib/hooks/useClientAuth";
@@ -26,6 +26,8 @@ interface ConversationProps {
   handleSendMessage: () => void;
   sendMessageMutation: any; // Use a more specific type if available
   currentUserId: string;
+  showBackButton: boolean; // New prop for mobile back button
+  onBackButtonClick: () => void; // New prop for back button click handler
 }
 
 export default function Conversation({
@@ -39,6 +41,8 @@ export default function Conversation({
   handleSendMessage,
   sendMessageMutation,
   currentUserId,
+  showBackButton, // Destructure new prop
+  onBackButtonClick, // Destructure new prop
 }: ConversationProps) {
   return (
     <div className="flex-1 flex flex-col">
@@ -46,35 +50,49 @@ export default function Conversation({
         <>
           {/* Chat Header */}
           <div className="p-4 border-b flex items-center justify-between">
-            {activeChatUser ? (
-              <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
-                  {/* <AvatarImage
-                    src={activeChatUser.avatarUrl}
-                    alt={activeChatUser.name}
-                  /> */}
-                  <AvatarFallback>
-                    {activeChatUser.name.substring(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-semibold">{activeChatUser.name}</p>
-                  {/* Online status is not available in the provided data */}
-                  {/* {activeChatContact.online && (
-                    <p className="text-xs text-green-500">Online</p>
-                  )} */}
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-muted"></div>
-                <div>
-                  <p className="font-semibold text-muted-foreground">
-                    Select a chat
-                  </p>
-                </div>
-              </div>
-            )}
+            <div className="flex items-center gap-3">
+              {/* Back button for mobile */}
+              {showBackButton && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-primary hover:bg-muted md:hidden" // Show only on mobile
+                  onClick={onBackButtonClick}
+                  aria-label="Back to conversations"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              )}
+              {activeChatUser ? (
+                <>
+                  <Avatar className="h-10 w-10">
+                    {/* <AvatarImage
+                      src={activeChatUser.avatarUrl}
+                      alt={activeChatUser.name}
+                    /> */}
+                    <AvatarFallback>
+                      {activeChatUser.name.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-semibold">{activeChatUser.name}</p>
+                    {/* Online status is not available in the provided data */}
+                    {/* {activeChatContact.online && (
+                      <p className="text-xs text-green-500">Online</p>
+                    )} */}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="h-10 w-10 rounded-full bg-muted"></div>
+                  <div>
+                    <p className="font-semibold text-muted-foreground">
+                      Select a chat
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
             <Button
               variant="ghost"
               size="icon"

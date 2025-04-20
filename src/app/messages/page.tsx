@@ -199,6 +199,30 @@ export default function MessagesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [messageInput, setMessageInput] = useState("");
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null); // No default selected chat
+  const [isMobile, setIsMobile] = useState(false); // New state for mobile detection
+
+  useEffect(() => {
+    const handleResize = () => {
+      // Check if window is defined (for SSR)
+      if (typeof window !== 'undefined') {
+        setIsMobile(window.innerWidth < 768); // Using 768px as the md breakpoint
+      }
+    };
+
+    // Set initial value
+    handleResize();
+
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+
+    // Clean up event listener on component unmount
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('resize', handleResize);
+      }
+    };
+  }, []); // Empty dependency array means this effect runs once on mount and cleans up on unmount
+
 
   // Fetch user's conversations
   const { data: conversationsData, isLoading: isLoadingConversations } =
@@ -288,7 +312,7 @@ export default function MessagesPage() {
       {" "}
       {/* Use h-screen or adjust height as needed */}
       {/* Left Column: Chat List */}
-      <div className="w-1/3 border-r flex flex-col">
+      <div className={`flex-col md:w-1/3 md:border-r ${isMobile && selectedChatId ? 'hidden' : 'w-full flex'}`}>
         {/* Header & Search */}
         <div className="p-4 border-b">
           <h2 className="text-xl font-semibold mb-4">Messages</h2>
@@ -348,18 +372,22 @@ export default function MessagesPage() {
         </div>
       </div>
       {/* Right Column: Active Chat Window */}
-      <Conversation
-        selectedChatId={selectedChatId}
-        messages={messages}
-        isLoadingMessages={isLoadingMessages}
-        activeChatUser={activeChatUser}
-        currentUserAvatar={currentUserAvatar}
-        messageInput={messageInput}
-        setMessageInput={setMessageInput}
-        handleSendMessage={handleSendMessage}
-        sendMessageMutation={sendMessageMutation}
-        currentUserId={currentUserId}
-      />
+      <div className={`flex-1 ${isMobile && !selectedChatId ? 'hidden' : 'w-full md:w-2/3 flex'}`}>
+        <Conversation
+          selectedChatId={selectedChatId}
+          messages={messages}
+          isLoadingMessages={isLoadingMessages}
+          activeChatUser={activeChatUser}
+          currentUserAvatar={currentUserAvatar}
+          messageInput={messageInput}
+          setMessageInput={setMessageInput}
+          handleSendMessage={handleSendMessage}
+          sendMessageMutation={sendMessageMutation}
+          currentUserId={currentUserId}
+          showBackButton={isMobile && selectedChatId !== null}
+          onBackButtonClick={() => setSelectedChatId(null)}
+        />
+      </div>
     </div>
   );
 }
