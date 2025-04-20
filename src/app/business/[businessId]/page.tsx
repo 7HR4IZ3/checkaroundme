@@ -4,7 +4,13 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
 import { useRouter } from "next/navigation";
-import { useRef, useState, ChangeEvent } from "react"; // Added imports
+import { useRef, useState, ChangeEvent } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Star,
   CheckCircle,
@@ -154,6 +160,8 @@ const ReviewCard = ({ review }: { review: Review }) => {
 
 export default function BusinessPage() {
   const { user, isAuthenticated } = useAuth();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const router = useRouter();
   const params = useParams();
   const fileInputRef = useRef<HTMLInputElement>(null); // Added ref
@@ -411,7 +419,13 @@ export default function BusinessPage() {
                     key={index}
                     className="basis-1/2 sm:basis-1/3 lg:basis-1/4"
                   >
-                    <div className="aspect-square relative bg-muted rounded-md overflow-hidden">
+                    <div
+                      className="aspect-square relative bg-muted rounded-md overflow-hidden cursor-pointer"
+                      onClick={() => {
+                        setCurrentImageIndex(index);
+                        setIsModalOpen(true);
+                      }}
+                    >
                       {/* Use next/image for optimized images */}
                       <Image
                         src={imgSrc}

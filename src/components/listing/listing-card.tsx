@@ -60,7 +60,7 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
             ))}
           </div>
           <p className="text-sm text-gray-600 leading-relaxed mb-1">
-            {business.description}..{" "}
+            {business.about}..{" "}
             {/* <button className="text-blue-600 hover:underline text-sm">
               more
             </button> */}
