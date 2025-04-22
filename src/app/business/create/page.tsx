@@ -58,7 +58,7 @@ export default function BusinessCreateForm() {
   const [termsError, setTermsError] = useState("");
 
   const [businessEmail, setBusinessEmail] = useState("");
-  const [businessWebsite, setBusinessWebsite] = useState("");
+  const [businessWebsite, setBusinessWebsite] = useState("https://");
   const [paymentOptions, setPaymentOptions] = useState<{
     [key: string]: boolean;
   }>({
@@ -112,6 +112,13 @@ export default function BusinessCreateForm() {
     }));
   };
   // --- Handlers ---
+  const handleBusinessWebsite = (value) => {
+    if (!value || !value.startsWith("https://")) {
+      value = "https://" + value
+    }
+    setBusinessWebsite(value);
+  }
+
   const handleImageDelete = async (idToDelete: string) => {
     try {
       setIsImageDeleting((prev) => [...prev, idToDelete]);
@@ -599,7 +606,7 @@ export default function BusinessCreateForm() {
             id="businessWebsite"
             type="url"
             value={businessWebsite}
-            onChange={(e) => setBusinessWebsite(e.target.value)}
+            onChange={(e) => handleBusinessWebsite(e.target.value)}
             placeholder="https://example.com"
             className="mt-2"
           />
