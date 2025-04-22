@@ -221,7 +221,7 @@ export default function BusinessCreateForm() {
         city,
         country,
         ownerId: userId,
-        phone: phoneNumber,
+        phone: phoneCountryCode + phoneNumber,
         categories: businessCategory ? [businessCategory] : [],
         services: servicesOffered,
         userId,
@@ -229,7 +229,10 @@ export default function BusinessCreateForm() {
           (key) => paymentOptions[key]
         ),
         hours: availableHours,
-        images: businessImages.map(({ isPrimary, $id }) => ({ isPrimary, imageID: $id })),
+        images: businessImages.map(({ isPrimary, $id }) => ({
+          isPrimary,
+          imageID: $id,
+        })),
         email: businessEmail, // Added business email
         website: businessWebsite, // Added business website
       });
@@ -242,7 +245,7 @@ export default function BusinessCreateForm() {
         city,
         country,
         ownerId: userId,
-        phone: phoneNumber,
+        phone: phoneCountryCode + phoneNumber, // TODO: Sanitize this
         categories: businessCategory ? [businessCategory] : [],
         services: servicesOffered,
         userId,
@@ -251,7 +254,10 @@ export default function BusinessCreateForm() {
         ),
         // @ts-ignore
         hours: availableHours,
-        images: businessImages.map(({ isPrimary, $id }) => ({ isPrimary, imageID: $id })),
+        images: businessImages.map(({ isPrimary, $id }) => ({
+          isPrimary,
+          imageID: $id,
+        })),
         email: businessEmail, // Added business email
         website: businessWebsite, // Added business website
       });
@@ -277,16 +283,16 @@ export default function BusinessCreateForm() {
           }
           // Add more error handling for other fields if needed
         }
-     } else {
-       // Handle other types of errors
-       console.error("An unexpected error occurred:", error.message);
-       // Show a generic error message to the user using toast
-       toast("Failed to Create Business", {
-         description: error.message || "An unexpected error occurred.",
-       });
-     }
-   }
- };
+      } else {
+        // Handle other types of errors
+        console.error("An unexpected error occurred:", error.message);
+        // Show a generic error message to the user using toast
+        toast("Failed to Create Business", {
+          description: error.message || "An unexpected error occurred.",
+        });
+      }
+    }
+  };
 
   return (
     <div className="container mx-auto py-8 px-4 md:px-8 lg:px-16 space-y-8">
@@ -303,20 +309,20 @@ export default function BusinessCreateForm() {
           <Input
             id="businessName"
             value={businessName}
-           required
-           onChange={(e) => {
-             setBusinessName(e.target.value);
-             setBusinessNameError(""); // Clear error on change
-           }}
-           placeholder="Enter business name"
-           className={`mt-1 ${businessNameError ? "border-red-500" : ""}`} // Add error class
-         />
-         {businessNameError && (
-           <p className="text-red-500 text-sm mt-1">{businessNameError}</p>
-         )}
-         <p className="text-xs text-muted-foreground mt-1">
-           Input full name, ensure there are no special characters
-         </p>
+            required
+            onChange={(e) => {
+              setBusinessName(e.target.value);
+              setBusinessNameError(""); // Clear error on change
+            }}
+            placeholder="Enter business name"
+            className={`mt-1 ${businessNameError ? "border-red-500" : ""}`} // Add error class
+          />
+          {businessNameError && (
+            <p className="text-red-500 text-sm mt-1">{businessNameError}</p>
+          )}
+          <p className="text-xs text-muted-foreground mt-1">
+            Input full name, ensure there are no special characters
+          </p>
         </div>
 
         {createdBusinessId ? (
@@ -351,21 +357,23 @@ export default function BusinessCreateForm() {
         </Label>
         <Textarea
           id="aboutBusiness"
-         value={aboutBusiness}
-         required
-         onChange={(e) => {
-           setAboutBusiness(e.target.value);
-           setAboutBusinessError(""); // Clear error on change
-         }}
-         placeholder="Describe the business..."
-         className={`min-h-[100px] mt-2 ${aboutBusinessError ? "border-red-500" : ""}`} // Add error class
-       />
-       {aboutBusinessError && (
-         <p className="text-red-500 text-sm mt-1">{aboutBusinessError}</p>
-       )}
-     </div>
+          value={aboutBusiness}
+          required
+          onChange={(e) => {
+            setAboutBusiness(e.target.value);
+            setAboutBusinessError(""); // Clear error on change
+          }}
+          placeholder="Describe the business..."
+          className={`min-h-[100px] mt-2 ${
+            aboutBusinessError ? "border-red-500" : ""
+          }`} // Add error class
+        />
+        {aboutBusinessError && (
+          <p className="text-red-500 text-sm mt-1">{aboutBusinessError}</p>
+        )}
+      </div>
 
-     {/* Business Photo/Videos */}
+      {/* Business Photo/Videos */}
       <div>
         <Label className="font-semibold block mb-2">
           Business photo/videos
@@ -459,37 +467,37 @@ export default function BusinessCreateForm() {
           </Label>
           <Input
             id="addressLine1"
-           value={addressLine1}
-           required
-           onChange={(e) => {
-             setAddressLine1(e.target.value);
-             setAddressLine1Error(""); // Clear error on change
-           }}
-           placeholder="Enter address line 1"
-           className={`mt-2 ${addressLine1Error ? "border-red-500" : ""}`} // Add error class
-         />
-         {addressLine1Error && (
-           <p className="text-red-500 text-sm mt-1">{addressLine1Error}</p>
-         )}
-       </div>
-       <div className="">
-         <Label htmlFor="city" className="font-semibold">
-           <span className="text-destructive">*</span> City
-         </Label>
-         <Select
-           value={city}
-           onValueChange={(value) => {
-             setCity(value);
-             setCityError(""); // Clear error on change
-           }}
-           required
-         >
-           <SelectTrigger
-             id="city"
-             className={`mt-2 ${cityError ? "border-red-500" : ""}`} // Add error class
-           >
-             <SelectValue placeholder="Select city" />
-           </SelectTrigger>
+            value={addressLine1}
+            required
+            onChange={(e) => {
+              setAddressLine1(e.target.value);
+              setAddressLine1Error(""); // Clear error on change
+            }}
+            placeholder="Enter address line 1"
+            className={`mt-2 ${addressLine1Error ? "border-red-500" : ""}`} // Add error class
+          />
+          {addressLine1Error && (
+            <p className="text-red-500 text-sm mt-1">{addressLine1Error}</p>
+          )}
+        </div>
+        <div className="">
+          <Label htmlFor="city" className="font-semibold">
+            <span className="text-destructive">*</span> City
+          </Label>
+          <Select
+            value={city}
+            onValueChange={(value) => {
+              setCity(value);
+              setCityError(""); // Clear error on change
+            }}
+            required
+          >
+            <SelectTrigger
+              id="city"
+              className={`mt-2 ${cityError ? "border-red-500" : ""}`} // Add error class
+            >
+              <SelectValue placeholder="Select city" />
+            </SelectTrigger>
             <SelectContent>
               {/* TODO: Populate dynamically based on selected country */}
               <SelectItem value="Lagos">Lagos</SelectItem>
@@ -497,42 +505,44 @@ export default function BusinessCreateForm() {
               <SelectItem value="Accra">Accra</SelectItem>
               <SelectItem value="London">London</SelectItem>
               <SelectItem value="New York">New York</SelectItem>
-           </SelectContent>
-         </Select>
-         {cityError && <p className="text-red-500 text-sm mt-1">{cityError}</p>}
-       </div>
-       <div className="">
-         <Label htmlFor="country" className="font-semibold">
-           <span className="text-destructive">*</span> Country
-         </Label>
-         <Select
-           value={country}
-           onValueChange={(value) => {
-             setCountry(value);
-             setCountryError(""); // Clear error on change
-           }}
-           required
-         >
-           <SelectTrigger
-             id="country"
-             className={`mt-2 ${countryError ? "border-red-500" : ""}`} // Add error class
-           >
-             <SelectValue placeholder="Select country" />
-           </SelectTrigger>
+            </SelectContent>
+          </Select>
+          {cityError && (
+            <p className="text-red-500 text-sm mt-1">{cityError}</p>
+          )}
+        </div>
+        <div className="">
+          <Label htmlFor="country" className="font-semibold">
+            <span className="text-destructive">*</span> Country
+          </Label>
+          <Select
+            value={country}
+            onValueChange={(value) => {
+              setCountry(value);
+              setCountryError(""); // Clear error on change
+            }}
+            required
+          >
+            <SelectTrigger
+              id="country"
+              className={`mt-2 ${countryError ? "border-red-500" : ""}`} // Add error class
+            >
+              <SelectValue placeholder="Select country" />
+            </SelectTrigger>
             <SelectContent>
               {/* TODO: Populate with actual countries */}
               <SelectItem value="Nigeria">Nigeria</SelectItem>
               <SelectItem value="Ghana">Ghana</SelectItem>
               <SelectItem value="United Kingdom">United Kingdom</SelectItem>
               <SelectItem value="United States">United States</SelectItem>
-           </SelectContent>
-         </Select>
-         {countryError && (
-           <p className="text-red-500 text-sm mt-1">{countryError}</p>
-         )}
-       </div>
+            </SelectContent>
+          </Select>
+          {countryError && (
+            <p className="text-red-500 text-sm mt-1">{countryError}</p>
+          )}
+        </div>
 
-       {/* Phone Number */}
+        {/* Phone Number */}
         <div className="flex-grow">
           <Label htmlFor="phoneNumber" className="font-semibold">
             Phone number
@@ -770,13 +780,13 @@ export default function BusinessCreateForm() {
           >
             Terms and Conditions
           </a>
-         <span className="text-destructive">*</span>
-       </Label>
-     </div>
-     {termsError && <p className="text-red-500 text-sm mt-1">{termsError}</p>}
+          <span className="text-destructive">*</span>
+        </Label>
+      </div>
+      {termsError && <p className="text-red-500 text-sm mt-1">{termsError}</p>}
 
-     {/* Action Buttons */}
-     <div className="flex justify-end gap-4 pt-4">
+      {/* Action Buttons */}
+      <div className="flex justify-end gap-4 pt-4">
         <Button
           variant="outline"
           onClick={() => router.back()}
