@@ -5,6 +5,7 @@ import { Suspense, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FaGoogle } from "react-icons/fa";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,10 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+
   const [termsAccepted, setTermsAccepted] = useState(true);
 
   const login = trpc.login.useMutation();
@@ -27,18 +32,36 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
+    setEmailError("");
+    setPasswordError("");
 
-    console.log("Logging in with:", { email, password });
-    const result = await login.mutateAsync({ email, password });
-    if (result.success) {
-      if (document.cookie.includes("cham_appwrite_session")) {
-        console.log("Session cookie found in browser");
+    try {
+      console.log("Logging in with:", { email, password });
+      const result = await login.mutateAsync({ email, password });
+      console.log("Login result:", result);
+
+      if (result.success) {
+        router.push("/");
       } else {
-        console.log("Session cookie not found in browser");
+        // This block might be reached if the mutation succeeds but the server returns success: false
+        // Handle based on your API's specific error structure if different from mutation error
+        toast("Login Failed", { description: "An unexpected error occurred." });
       }
-      router.push("/");
-    } else {
-      // ... error handling
+    } catch (error: any) {
+      console.error("Login error:", error);
+      if (error.data?.httpStatus === 400) {
+        const errors = JSON.parse(error.message);
+
+        for (const item of errors) {
+          if (item.path[0] === "email") {
+            setEmailError(item.message);
+          } else if (item.path[0] === "password") {
+            setPasswordError(item.message);
+          }
+        }
+      } else {
+        setPasswordError(error.message || "An unexpected error occurred.");
+      }
     }
   };
 
@@ -72,9 +95,15 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
             type="email"
             placeholder="Enter your email address"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mt-1"
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setEmailError("");
+            }}
+            className={`mt-1 ${emailError ? "border-red-500" : ""}`}
           />
+          {emailError && (
+            <p className="text-red-500 text-sm mt-1">{emailError}</p>
+          )}
         </div>
 
         <div>
@@ -86,9 +115,15 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
             type="password"
             placeholder="********"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mt-1"
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setPasswordError("");
+            }}
+            className={`mt-1 ${passwordError ? "border-red-500" : ""}`}
           />
+          {passwordError && (
+            <p className="text-red-500 text-sm mt-1">{passwordError}</p>
+          )}
         </div>
 
         <div className="flex items-center space-x-2 pt-2">
@@ -192,12 +227,24 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
   const [termsAccepted, setTermsAccepted] = useState(true);
   const [isRecaptchaVerified, setIsRecaptchaVerified] = useState(false);
 
+  const [fullNameError, setFullNameError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [termsError, setTermsError] = useState("");
+
   const login = trpc.login.useMutation();
   const register = trpc.register.useMutation();
   const googleLogin = trpc.loginWithGoogle.useMutation();
 
   const handleRegister = async (event: React.FormEvent) => {
     event.preventDefault();
+    setFullNameError("");
+    setEmailError("");
+    setPhoneError("");
+    setPasswordError("");
+    setTermsError("");
+
     console.log("Registering with:", {
       fullName,
       email,
@@ -205,10 +252,12 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
       password,
       termsAccepted,
     });
+
     if (!termsAccepted) {
-      alert("Please accept the terms and conditions.");
+      setTermsError("Please accept the terms and conditions.");
       return;
     }
+
     try {
       await register.mutateAsync({
         name: fullName,
@@ -221,18 +270,38 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
       console.log("Logging in with:", { email, password });
       const result = await login.mutateAsync({ email, password });
       if (result.success) {
-        if (document.cookie.includes("cham_appwrite_session")) {
-          console.log("Session cookie found in browser");
-        } else {
-          console.log("Session cookie not found in browser");
-        }
         router.push("/");
       } else {
-        // ... error handling
+        // This block might be reached if the mutation succeeds but the server returns success: false
+        // Handle based on your API's specific error structure if different from mutation error
+        toast("Registration Failed", {
+          description: "An unexpected error occurred.",
+        });
       }
     } catch (error: any) {
       console.error("Registration error:", error);
-      alert(error?.message || "Registration failed.");
+      if (error.data?.httpStatus === 400) {
+        const errors = JSON.parse(error.message);
+
+        for (const error of errors) {
+          if (error.path[0] === "name") {
+            setFullNameError(error.message);
+          }
+          if (error.path[0] === "email") {
+            setEmailError(error.message);
+          }
+          if (error.path[0] === "phone") {
+            setPhoneError(error.message);
+          }
+          if (error.path[0] === "password") {
+            setPasswordError(error.message);
+          }
+        }
+      } else {
+        toast("Registration Error", {
+          description: error.message || "An unexpected error occurred.",
+        });
+      }
     }
   };
 
@@ -267,8 +336,11 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
             placeholder="Enter your full name"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className="mt-1"
+            className={`mt-1 ${fullNameError ? "border-red-500" : ""}`}
           />
+          {fullNameError && (
+            <p className="text-red-500 text-sm mt-1">{fullNameError}</p>
+          )}
         </div>
 
         <div>
@@ -281,8 +353,11 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
             placeholder="Enter your email address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1"
+            className={`mt-1 ${emailError ? "border-red-500" : ""}`}
           />
+          {emailError && (
+            <p className="text-red-500 text-sm mt-1">{emailError}</p>
+          )}
         </div>
 
         <div>
@@ -295,8 +370,11 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
             placeholder="+44 123 456 7890"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="mt-1"
+            className={`mt-1 ${phoneError ? "border-red-500" : ""}`}
           />
+          {phoneError && (
+            <p className="text-red-500 text-sm mt-1">{phoneError}</p>
+          )}
         </div>
 
         <div>
@@ -309,8 +387,11 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
             placeholder="********"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1"
+            className={`mt-1 ${passwordError ? "border-red-500" : ""}`}
           />
+          {passwordError && (
+            <p className="text-red-500 text-sm mt-1">{passwordError}</p>
+          )}
         </div>
 
         <div className="flex items-center space-x-2 pt-2">
@@ -345,6 +426,9 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
             </span>
           </Label>
         </div>
+        {termsError && (
+          <p className="text-red-500 text-sm mt-1">{termsError}</p>
+        )}
 
         <div className="border rounded-md p-3 mt-4 flex items-center justify-between bg-gray-50">
           <div className="flex items-center space-x-2">

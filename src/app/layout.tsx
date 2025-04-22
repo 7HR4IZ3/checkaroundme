@@ -9,6 +9,7 @@ import { TrpcProvider } from "@/lib/trpc/provider";
 import "./globals.css";
 import { Suspense } from "react";
 import Loading from "@/components/ui/loading";
+import { Toaster } from "@/components/ui/sonner"
 
 import { Analytics } from "@vercel/analytics/react";
 
@@ -43,6 +44,7 @@ export default function RootLayout({
             <Suspense fallback={<Loading />}>
               <Header />
               <main>{children}</main>
+              <Toaster />
               <Footer />
             </Suspense>
           </AuthProvider>
