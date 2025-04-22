@@ -135,7 +135,7 @@ export default function Home() {
           </div>
 
           {/* Map Section */}
-          <div className="flex-grow">
+          <div className="hidden md:block flex-grow">
             <MapPlaceholder />
           </div>
         </div>
