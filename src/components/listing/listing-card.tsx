@@ -7,25 +7,30 @@ import RatingStars from "@/components/ui/rating-stars";
 import { Button } from "@/components/ui/button"; // Use the reusable button
 import { Business } from "@/lib/schema";
 import { trpc } from "@/lib/trpc/client";
+import { Skeleton } from "../ui/skeleton";
 
 const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
   business,
   hideButton = false,
 }) => {
-  const { data: image } = trpc.getBusinessImage.useQuery({
+  const { data: image, isLoading } = trpc.getBusinessImage.useQuery({
     businessId: business.$id,
   });
 
   return (
     <div className="h-[15em] bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-row p-2 relative">
       <div className="w-[15em] m:w-1/2 relative">
-        <Image
-          src={image?.imageUrl!}
-          alt={business.name}
-          object-fit="cover"
-          fill
-          className="rounded-xl bg-gray-200" // Background while loading
-        />
+        {(isLoading || !image) ? (
+          <Skeleton />
+        ) : (
+          <Image
+            src={image.imageUrl}
+            alt={business.name}
+            object-fit="cover"
+            fill
+            className="rounded-xl bg-gray-200" // Background while loading
+          />
+        )}
       </div>
       <div className="flex-grow px-4 py-4 flex flex-col justify-between">
         <div className="flex flex-col justify-between">

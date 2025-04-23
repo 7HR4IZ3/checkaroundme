@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ArrowRight, Star } from "lucide-react"; // Import ArrowRight icon
 import { redirect, useParams } from "next/navigation";
+import { toast } from "sonner"; // Import toast
 import { trpc } from "@/lib/trpc/client";
 import Loading, { LoadingSVG } from "@/components/ui/loading";
 import { useAuth } from "@/lib/hooks/useClientAuth";
@@ -23,6 +24,9 @@ export default function ReviewForm() {
   const [reviewText, setReviewText] = useState("");
   const [rating, setRating] = useState<number | null>(null);
 
+  const [ratingError, setRatingError] = useState("");
+  const [reviewTextError, setReviewTextError] = useState("");
+
   const review = trpc.createReview.useMutation();
   const { data: business, isLoading } = trpc.getBusinessById.useQuery({
     businessId,
@@ -34,20 +38,45 @@ export default function ReviewForm() {
 
 
   const handlePostReview = async () => {
-    // Add proper errors to UI
-    if (!rating) return;
-    if (!reviewText || reviewText.length < 85) return;
+    setRatingError("");
+    setReviewTextError("");
+
+    if (!rating) {
+      setRatingError("Please select a rating.");
+      return;
+    }
 
     setLoading(true);
 
-    await review.mutateAsync({
-      businessId,
-      rating,
-      text: reviewText,
-      userId: user.$id,
-    });
+    try {
+      await review.mutateAsync({
+        businessId,
+        rating,
+        text: reviewText,
+        userId: user.$id,
+      });
 
-    redirect(`/business/${businessId}`);
+      redirect(`/business/${businessId}`);
+    } catch (error: any) {
+      console.error("Review submission error:", error);
+      if (error.data?.httpStatus === 400) {
+        const errors = JSON.parse(error.message);
+
+        for (const item of errors) {
+          if (item.path[0] === "rating") {
+            setRatingError(item.message);
+          } else if (item.path[0] === "text") {
+            setReviewTextError(item.message);
+          }
+        }
+      } else {
+        toast.error("Review Submission Failed", {
+          description: error.message || "An unexpected error occurred."
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -66,9 +95,14 @@ export default function ReviewForm() {
               key={star}
               variant={rating && rating >= star ? "default" : "outline"}
               size="icon"
-              onClick={() => setRating(star)}
+              onClick={() => {
+                setRating(star);
+                setRatingError("");
+              }}
               aria-label={`Rate ${star} out of 5 stars`}
-              className="bg-white hover:bg-white border-0"
+              className={`bg-white hover:bg-white border-0 ${
+                ratingError ? "border-red-500" : ""
+              }`}
             >
               <Star
                 className={`h-5 w-5 ${
@@ -80,6 +114,9 @@ export default function ReviewForm() {
             </Button>
           ))}
         </div>
+        {ratingError && (
+          <p className="text-red-500 text-sm mt-1">{ratingError}</p>
+        )}
       </div>
 
       <div className="mb-4 p-4 border border-2 rounded-lg">
@@ -103,20 +140,28 @@ export default function ReviewForm() {
             id="review-text"
             placeholder="Reply review..." // Updated placeholder
             value={reviewText}
-            onChange={(e) => setReviewText(e.target.value)}
-            className="min-h-[320px] border-0" // Keep min height, adjust if needed based on visual result
+            onChange={(e) => {
+              setReviewText(e.target.value);
+              setReviewTextError("");
+            }}
+            className={`min-h-[320px] border-0 ${
+              reviewTextError ? "border-red-500" : ""
+            }`} // Keep min height, adjust if needed based on visual result
             minLength={85}
           />
-          <div className={`absolute bottom-2 right-2 text-xs ${reviewText.length < 85 ? 'text-red-500' : 'text-muted-foreground'}`}>
+          {/* <div className={`absolute bottom-2 right-2 text-xs ${reviewText.length < 85 ? 'text-red-500' : 'text-muted-foreground'}`}>
             {reviewText.length}/85
-          </div>
+          </div> */}
         </div>
+        {reviewTextError && (
+          <p className="text-red-500 text-sm mt-1">{reviewTextError}</p>
+        )}
       </div>
 
       <Button
         // disabled logic removed, assuming button is always enabled or handled elsewhere
         className="w-1/4 rounded-full h-[4em] bg-[#2E57A9]"
-        disabled={loading || reviewText.length < 85 || !rating}
+        disabled={loading || !rating}
         onClick={handlePostReview}
       >
         {loading ? (

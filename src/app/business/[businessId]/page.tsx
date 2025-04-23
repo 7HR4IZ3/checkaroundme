@@ -49,6 +49,7 @@ import Loading, { LoadingSVG } from "@/components/ui/loading";
 import { useAuth } from "@/lib/hooks/useClientAuth";
 import ListingCard from "@/components/listing/listing-card";
 import { Review } from "@/lib/schema";
+import { ReviewCard } from "@/components/ui/review-card";
 
 // Helper component for star ratings
 const StarRating = ({ rating, count }: { rating: number; count?: number }) => {
@@ -97,71 +98,72 @@ const RatingBar = ({
   </div>
 );
 
-const ReviewCard = ({ review }: { review: Review }) => {
-  const { data: user, isLoading } = trpc.getUserById.useQuery({
-    userId: review.userId,
-  });
+// const ReviewCard = ({ review }: { review: Review }) => {
+//   const { data: user, isLoading } = trpc.getUserById.useQuery({
+//     userId: review.userId,
+//   });
 
-  const reactions = trpc.reactToReview.useMutation();
+//   const reactions = trpc.reactToReview.useMutation();
 
-  if (isLoading || !user)
-    return (
-      <div className="w-full h-full flex items-center justify-center">
-        <LoadingSVG />
-      </div>
-    );
+//   if (isLoading || !user)
+//     return (
+//       <div className="w-full h-full flex items-center justify-center">
+//         <LoadingSVG />
+//       </div>
+//     );
 
-  return (
-    <Card className="border-0 shadow-none">
-      <CardHeader>
-        <div className="flex items-start gap-4">
-          <Avatar>
-            {/* TODO: Replace with actual user avatar if available */}
-            <AvatarFallback>
-              {user.name.substring(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            {/* TODO: Replace userId with actual user name */}
-            <p className="font-semibold">{user?.name}</p>
-            {/* TODO: Add user location if available */}
-            {/* <p className="text-sm text-gray-500">{review}</p> */}
-            {/* Icons/Stats - Using Likes/Dislikes as placeholders for image icons */}
-            <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
-              <span className="flex items-center gap-1">
-                <ThumbsUp className="w-3 h-3" /> {review.likes}
-              </span>
-              <span className="flex items-center gap-1">
-                <ThumbsDown className="w-3 h-3" /> {review.dislikes}
-              </span>
-            </div>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="">
-        {/* Star Rating & Date */}
-        <div className="flex items-center gap-2 mb-6">
-          <StarRating rating={review.rating} />
-          <span className="text-xs text-gray-500">
-            {new Date(review.createdAt).toDateString()}
-          </span>
-        </div>
+//   return (
+//     <Card className="border-0 shadow-none">
+//       <CardHeader>
+//         <div className="flex items-start gap-4">
+//           <Avatar>
+//             {/* TODO: Replace with actual user avatar if available */}
+//             <AvatarFallback>
+//               {user.name.substring(0, 2).toUpperCase()}
+//             </AvatarFallback>
+//           </Avatar>
+//           <div className="flex-1">
+//             {/* TODO: Replace userId with actual user name */}
+//             <p className="font-semibold">{user?.name}</p>
+//             {/* TODO: Add user location if available */}
+//             {/* <p className="text-sm text-gray-500">{review}</p> */}
+//             {/* Icons/Stats - Using Likes/Dislikes as placeholders for image icons */}
+//             <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+//               <span className="flex items-center gap-1">
+//                 <ThumbsUp className="w-3 h-3" /> {review.likes}
+//               </span>
+//               <span className="flex items-center gap-1">
+//                 <ThumbsDown className="w-3 h-3" /> {review.dislikes}
+//               </span>
+//             </div>
+//           </div>
+//         </div>
+//       </CardHeader>
+//       <CardContent className="">
+//         {/* Star Rating & Date */}
+//         <div className="flex items-center gap-2 mb-6">
+//           <StarRating rating={review.rating} />
+//           <span className="text-xs text-gray-500">
+//             {new Date(review.createdAt).toDateString()}
+//           </span>
+//         </div>
 
-        {/* Review Text */}
-        <div className="text-sm text-gray-700 space-y-3 whitespace-pre-line">
-          {review.text.split("\n\n").map((paragraph, pIndex) => (
-            <p key={pIndex}>{paragraph}</p>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+//         {/* Review Text */}
+//         <div className="text-sm text-gray-700 space-y-3 whitespace-pre-line">
+//           {review.text.split("\n\n").map((paragraph, pIndex) => (
+//             <p key={pIndex}>{paragraph}</p>
+//           ))}
+//         </div>
+//       </CardContent>
+//     </Card>
+//   );
+// };
 
 export default function BusinessPage() {
   const { user, isAuthenticated } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showFullAbout, setShowFullAbout] = useState(false); // State for "About" section truncation
   const router = useRouter();
   const params = useParams();
   const fileInputRef = useRef<HTMLInputElement>(null); // Added ref
@@ -410,17 +412,19 @@ export default function BusinessPage() {
             <section>
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">Photos & Videos</h2>
-                <Button
-                  variant="link"
-                  className="text-sm"
-                  onClick={() => {
-                    setCurrentImageIndex(0);
-                    setIsModalOpen(true);
-                  }}
-                >
-                  See all {imageUrls.length} photos{" "}
-                  <ChevronRight className="ml-1 h-4 w-4" />
-                </Button>
+                {imageUrls.length > 5 && (
+                  <Button
+                    variant="link"
+                    className="text-sm"
+                    onClick={() => {
+                      setCurrentImageIndex(0);
+                      setIsModalOpen(true);
+                    }}
+                  >
+                    See all {imageUrls.length} photos{" "}
+                    <ChevronRight className="ml-1 h-4 w-4" />
+                  </Button>
+                )}
               </div>
               <Carousel
                 opts={{
@@ -486,10 +490,18 @@ export default function BusinessPage() {
             <section>
               <h2 className="text-xl font-semibold mb-2">About the Business</h2>
               <p className="text-sm text-gray-700 leading-relaxed">
-                {business.about}
-                <Button variant="link" className="p-0 h-auto text-sm ml-1">
-                  more
-                </Button>
+                {business.about.length > 500 && !showFullAbout
+                  ? business.about.substring(0, 500) + "..."
+                  : business.about}
+                {business.about.length > 500 && (
+                  <Button
+                    variant="link"
+                    className="p-0 h-auto text-sm ml-1"
+                    onClick={() => setShowFullAbout(!showFullAbout)}
+                  >
+                    {showFullAbout ? "less" : "more"}
+                  </Button>
+                )}
               </p>
             </section>
 
@@ -616,7 +628,23 @@ export default function BusinessPage() {
               {/* Individual Reviews */}
               <div className="space-y-6">
                 {reviews?.reviews.map((review, index) => (
-                  <ReviewCard review={review} key={index} />
+                  <ReviewCard
+                    review={review}
+                    key={index}
+                    onReviewDeleted={() =>
+                      utils.getBusinessReviews.invalidate({ businessId })
+                    }
+                  >
+                    {/* Add Reply button */}
+                    <Button
+                      variant="link"
+                      size="sm"
+                      className="p-0 h-auto text-sm mt-2"
+                      onClick={() => router.push(`/business/${businessId}/review?replyTo=${review.$id}`)}
+                    >
+                      Reply
+                    </Button>
+                  </ReviewCard>
                 ))}
               </div>
               {/* Add "Load More Reviews" button if needed */}

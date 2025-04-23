@@ -36,7 +36,7 @@ export const updateUserSchema = userSchema
 export const businessSchema = z.object({
   $id: z.string(),
   name: z.string().min(3, "Business name must be at least 3 characters"),
-  about: z.string().optional(),
+  about: z.string(),
   categories: z.array(z.string()),
   services: z.array(z.string()).optional(),
   isVerified: z.boolean().default(false),
@@ -112,7 +112,7 @@ export const reviewSchema = z.object({
   userId: z.string(),
   rating: z.number().min(1).max(5),
   title: z.string().optional(),
-  text: z.string().min(85, "Review must be at least 85 characters"),
+  text: z.string().min(5, "Review must be at least 5 characters"),
   recommendation: z.string().optional(),
   createdAt: z.date().default(() => new Date()),
   updatedAt: z.date().default(() => new Date()),
@@ -180,4 +180,4 @@ export type Category = z.infer<typeof categorySchema>;
 export type Message = z.infer<typeof messageSchema>;
 export type Conversation = z.infer<typeof conversationSchema>;
 export type AuthSession = z.infer<typeof authSessionSchema>;
-export type DaySchema = z.infer<typeof daySchema>
+export type DaySchema = z.infer<typeof daySchema>;

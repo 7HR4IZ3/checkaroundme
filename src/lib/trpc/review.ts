@@ -17,7 +17,7 @@ export function createReviewProcedures(
           businessId: z.string(),
           userId: z.string(),
           rating: z.number().min(1).max(5),
-          text: z.string().min(85, "Review must be at least 85 characters"),
+          text: z.string().min(5, "Review must be at least 5 characters"),
           title: z.string().optional(),
           recommendation: z.string().optional(),
         })
@@ -64,8 +64,16 @@ export function createReviewProcedures(
       // .output(z.object({ success: z.boolean() }))
       .mutation(async ({ input }) => {
         const { reviewId, userId, type } = input;
-        await ReviewService.reactToReview(reviewId, userId, type);
-        return { success: true };
+        const result = await ReviewService.reactToReview(reviewId, userId, type);
+        return result; // Return the result from the service
+      }),
+
+    // Get a user's reaction for a specific review
+    getUserReaction: t.procedure
+      .input(z.object({ reviewId: z.string(), userId: z.string() }))
+      .query(async ({ input }) => {
+        const reaction = await ReviewService.getUserReaction(input.reviewId, input.userId);
+        return reaction; // Return the reaction object or null
       }),
 
     replyToReview: t.procedure
@@ -83,5 +91,12 @@ export function createReviewProcedures(
         // and pass it to ReviewService.replyToReview if needed for authorization.
         return await ReviewService.replyToReview(reviewId, replyText);
       }),
+
+   deleteReview: t.procedure
+     .input(z.object({ reviewId: z.string() }))
+     .mutation(async ({ input }) => {
+       await ReviewService.deleteReview(input.reviewId);
+       return { success: true };
+     }),
   };
 }

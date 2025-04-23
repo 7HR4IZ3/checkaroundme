@@ -51,7 +51,7 @@ const Header = () => {
     }
   };
 
-  if (!auth.isAuthenticated && pathname == "/auth") {
+  if (!auth.isAuthenticated && pathname.startsWith("/auth")) {
     return null;
   }
 

@@ -229,6 +229,35 @@ export const AuthService = {
       throw error;
     }
   },
+
+  // Request password reset
+  async requestPasswordReset(email: string, resetUrl: string): Promise<void> {
+    try {
+      // Appwrite's createRecovery sends an email with a link to the resetUrl
+      // The link will contain a secret and userId as query parameters
+      await account.createRecovery(email, resetUrl);
+      // Appwrite's createRecovery resolves with an empty object on success
+      // We don't need to return anything specific here, just indicate success by not throwing
+    } catch (error) {
+      console.error("Appwrite password reset request error:", error);
+      // Re-throw the error so the tRPC procedure can handle it
+      throw error;
+    }
+  },
+
+  // Reset password using recovery secret
+  async resetPassword(userId: string, secret: string, password: string): Promise<void> {
+    try {
+      // Appwrite's updateRecovery completes the password reset
+      await account.updateRecovery(userId, secret, password);
+      // Appwrite's updateRecovery resolves with an empty object on success
+      // We don't need to return anything specific here, just indicate success by not throwing
+    } catch (error) {
+      console.error("Appwrite password reset error:", error);
+      // Re-throw the error so the tRPC procedure can handle it
+      throw error;
+    }
+  },
 };
 
 // User Service
@@ -813,7 +842,7 @@ export const ReviewService = {
     reviewId: string,
     userId: string,
     type: "like" | "dislike"
-  ): Promise<void> {
+  ): Promise<{ likes: number; dislikes: number; userReactionType: "like" | "dislike" | null }> {
     try {
       // Check if user already reacted
       const existingReaction = await databases.listDocuments(
@@ -822,25 +851,56 @@ export const ReviewService = {
         [Query.equal("reviewId", reviewId), Query.equal("userId", userId)]
       );
 
-      // If there's an existing reaction, update it
+      let currentLikes = 0;
+      let currentDislikes = 0;
+      let userReactionType: "like" | "dislike" | null = null;
+
+      // Fetch current review counts
+      const review = (await databases.getDocument(
+        DATABASE_ID,
+        REVIEWS_COLLECTION_ID,
+        reviewId
+      )) as unknown as Review;
+      currentLikes = review.likes;
+      currentDislikes = review.dislikes;
+
+      // If there's an existing reaction
       if (existingReaction.total > 0) {
         const reaction = existingReaction.documents[0];
         const oldType = reaction.type;
 
-        // Only update if the reaction type is different
-        if (oldType !== type) {
+        // If the new reaction is the same as the old one, remove the reaction
+        if (oldType === type) {
+          await databases.deleteDocument(
+            DATABASE_ID,
+            REVIEW_REACTIONS_COLLECTION_ID,
+            reaction.$id
+          );
+          if (oldType === "like") {
+            currentLikes--;
+          } else {
+            currentDislikes--;
+          }
+          userReactionType = null;
+        } else {
+          // If the new reaction is different, update the existing reaction
           await databases.updateDocument(
             DATABASE_ID,
             REVIEW_REACTIONS_COLLECTION_ID,
             reaction.$id,
             { type }
           );
-
-          // Update the review counters
-          await updateReviewReactionCounts(reviewId, oldType, type);
+          if (oldType === "like") {
+            currentLikes--;
+            currentDislikes++;
+          } else {
+            currentDislikes--;
+            currentLikes++;
+          }
+          userReactionType = type;
         }
       } else {
-        // Create new reaction
+        // If no existing reaction, create a new one
         await databases.createDocument(
           DATABASE_ID,
           REVIEW_REACTIONS_COLLECTION_ID,
@@ -852,28 +912,47 @@ export const ReviewService = {
             createdAt: new Date().toISOString(),
           }
         );
-
-        // Update the review counters
-        const review = (await databases.getDocument(
-          DATABASE_ID,
-          REVIEWS_COLLECTION_ID,
-          reviewId
-        )) as unknown as Review;
-
-        const updatedCounts = {
-          likes: review.likes + (type === "like" ? 1 : 0),
-          dislikes: review.dislikes + (type === "dislike" ? 1 : 0),
-        };
-
-        await databases.updateDocument(
-          DATABASE_ID,
-          REVIEWS_COLLECTION_ID,
-          reviewId,
-          updatedCounts
-        );
+        if (type === "like") {
+          currentLikes++;
+        } else {
+          currentDislikes++;
+        }
+        userReactionType = type;
       }
+
+      // Update the review document with the new counts
+      await databases.updateDocument(
+        DATABASE_ID,
+        REVIEWS_COLLECTION_ID,
+        reviewId,
+        {
+          likes: currentLikes,
+          dislikes: currentDislikes,
+        }
+      );
+
+      return { likes: currentLikes, dislikes: currentDislikes, userReactionType };
     } catch (error) {
       console.error("React to review error:", error);
+      throw error;
+    }
+  },
+
+  // Get a user's reaction for a specific review
+  async getUserReaction(reviewId: string, userId: string): Promise<ReviewReaction | null> {
+    try {
+      const result = await databases.listDocuments(
+        DATABASE_ID,
+        REVIEW_REACTIONS_COLLECTION_ID,
+        [
+          Query.equal("reviewId", reviewId),
+          Query.equal("userId", userId),
+          Query.limit(1), // We only expect one reaction per user per review
+        ]
+      );
+      return result.documents.length > 0 ? result.documents[0] as unknown as ReviewReaction : null;
+    } catch (error) {
+      console.error("Get user reaction error:", error);
       throw error;
     }
   },
@@ -900,6 +979,20 @@ export const ReviewService = {
       return updatedReview as unknown as Review;
     } catch (error) {
       console.error("Reply to review error:", error);
+      throw error;
+    }
+  },
+
+  async deleteReview(reviewId: string): Promise<void> {
+    try {
+      await databases.deleteDocument(
+        DATABASE_ID,
+        REVIEWS_COLLECTION_ID,
+        reviewId
+      );
+      // TODO: Update business rating and review count after deleting a review
+    } catch (error) {
+      console.error("Delete review error:", error);
       throw error;
     }
   },

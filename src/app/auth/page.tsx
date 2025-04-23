@@ -205,6 +205,23 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
       </Button>
 
       <p className="text-center text-sm text-muted-foreground pt-4">
+        Forgot your password?{" "}
+        <Link
+          href="/auth/forgot-password"
+          className="font-medium text-primary hover:underline"
+        >
+          Reset Password
+        </Link>
+      </p>
+      
+      <div className="relative my-6">
+        <Separator />
+        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-xs text-muted-foreground">
+          Or
+        </span>
+      </div>
+
+      <p className="text-center text-sm text-muted-foreground pt-4">
         Don't have an account?{" "}
         <Link
           onClick={onToggle}

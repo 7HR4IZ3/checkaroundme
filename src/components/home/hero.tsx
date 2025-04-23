@@ -36,6 +36,7 @@ const Hero: React.FC<HeroProps> = ({ title, subtitles }) => {
         </span>
         {subtitles.map((subtitle, index) => (
           <span
+            key={index}
             className={`text-2xl sm:text-4xl md:text-4xl font-bold leading-tight ${
               (index + 1) === subtitles.length ? "mb-4" : ""
             }`}

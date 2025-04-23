@@ -68,7 +68,7 @@ const Footer = () => {
             {/* Replace with actual QR code image */}
             <div className="mb-4 bg-white p-1 inline-block rounded">
               <Image
-                src="/qr-code-placeholder.png" // Replace
+                src="/images/qr.png" // Replace
                 alt="QR Code"
                 width={80}
                 height={80}
