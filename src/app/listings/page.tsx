@@ -119,8 +119,12 @@ export default function Home() {
               onOpenFiltersPanel={onOpenFiltersPanel}
             />
             <div className="space-y-6">
-              {!list || isLoading ? (
+              {isLoading ? (
                 <Loading />
+              ) : (!list) ? (
+                <div className="text-center text-gray-500">
+                  No businesses found.
+                </div>
               ) : (
                 list.businesses.map((business, index) => (
                   <ListingCard key={index} business={business} />
