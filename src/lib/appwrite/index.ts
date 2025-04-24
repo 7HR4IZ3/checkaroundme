@@ -434,7 +434,7 @@ export const BusinessService = {
         filters.push(
           Query.or([
             Query.search("name", query),
-            Query.search("description", query),
+            Query.search("about", query),
           ])
         );
       }
