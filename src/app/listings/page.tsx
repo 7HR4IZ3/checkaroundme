@@ -37,8 +37,8 @@ export default function Home() {
   // Parse pagination from URL
   const limitParam = searchParams.get("limit");
   const offsetParam = searchParams.get("offset");
-  const limit = limitParam ? parseInt(limitParam, 10) : 10;
-  const offset = offsetParam ? parseInt(offsetParam, 10) : 0;
+  const limit = limitParam ? parseInt(limitParam, 5) : 5;
+  const offset = offsetParam ? parseInt(offsetParam, 5) : 0;
 
   // Filters panel state
   const [filtersPanelOpen, setFiltersPanelOpen] = useState(false);
@@ -107,9 +107,9 @@ export default function Home() {
         onChangeCategory={onChangeCategory}
       />
       <div className="container flex flex-row mx-auto px-4 py-8 min-h-[70vh]">
-        <div className="flex flex-row gap-8 w-full">
+        <div className="flex flex-row flex-wrap gap-8 w-full">
           {/* Listings Section */}
-          <div className="w-2/3">
+          <div className="flex-grow w-full">
             <h1 className="text-2xl font-semibold mb-4 text-gray-800">
               Auto Mechanics near Lekki, Lagos
             </h1>
@@ -139,7 +139,7 @@ export default function Home() {
           </div>
 
           {/* Map Section */}
-          <div className="hidden md:block flex-grow">
+          <div className="w-full md:w-1/3">
             <MapPlaceholder />
           </div>
         </div>

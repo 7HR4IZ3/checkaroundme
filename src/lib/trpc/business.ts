@@ -70,10 +70,10 @@ export function createBusinessProcedures(
               Fri: daySchema,
               Sat: daySchema,
               Sun: daySchema,
-            }),
+            }).optional(),
             images: z.array(
               z.object({ isPrimary: z.boolean(), imageID: z.string() })
-            ),
+            ).optional(),
           }),
         })
       )

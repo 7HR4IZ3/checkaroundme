@@ -24,24 +24,6 @@ const Footer = () => {
             </form>
           </div>
 
-          {/* Support */}
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Support</h3>
-            <address className="text-sm not-italic space-y-2">
-              <p>No 24D, Green Bay Estate, Lekki, Lagos State, Nigeria</p>
-              <p>
-                <a href="mailto:support@checkaroundme.com" className="hover:text-white hover:underline">
-                  support@checkaroundme.com
-                </a>
-              </p>
-              <p>
-                <a href="tel:+2349159558854" className="hover:text-white hover:underline">
-                  +234 915 955 8854
-                </a>
-              </p>
-            </address>
-          </div>
-
           {/* Account */}
           {/* <div>
             <h3 className="text-lg font-semibold text-white mb-4">Account</h3>

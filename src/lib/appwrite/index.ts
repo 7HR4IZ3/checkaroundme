@@ -30,6 +30,7 @@ import {
 import { createAdminClient } from "./admin";
 import { create } from "domain";
 import { createSessionClient } from "./session";
+import axios, { AxiosError } from "axios";
 
 // Appwrite configuration
 const client = new Client();
@@ -246,7 +247,11 @@ export const AuthService = {
   },
 
   // Reset password using recovery secret
-  async resetPassword(userId: string, secret: string, password: string): Promise<void> {
+  async resetPassword(
+    userId: string,
+    secret: string,
+    password: string
+  ): Promise<void> {
     try {
       // Appwrite's updateRecovery completes the password reset
       await account.updateRecovery(userId, secret, password);
@@ -326,12 +331,62 @@ export const BusinessService = {
     images: { isPrimary: boolean; imageID: string }[]
   ): Promise<Business> {
     try {
+      let coordinates = undefined;
+      const address = `${data.addressLine1}, ${data.city}, ${
+        data.state || ""
+      }, ${data.country || ""}, ${data.postalCode || ""}`;
+      try {
+        const geocodeResponse = await axios.get(
+          "https://nominatim.openstreetmap.org/search",
+          {
+            params: {
+              q: address,
+              format: "json",
+              limit: 1,
+            },
+            headers: {
+              "User-Agent": "CheckAroundMe/1.0 (contact@checkaroundme.com)", // Replace with your app name and contact
+            },
+          }
+        );
+
+        if (geocodeResponse.data && geocodeResponse.data.length > 0) {
+          const result = geocodeResponse.data[0];
+          coordinates = {
+            latitude: parseFloat(result.lat),
+            longitude: parseFloat(result.lon),
+          };
+          console.log(`Geocoded address "${address}" to`, coordinates);
+        } else {
+          console.warn(
+            `Could not geocode address: "${address}". No results found.`
+          );
+        }
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          console.error(
+            `Geocoding API error: ${error.message}`,
+            error.response?.data
+          );
+        } else {
+          console.error(
+            "An unexpected error occurred during geocoding:",
+            error
+          );
+        }
+        // Continue without coordinates if geocoding fails
+      }
+
+      // Add coordinates to the data object if available
+      const businessDataWithCoordinates = coordinates
+        ? { ...data, coordinates }
+        : data;
       const newBusiness = await databases.createDocument(
         DATABASE_ID,
         BUSINESSES_COLLECTION_ID,
         ID.unique(),
         {
-          ...data,
+          ...businessDataWithCoordinates,
           rating: 0,
           reviewCount: 0,
           ownerId: userId,
@@ -374,8 +429,8 @@ export const BusinessService = {
   async updateBusiness(
     businessId: string,
     data: Partial<Business> & {
-      hours: { [key: string]: DaySchema };
-      images: { isPrimary: boolean; imageID: string }[];
+      hours?: { [key: string]: DaySchema };
+      images?: { isPrimary: boolean; imageID: string }[];
     }
   ): Promise<Business> {
     const { hours, images, ...business } = data;
@@ -390,11 +445,16 @@ export const BusinessService = {
         }
       );
 
-      await BusinessHoursService.setBusinessHours(updatedBusiness.$id, hours);
-      await BusinessImagesService.uploadTempImagesToBusiness(
-        updatedBusiness.$id,
-        images
-      );
+      hours &&
+        (await BusinessHoursService.setBusinessHours(
+          updatedBusiness.$id,
+          hours
+        ));
+      images &&
+        (await BusinessImagesService.uploadTempImagesToBusiness(
+          updatedBusiness.$id,
+          images
+        ));
 
       return updatedBusiness as unknown as Business;
     } catch (error) {
@@ -432,10 +492,7 @@ export const BusinessService = {
       // Add name search if query is provided
       if (query) {
         filters.push(
-          Query.or([
-            Query.search("name", query),
-            Query.search("about", query),
-          ])
+          Query.or([Query.search("name", query), Query.search("about", query)])
         );
       }
 
@@ -452,12 +509,14 @@ export const BusinessService = {
         );
       }
 
-      // Get total count first
-      const total = await databases.listDocuments(
-        DATABASE_ID,
-        BUSINESSES_COLLECTION_ID,
-        filters.length > 0 ? filters : undefined
-      );
+      // // Get total count first
+      // const total = await databases.listDocuments(
+      //   DATABASE_ID,
+      //   BUSINESSES_COLLECTION_ID,
+      //   filters.length > 0 ? filters : undefined
+      // );
+
+      console.log(limit, offset);
 
       // Now get paginated results
       const result = await databases.listDocuments(
@@ -475,7 +534,7 @@ export const BusinessService = {
 
       return {
         businesses: result.documents as unknown as Business[],
-        total: total.total,
+        total: result.total,
       };
     } catch (error) {
       console.error("List businesses error:", error);
@@ -842,7 +901,11 @@ export const ReviewService = {
     reviewId: string,
     userId: string,
     type: "like" | "dislike"
-  ): Promise<{ likes: number; dislikes: number; userReactionType: "like" | "dislike" | null }> {
+  ): Promise<{
+    likes: number;
+    dislikes: number;
+    userReactionType: "like" | "dislike" | null;
+  }> {
     try {
       // Check if user already reacted
       const existingReaction = await databases.listDocuments(
@@ -931,7 +994,11 @@ export const ReviewService = {
         }
       );
 
-      return { likes: currentLikes, dislikes: currentDislikes, userReactionType };
+      return {
+        likes: currentLikes,
+        dislikes: currentDislikes,
+        userReactionType,
+      };
     } catch (error) {
       console.error("React to review error:", error);
       throw error;
@@ -939,7 +1006,10 @@ export const ReviewService = {
   },
 
   // Get a user's reaction for a specific review
-  async getUserReaction(reviewId: string, userId: string): Promise<ReviewReaction | null> {
+  async getUserReaction(
+    reviewId: string,
+    userId: string
+  ): Promise<ReviewReaction | null> {
     try {
       const result = await databases.listDocuments(
         DATABASE_ID,
@@ -950,7 +1020,9 @@ export const ReviewService = {
           Query.limit(1), // We only expect one reaction per user per review
         ]
       );
-      return result.documents.length > 0 ? result.documents[0] as unknown as ReviewReaction : null;
+      return result.documents.length > 0
+        ? (result.documents[0] as unknown as ReviewReaction)
+        : null;
     } catch (error) {
       console.error("Get user reaction error:", error);
       throw error;
