@@ -80,7 +80,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
     <>
       <div className="text-left mb-12">
         <h1 className="text-3xl font-bold">Welcome Back! 👋</h1>
-        <p className="text-muted-foreground mt-2">
+        <p className="text-sm mt-2">
           Please login to your account
         </p>
       </div>
@@ -204,7 +204,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
         <span className="ml-2">Login with Google</span>
       </Button>
 
-      <p className="text-center text-sm text-muted-foreground pt-4">
+      <p className="text-center text-sm text-sm pt-4">
         Forgot your password?{" "}
         <Link
           href="/auth/forgot-password"
@@ -216,12 +216,12 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
       
       <div className="relative my-6">
         <Separator />
-        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-xs text-muted-foreground">
+        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-xs text-sm">
           Or
         </span>
       </div>
 
-      <p className="text-center text-sm text-muted-foreground pt-4">
+      <p className="text-center text-sm text-sm pt-4">
         Don't have an account?{" "}
         <Link
           onClick={onToggle}

@@ -8,37 +8,58 @@ import Pagination from "@/components/ui/pagination";
 import MapPlaceholder from "@/components/map/placeholder";
 import { trpc } from "@/lib/trpc/client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FiltersPanel } from "@/components/ui/filters";
+import { FiltersPanel, Filters } from "@/components/ui/filters"; // Import Filters type
 import Loading from "@/components/ui/loading";
+import { Input } from "@/components/ui/input"; // Import Input component
+import { Button } from "@/components/ui/button"; // Import Button component
 
 export default function Home() {
   // Prefetch
   trpc.getAllCategories.usePrefetchQuery();
 
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Parse filters from URL
+  const categoryParam = searchParams.get("categories");
+  const selectedCategory =
+    categoryParam && categoryParam.length > 0 ? categoryParam : null;
+
+  const queryParam = searchParams.get("query") || "";
+  const locationParam = searchParams.get("location") || "";
+
+  const priceParam = searchParams.get("price");
+  const featuresParam = searchParams.get("features");
+  const distancesParam = searchParams.get("distances");
+
+  const initialFilters: Filters = useMemo(
+    () => ({
+      price: priceParam ?? undefined, // Assign undefined if priceParam is null
+      features: featuresParam ? featuresParam.split(",") : [],
+      distances: distancesParam ? distancesParam.split(",") : [],
+    }),
+    [priceParam, featuresParam, distancesParam]
+  );
+
+  // State for manual location input
+  const [manualLocation, setManualLocation] = useState(locationParam);
+  // State to control editing mode for location
+  const [isEditingLocation, setIsEditingLocation] = useState(false);
+
   // State for FilterSortBar special filters (e.g., "Open Now", "Offers Delivery")
+  // These are separate from the main FiltersPanel filters but can be combined for the query
   const [filterBarCategories, setFilterBarCategories] = useState<string[]>([]);
 
   // Handler for FilterSortBar special filters (multi-select)
   const onChangeFilterBarCategories = useCallback((categories: string[]) => {
     setFilterBarCategories(categories);
   }, []);
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  // Parse category from URL (single-select)
-  const categoryParam = searchParams.get("categories");
-  const selectedCategory =
-    categoryParam && categoryParam.length > 0 ? categoryParam : null;
-
-  // Parse query and location from URL
-  const queryParam = searchParams.get("query") || "";
-  const locationParam = searchParams.get("location") || "";
 
   // Parse pagination from URL
   const limitParam = searchParams.get("limit");
   const offsetParam = searchParams.get("offset");
-  const limit = limitParam ? parseInt(limitParam, 5) : 5;
-  const offset = offsetParam ? parseInt(offsetParam, 5) : 0;
+  const limit = limitParam ? parseInt(limitParam, 10) : 5; // Use base 10 for parseInt
+  const offset = offsetParam ? parseInt(offsetParam, 10) : 0; // Use base 10 for parseInt
 
   // Filters panel state
   const [filtersPanelOpen, setFiltersPanelOpen] = useState(false);
@@ -69,6 +90,36 @@ export default function Home() {
     setFiltersPanelOpen(false);
   }, []);
 
+  // Handler to apply filters from FiltersPanel
+  const onApplyFilters = useCallback(
+    (filters: Filters) => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      if (filters.price) {
+        params.set("price", filters.price);
+      } else {
+        params.delete("price");
+      }
+
+      if (filters.features.length > 0) {
+        params.set("features", filters.features.join(","));
+      } else {
+        params.delete("features");
+      }
+
+      if (filters.distances.length > 0) {
+        params.set("distances", filters.distances.join(","));
+      } else {
+        params.delete("distances");
+      }
+
+      // Reset to first page when filters change
+      params.set("offset", "0");
+      router.replace(`?${params.toString()}`);
+    },
+    [router, searchParams]
+  );
+
   // Handler to change page
   const onPageChange = useCallback(
     (page: number) => {
@@ -82,15 +133,22 @@ export default function Home() {
     [router, searchParams, limit]
   );
 
+  // Combine filterBarCategories and selectedCategory for the query
+  const combinedCategories = useMemo(() => {
+    const categories = selectedCategory ? [selectedCategory] : [];
+    return [...categories, ...filterBarCategories];
+  }, [selectedCategory, filterBarCategories]);
+
   // Query businesses with category, query, location, and pagination
   const { data: list, isLoading } = trpc.listBusinesses.useQuery({
-    categories: selectedCategory
-      ? [selectedCategory, ...filterBarCategories]
-      : filterBarCategories,
+    categories: combinedCategories,
     query: queryParam,
-    location: locationParam,
+    location: locationParam, // Use locationParam from URL
     limit,
     offset,
+    price: initialFilters.price, // Pass price filter
+    features: initialFilters.features, // Pass features filter
+    distances: initialFilters.distances, // Pass distances filter
   });
 
   // Calculate pagination
@@ -98,7 +156,7 @@ export default function Home() {
   const totalPages = useMemo(() => {
     if (!list || isLoading) return 1;
     return Math.max(1, Math.ceil(list.total / limit));
-  }, [isLoading]);
+  }, [isLoading, list, limit]); // Add list and limit to dependencies
 
   return (
     <>
@@ -109,10 +167,44 @@ export default function Home() {
       <div className="container flex flex-row mx-auto px-4 py-8 min-h-[70vh]">
         <div className="flex flex-row flex-wrap gap-8 w-full">
           {/* Listings Section */}
-          <div className="flex-grow w-full">
-            <h1 className="text-2xl font-semibold mb-4 text-gray-800">
-              Auto Mechanics near Lekki, Lagos
-            </h1>
+          <div className="">
+            {/* Location Display/Edit */}
+            <div className="flex items-center gap-2 mb-4">
+              {isEditingLocation ? (
+                <>
+                  <Input
+                    placeholder="Enter location"
+                    value={manualLocation}
+                    onChange={(e) => setManualLocation(e.target.value)}
+                    className="flex-grow"
+                  />
+                  <Button onClick={() => {
+                    const params = new URLSearchParams(searchParams.toString());
+                    if (manualLocation) {
+                      params.set("location", manualLocation);
+                    } else {
+                      params.delete("location");
+                    }
+                    // Reset to first page when location changes
+                    params.set("offset", "0");
+                    router.replace(`?${params.toString()}`);
+                    setIsEditingLocation(false);
+                  }}>Save</Button>
+                  <Button variant="outline" onClick={() => {
+                    setManualLocation(locationParam); // Reset to URL param on cancel
+                    setIsEditingLocation(false);
+                  }}>Cancel</Button>
+                </>
+              ) : (
+                <>
+                  <h1 className="text-2xl font-semibold text-gray-800">
+                    {/* Display current category and location */}
+                    {selectedCategory || "All business"} near {locationParam || "You"}
+                  </h1>
+                  {/* <Button variant="outline" size="sm" onClick={() => setIsEditingLocation(true)}>Edit</Button> */}
+                </>
+              )}
+            </div>
             <FilterSortBar
               selectedCategories={filterBarCategories}
               onChangeCategories={onChangeFilterBarCategories}
@@ -121,7 +213,7 @@ export default function Home() {
             <div className="space-y-6">
               {isLoading ? (
                 <Loading />
-              ) : (!list) ? (
+              ) : !list || list.businesses.length === 0 ? ( // Check for empty businesses array
                 <div className="text-center text-gray-500">
                   No businesses found.
                 </div>
@@ -139,7 +231,7 @@ export default function Home() {
           </div>
 
           {/* Map Section */}
-          <div className="w-full md:w-1/3">
+          <div className="md:w-1/3 flex-grow">
             <MapPlaceholder />
           </div>
         </div>
@@ -158,7 +250,11 @@ export default function Home() {
                 &times;
               </button>
             </div>
-            <FiltersPanel />
+            <FiltersPanel
+              initialFilters={initialFilters}
+              onApplyFilters={onApplyFilters}
+              onClose={onCloseFiltersPanel}
+            />
           </div>
           {/* Click outside to close */}
           <div

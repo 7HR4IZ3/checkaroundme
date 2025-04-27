@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { AuthService } from "../appwrite";
+import { AuthService } from "../appwrite/services/auth";
 import SuperJSON from "superjson";
 
 export function createAuthProcedures(

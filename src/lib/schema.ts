@@ -48,7 +48,7 @@ export const businessSchema = z.object({
   state: z.string().optional(),
   country: z.string().default("Nigeria"),
   postalCode: z.string().optional(),
-  paymentOptions: z.array(z.string()).optional(),
+  paymentOptions: z.array(z.string()).optional(), // e.g., ["cash", "bank_transfers"] - Can be used for filtering
   coordinates: z
     .object({
       latitude: z.number(),
@@ -61,6 +61,14 @@ export const businessSchema = z.object({
   createdAt: z.date().default(() => new Date()),
   updatedAt: z.date().default(() => new Date()),
   ownerId: z.string(),
+
+  // Fields for filtering based on FiltersPanel
+  priceIndicator: z.string().optional(), // Stores "$10", "$100", etc.
+  // open_now: z.boolean().optional().default(false), // Requires logic to determine based on BusinessHours
+  onSiteParking: z.boolean().optional().default(false),
+  garageParking: z.boolean().optional().default(false),
+  wifi: z.boolean().optional().default(false),
+  // Note: bank_transfers and cash can be inferred from paymentOptions array
 });
 
 // Business create schema (omit id, rating, reviewCount, createdAt, updatedAt)
@@ -118,6 +126,7 @@ export const reviewSchema = z.object({
   updatedAt: z.date().default(() => new Date()),
   likes: z.number().default(0),
   dislikes: z.number().default(0),
+  parentReviewId: z.string().optional(), // ID of the review this is replying to
 });
 
 // Review Reaction schema (for likes/dislikes)

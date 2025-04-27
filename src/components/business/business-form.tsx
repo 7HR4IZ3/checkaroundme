@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
 import Image from "next/image";
 import { toast } from "sonner";
+import { Country, State, City } from "country-state-city";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,11 +23,29 @@ import { Card } from "@/components/ui/card";
 import { X, Plus, Trash2, MoreVertical } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/lib/hooks/useClientAuth";
-import { BusinessImage } from "@/lib/schema";
+import { Business, BusinessImage } from "@/lib/schema";
 import { LoadingSVG } from "@/components/ui/loading";
 
 interface BusinessFormProps {
-  initialData?: any; // Define a proper type later
+  initialData?: Business & {
+    images?: {
+      $id: string;
+      createdAt: Date;
+      businessId: string;
+      imageUrl: string;
+      isPrimary: boolean;
+      title?: string | undefined;
+      uploadedBy?: string | undefined;
+    }[];
+    hours?: {
+      $id: string;
+      businessId: string;
+      day: "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
+      openTime: string;
+      closeTime: string;
+      isClosed: boolean;
+    }[];
+  }; // Define a proper type later
   businessId?: string; // Optional businessId for edit mode
   onSubmit: (data: any) => Promise<void>; // Define a proper type later
   submitButtonText: string;
@@ -49,6 +68,7 @@ export default function BusinessForm({
   const [addressLine2, setAddressLine2] = useState("");
   const [city, setCity] = useState("");
   const [country, setCountry] = useState("");
+  const [state, setState] = useState(""); // Added state for selected state
   const [newService, setNewService] = useState("");
   const [phoneCountryCode, setPhoneCountryCode] = useState("+234");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -57,13 +77,18 @@ export default function BusinessForm({
   const [isImageUploading, setIsImageUploading] = useState(false);
   const [isImageDeleting, setIsImageDeleting] = useState<string[]>([]);
 
+  // State for country, state, and city data
+  const [countries, setCountries] = useState<any[]>([]);
+  const [states, setStates] = useState<any[]>([]);
+  const [cities, setCities] = useState<any[]>([]);
+
   const [businessEmail, setBusinessEmail] = useState("");
   const [businessWebsite, setBusinessWebsite] = useState("https://");
   const [paymentOptions, setPaymentOptions] = useState<{
     [key: string]: boolean;
   }>({
     cash: true,
-    transfer: true,
+    bank_transfers: true, // Match schema key
   });
   const [availableHours, setAvailableHours] = useState<{
     [key: string]: { open: string; close: string; closed: boolean };
@@ -79,6 +104,14 @@ export default function BusinessForm({
 
   const [businessImages, setBusinessImages] = useState<BusinessImage[]>([]);
   const [agreedToTerms, setAgreedToTerms] = useState(false); // Added state for terms agreement
+
+  // State for new filterable attributes
+  const [priceIndicator, setPriceIndicator] = useState<string | undefined>(
+    undefined
+  );
+  const [onSiteParking, setOnSiteParking] = useState(false);
+  const [garageParking, setGarageParking] = useState(false);
+  const [wifi, setWifi] = useState(false);
 
   // --- Error State Hooks (can be passed down or managed here) ---
   const [businessNameError, setBusinessNameError] = useState("");
@@ -109,12 +142,21 @@ export default function BusinessForm({
       setServicesOffered(initialData.services ?? []);
       setPaymentOptions({
         cash: initialData.paymentOptions?.includes("cash") ?? false,
-        transfer: initialData.paymentOptions?.includes("transfer") ?? false,
+        bank_transfers:
+          initialData.paymentOptions?.includes("bank_transfers") ?? false, // Match schema key
       });
       setBusinessEmail(initialData.email ?? "");
       setBusinessWebsite(initialData.website ?? "");
       setCity(initialData.city ?? "");
       setCountry(initialData.country ?? "");
+      setState(initialData.state ?? ""); // Populate state from initial data
+
+      // Populate new filterable attributes
+      setPriceIndicator(initialData.priceIndicator ?? undefined);
+      setOnSiteParking(initialData.onSiteParking ?? false);
+      setGarageParking(initialData.garageParking ?? false);
+      setWifi(initialData.wifi ?? false);
+
       // Assuming initialData includes images and hours for edit mode
       if (initialData.images) {
         setBusinessImages(initialData.images);
@@ -139,6 +181,56 @@ export default function BusinessForm({
       setBusinessImages(tempBusinessImages);
     }
   }, [businessId, isLoadingTempImages, tempBusinessImages]);
+
+  // Fetch countries on component mount
+  useEffect(() => {
+    setCountries(Country.getAllCountries());
+  }, []);
+
+  // Fetch states when country changes
+  useEffect(() => {
+    if (country) {
+      const selectedCountry = Country.getAllCountries().find(
+        (c) => c.name === country
+      );
+      if (selectedCountry) {
+        setStates(State.getStatesOfCountry(selectedCountry.isoCode));
+        setCities([]); // Clear cities when country changes
+        setCity(""); // Clear selected city when country changes
+      }
+    } else {
+      setStates([]);
+      setCities([]);
+      setCity("");
+      setState(""); // Clear selected state when country changes
+    }
+  }, [country]);
+
+  // Fetch cities when state changes
+  useEffect(() => {
+    if (country && state) {
+      const selectedCountry = Country.getAllCountries().find(
+        (c) => c.name === country
+      );
+      if (selectedCountry) {
+        const selectedState = State.getStatesOfCountry(
+          selectedCountry.isoCode
+        ).find((s) => s.name === state);
+        if (selectedState) {
+          setCities(
+            City.getCitiesOfState(
+              selectedCountry.isoCode,
+              selectedState.isoCode
+            )
+          );
+          setCity(""); // Clear selected city when state changes
+        }
+      }
+    } else {
+      setCities([]);
+      setCity("");
+    }
+  }, [country, state]);
 
   const updateBusinessHours = (
     day: string,
@@ -295,6 +387,11 @@ export default function BusinessForm({
       })),
       email: businessEmail,
       website: businessWebsite,
+      // Add new filterable attributes
+      priceIndicator: priceIndicator,
+      on_site_parking: onSiteParking,
+      garage_parking: garageParking,
+      wifi: wifi,
     };
 
     await onSubmit(formData);
@@ -462,38 +559,7 @@ export default function BusinessForm({
             <p className="text-red-500 text-sm mt-1">{addressLine1Error}</p>
           )}
         </div>
-        <div className="">
-          <Label htmlFor="city" className="font-semibold">
-            <span className="text-destructive">*</span> City
-          </Label>
-          <Select
-            value={city}
-            onValueChange={(value) => {
-              setCity(value);
-              setCityError(""); // Clear error on change
-            }}
-            required
-          >
-            <SelectTrigger
-              id="city"
-              className={`mt-2 ${cityError ? "border-red-500" : ""}`}
-            >
-              <SelectValue placeholder="Select city" />
-            </SelectTrigger>
-            <SelectContent>
-              {/* TODO: Populate dynamically based on selected country */}
-              <SelectItem value="Lagos">Lagos</SelectItem>
-              <SelectItem value="Abuja">Abuja</SelectItem>
-              <SelectItem value="Accra">Accra</SelectItem>
-              <SelectItem value="London">London</SelectItem>
-              <SelectItem value="New York">New York</SelectItem>
-            </SelectContent>
-          </Select>
-          {cityError && (
-            <p className="text-red-500 text-sm mt-1">{cityError}</p>
-          )}
-        </div>
-        <div className="">
+        <div className="flex-grow">
           <Label htmlFor="country" className="font-semibold">
             <span className="text-destructive">*</span> Country
           </Label>
@@ -512,15 +578,74 @@ export default function BusinessForm({
               <SelectValue placeholder="Select country" />
             </SelectTrigger>
             <SelectContent>
-              {/* TODO: Populate with actual countries */}
-              <SelectItem value="Nigeria">Nigeria</SelectItem>
-              <SelectItem value="Ghana">Ghana</SelectItem>
-              <SelectItem value="United Kingdom">United Kingdom</SelectItem>
-              <SelectItem value="United States">United States</SelectItem>
+              {countries.map((country) => (
+                <SelectItem key={country.isoCode} value={country.name}>
+                  {country.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           {countryError && (
             <p className="text-red-500 text-sm mt-1">{countryError}</p>
+          )}
+        </div>
+        <div className="flex-grow">
+          <Label htmlFor="state" className="font-semibold">
+            <span className="text-destructive">*</span> State
+          </Label>
+          <Select
+            value={state}
+            onValueChange={(value) => {
+              setState(value);
+              // No state error state needed as city error covers it
+            }}
+            required
+            disabled={!country} // Disable state select if no country is selected
+          >
+            <SelectTrigger
+              id="state"
+              className={`mt-2 ${cityError ? "border-red-500" : ""}`} // Use cityError for state as well for simplicity
+            >
+              <SelectValue placeholder="Select state" />
+            </SelectTrigger>
+            <SelectContent>
+              {states.map((state) => (
+                <SelectItem key={state.isoCode} value={state.name}>
+                  {state.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex-grow">
+          <Label htmlFor="city" className="font-semibold">
+            <span className="text-destructive">*</span> City
+          </Label>
+          <Select
+            value={city}
+            onValueChange={(value) => {
+              setCity(value);
+              setCityError(""); // Clear error on change
+            }}
+            required
+            disabled={!state} // Disable city select if no state is selected
+          >
+            <SelectTrigger
+              id="city"
+              className={`mt-2 ${cityError ? "border-red-500" : ""}`}
+            >
+              <SelectValue placeholder="Select city" />
+            </SelectTrigger>
+            <SelectContent>
+              {cities.map((city) => (
+                <SelectItem key={city.name} value={city.name}>
+                  {city.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {cityError && (
+            <p className="text-red-500 text-sm mt-1">{cityError}</p>
           )}
         </div>
 
@@ -685,6 +810,69 @@ export default function BusinessForm({
               }
             />
             <Label htmlFor="transfer">Transfer</Label>
+          </div>
+        </div>
+      </div>
+
+      {/* Price Indicator */}
+      <div className="md:w-1/2">
+        <Label htmlFor="priceIndicator" className="font-semibold">
+          Price Indicator
+        </Label>
+        <p className="text-sm text-muted-foreground mb-2">
+          Select the typical maximum price range for your main
+          services/products.
+        </p>
+        <Select value={priceIndicator} onValueChange={setPriceIndicator}>
+          <SelectTrigger id="priceIndicator" className="w-full mt-2">
+            <SelectValue placeholder="Select maximum price range" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="$10">$10</SelectItem>
+            <SelectItem value="$100">$100</SelectItem>
+            <SelectItem value="$1,000">$1,000</SelectItem>
+            <SelectItem value="$10,000">$10,000</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Additional Features (Parking, Wifi) */}
+      <div>
+        <Label className="font-semibold block mb-2">Additional Features</Label>
+        <p className="text-sm text-muted-foreground mb-2">
+          Select features available at your business location.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-2">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="onSiteParking"
+              className="data-[state=checked]:bg-[#2E57A9]"
+              checked={onSiteParking}
+              onCheckedChange={(checked) =>
+                setOnSiteParking(checked as boolean)
+              }
+            />
+            <Label htmlFor="onSiteParking">On-Site Parking</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="garageParking"
+              className="data-[state=checked]:bg-[#2E57A9]"
+              checked={garageParking}
+              onCheckedChange={(checked) =>
+                setGarageParking(checked as boolean)
+              }
+            />
+            <Label htmlFor="garageParking">Garage Parking</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="wifi"
+              className="data-[state=checked]:bg-[#2E57A9]"
+              checked={wifi}
+              onCheckedChange={(checked) => setWifi(checked as boolean)}
+            />
+            <Label htmlFor="wifi">Wifi Available</Label>
           </div>
         </div>
       </div>

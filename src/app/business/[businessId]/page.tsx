@@ -4,13 +4,19 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
 import { useRouter } from "next/navigation";
-import { useRef, useState, ChangeEvent } from "react";
+import { useRef, useState, ChangeEvent, useEffect } from "react";
+import RatingStars from "@/components/ui/rating-stars"; // Import RatingStars component
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog";
+
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Star,
   CheckCircle,
@@ -20,11 +26,8 @@ import {
   ImagePlus,
   Share2,
   MessageSquare,
-  ThumbsUp,
-  ThumbsDown,
   ChevronLeft,
   ChevronRight,
-  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,21 +38,14 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import Loading, { LoadingSVG } from "@/components/ui/loading";
 import { useAuth } from "@/lib/hooks/useClientAuth";
 import ListingCard from "@/components/listing/listing-card";
 import { Review } from "@/lib/schema";
 import { ReviewCard } from "@/components/ui/review-card";
+import { toast } from "sonner";
+import MapPlaceholder from "@/components/map/placeholder";
 
 // Helper component for star ratings
 const StarRating = ({ rating, count }: { rating: number; count?: number }) => {
@@ -161,13 +157,67 @@ const RatingBar = ({
 
 export default function BusinessPage() {
   const { user, isAuthenticated } = useAuth();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false); // Renamed for clarity
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showFullAbout, setShowFullAbout] = useState(false); // State for "About" section truncation
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false); // State for edit modal
+  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false); // State for reply modal
+  const [isWriteReviewModalOpen, setIsWriteReviewModalOpen] = useState(false); // State for write review modal
+  const [reviewToEdit, setReviewToEdit] = useState<Review | null>(null); // State for review being edited
+  const [reviewToReply, setReviewToReply] = useState<Review | null>(null); // State for review being replied to
+  const [newReviewText, setNewReviewText] = useState(""); // State for new review text
+  const [newReviewRating, setNewReviewRating] = useState(0); // State for new review rating
   const router = useRouter();
   const params = useParams();
   const fileInputRef = useRef<HTMLInputElement>(null); // Added ref
   const [isUploading, setIsUploading] = useState(false); // Added state
+  const [editReviewText, setEditReviewText] = useState(""); // State for edit modal textarea
+  const [editReviewRating, setEditReviewRating] = useState(0); // State for edit modal rating
+  const [replyText, setReplyText] = useState(""); // State for reply modal textarea
+ 
+  // tRPC mutations
+  const editReviewMutation = trpc.updateReview.useMutation({
+    onSuccess: () => {
+      utils.getBusinessReviews.invalidate({ businessId });
+      setIsEditModalOpen(false);
+      toast.success("Review updated successfully.");
+    },
+    onError: (error) => {
+      toast.error("Failed to update review.", {
+        description: error.message,
+      });
+    },
+  });
+
+  const createReviewMutation = trpc.createReview.useMutation({
+    onSuccess: () => {
+      utils.getBusinessReviews.invalidate({ businessId });
+      setIsWriteReviewModalOpen(false);
+      setNewReviewText(""); // Clear new review text on success
+      setNewReviewRating(0); // Reset rating on success
+      toast.success("Review posted successfully!");
+    },
+    onError: (error) => {
+      toast.error("Failed to post review.", {
+        description: error.message,
+      });
+    },
+  });
+
+  const replyToReviewMutation = trpc.createReview.useMutation({
+    onSuccess: () => {
+      utils.getBusinessReviews.invalidate({ businessId });
+      setIsReplyModalOpen(false);
+      setReplyText(""); // Clear reply text on success
+      toast.success("Reply posted successfully.");
+    },
+    onError: (error) => {
+      toast.error("Failed to post reply.", {
+        description: error.message,
+      });
+    },
+  });
+
   const utils = trpc.useUtils(); // For invalidating queries
   const businessId =
     typeof params.businessId === "string"
@@ -199,6 +249,26 @@ export default function BusinessPage() {
     trpc.getBusinessReviews.useQuery({ businessId }, { enabled: !!businessId });
 
   const { data: businesses } = trpc.listBusinesses.useQuery({ limit: 5 });
+
+  // Effect to clear edit text and set initial rating when modal opens/closes
+  useEffect(() => {
+    if (!isEditModalOpen) {
+      setEditReviewText("");
+      setEditReviewRating(0); // Clear rating when modal closes
+      setReviewToEdit(null);
+    } else if (reviewToEdit) {
+      setEditReviewText(reviewToEdit.text); // Set initial text
+      setEditReviewRating(reviewToEdit.rating); // Set initial rating when modal opens
+    }
+  }, [isEditModalOpen, reviewToEdit]);
+ 
+  // Effect to clear reply text when modal closes
+  useEffect(() => {
+    if (!isReplyModalOpen) {
+      setReplyText("");
+      setReviewToReply(null);
+    }
+  }, [isReplyModalOpen]);
 
   // Loading and error states
   if (isBusinessLoading || isImagesLoading || isHoursLoading) {
@@ -289,6 +359,59 @@ export default function BusinessPage() {
     fileInputRef.current?.click();
   };
 
+  // Handlers for edit and reply actions
+  const handleEditReview = (review: Review) => {
+    setReviewToEdit(review);
+    setEditReviewText(review.text); // Set initial text
+    setIsEditModalOpen(true);
+  };
+
+  const handleReplyToReview = (review: Review) => {
+    setReviewToReply(review);
+    setIsReplyModalOpen(true);
+  };
+
+  // Handlers for modal form submission
+  const handleSaveEdit = async () => {
+    if (!reviewToEdit || editReviewText.trim() === "") return;
+    await editReviewMutation.mutateAsync({
+      reviewId: reviewToEdit.$id,
+      text: editReviewText,
+      rating: editReviewRating, // Include the updated rating
+    });
+  };
+ 
+  const handleSendReply = async () => {
+    if (!reviewToReply || replyText.trim() === "" || !user || !businessId)
+      return;
+    await replyToReviewMutation.mutateAsync({
+      businessId: businessId,
+      userId: user.$id,
+      rating: 1,
+      text: replyText,
+      parentReviewId: reviewToReply.$id,
+    });
+  };
+
+  // Handler for submitting a new review
+  const handleCreateReview = async () => {
+    if (
+      !user ||
+      !businessId ||
+      newReviewText.trim() === "" ||
+      newReviewRating === 0
+    ) {
+      toast.info("Please provide a rating and review text.");
+      return;
+    }
+    await createReviewMutation.mutateAsync({
+      businessId: businessId,
+      userId: user.$id,
+      rating: newReviewRating,
+      text: newReviewText,
+    });
+  };
+
   return (
     <>
       <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -376,9 +499,7 @@ export default function BusinessPage() {
                   <Button
                     variant="outline"
                     className="bg-[#2E57A9] text-white"
-                    onClick={() =>
-                      router.push(`/business/${businessId}/review`)
-                    }
+                    onClick={() => setIsWriteReviewModalOpen(true)}
                   >
                     <Star className="mr-2 h-4 w-4" /> Write a review
                   </Button>
@@ -418,7 +539,7 @@ export default function BusinessPage() {
                     className="text-sm"
                     onClick={() => {
                       setCurrentImageIndex(0);
-                      setIsModalOpen(true);
+                      setIsImageModalOpen(true);
                     }}
                   >
                     See all {imageUrls.length} photos{" "}
@@ -443,7 +564,7 @@ export default function BusinessPage() {
                         className="aspect-square relative bg-muted rounded-md overflow-hidden cursor-pointer"
                         onClick={() => {
                           setCurrentImageIndex(index);
-                          setIsModalOpen(true);
+                          setIsImageModalOpen(true);
                         }}
                       >
                         {/* Use next/image for optimized images */}
@@ -486,6 +607,66 @@ export default function BusinessPage() {
 
             <Separator />
 
+            {/* Amenities & Details */}
+            <section>
+              <h2 className="text-xl font-semibold mb-4">
+                Amenities & Details
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm text-gray-700">
+                {/* Price Indicator */}
+                {business.priceIndicator && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium w-28">Price Range:</span>
+                    <span>{business.priceIndicator} (Max)</span>
+                  </div>
+                )}
+
+                {/* Payment Options */}
+                {business.paymentOptions &&
+                  business.paymentOptions.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium w-28">Accepts:</span>
+                      <span>
+                        {business.paymentOptions
+                          .map((opt) =>
+                            opt
+                              .replace(/_/g, " ")
+                              .replace(/\b\w/g, (l) => l.toUpperCase())
+                          )
+                          .join(", ")}
+                      </span>
+                    </div>
+                  )}
+
+                {/* Wifi */}
+                {business.wifi && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium w-28">Wifi:</span>
+                    <span>Available</span>
+                  </div>
+                )}
+
+                {/* On-Site Parking */}
+                {business.onSiteParking && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium w-28">Parking:</span>
+                    <span>On-Site Available</span>
+                  </div>
+                )}
+
+                {/* Garage Parking */}
+                {business.garageParking && (
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium w-28"></span>{" "}
+                    {/* Keep alignment */}
+                    <span>Garage Available</span>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            <Separator />
+
             {/* About the Business */}
             <section>
               <h2 className="text-xl font-semibold mb-2">About the Business</h2>
@@ -512,10 +693,7 @@ export default function BusinessPage() {
               <h2 className="text-xl font-semibold mb-4">Location & Hours</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Map Placeholder */}
-                <div className="aspect-video bg-muted rounded-md flex items-center justify-center text-gray-500">
-                  {/* In a real app, embed a map here (e.g., Google Maps, Mapbox) */}
-                  Map Placeholder
-                </div>
+                <MapPlaceholder />
                 {/* Address & Hours */}
                 <div>
                   <p className="font-medium mb-1">{business.addressLine1}</p>
@@ -634,17 +812,9 @@ export default function BusinessPage() {
                     onReviewDeleted={() =>
                       utils.getBusinessReviews.invalidate({ businessId })
                     }
-                  >
-                    {/* Add Reply button */}
-                    <Button
-                      variant="link"
-                      size="sm"
-                      className="p-0 h-auto text-sm mt-2"
-                      onClick={() => router.push(`/business/${businessId}/review?replyTo=${review.$id}`)}
-                    >
-                      Reply
-                    </Button>
-                  </ReviewCard>
+                    onEditReview={handleEditReview}
+                    onReplyToReview={handleReplyToReview}
+                  />
                 ))}
               </div>
               {/* Add "Load More Reviews" button if needed */}
@@ -712,7 +882,7 @@ export default function BusinessPage() {
       </div>
 
       {/* Image Modal */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+      <Dialog open={isImageModalOpen} onOpenChange={setIsImageModalOpen}>
         <DialogContent className="md:max-w-[80vw] h-[80vh] bg-white p-0">
           <DialogHeader className="px-6 pt-6">
             <DialogTitle className="text-center text-xl">
@@ -779,6 +949,145 @@ export default function BusinessPage() {
               ))}
             </div>
           </div> */}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Review Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Review</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            {/* Interactive Rating Stars for Edit */}
+            <div className="grid gap-2">
+              <Label>Rating</Label>
+              <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    className={`w-6 h-6 cursor-pointer ${
+                      star <= editReviewRating
+                        ? "fill-yellow-400 text-yellow-400"
+                        : "text-gray-300"
+                    }`}
+                    onClick={() => setEditReviewRating(star)}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="editReviewText">Review</Label>
+              <Textarea
+                id="editReviewText"
+                value={editReviewText}
+                onChange={(e) => setEditReviewText(e.target.value)}
+                rows={6}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button
+              type="button" // Changed to type="button" to prevent default form submission
+              onClick={handleSaveEdit}
+              disabled={editReviewMutation.status === "pending"}
+            >
+              {editReviewMutation.status === "pending"
+                ? "Saving..."
+                : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Write Review Modal */}
+      <Dialog
+        open={isWriteReviewModalOpen}
+        onOpenChange={setIsWriteReviewModalOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Write a Review</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="newReviewRating">Rating</Label>
+              {/* Interactive Rating Stars */}
+              <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    className={`w-6 h-6 cursor-pointer ${
+                      star <= newReviewRating
+                        ? "fill-yellow-400 text-yellow-400"
+                        : "text-gray-300"
+                    }`}
+                    onClick={() => setNewReviewRating(star)}
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="newReviewText">Your Review</Label>
+              <Textarea
+                id="newReviewText"
+                value={newReviewText}
+                onChange={(e) => setNewReviewText(e.target.value)}
+                rows={6}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button
+              type="button"
+              onClick={handleCreateReview}
+              disabled={createReviewMutation.status === "pending"}
+            >
+              {createReviewMutation.status === "pending"
+                ? "Submitting..."
+                : "Submit Review"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reply to Review Modal */}
+      <Dialog open={isReplyModalOpen} onOpenChange={setIsReplyModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reply to Review</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="replyText">Your Reply</Label>
+              <Textarea
+                id="replyText"
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button
+              type="button" // Changed to type="button"
+              onClick={handleSendReply}
+              disabled={replyToReviewMutation.status === "pending"}
+            >
+              {replyToReviewMutation.status === "pending"
+                ? "Sending..."
+                : "Send Reply"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

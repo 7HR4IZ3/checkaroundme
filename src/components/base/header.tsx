@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Search, Briefcase, Menu, User, UserPlus } from "lucide-react";
+import { Search, Briefcase, Menu, User, UserPlus, Store } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +24,8 @@ import { UserNav } from "./user-nav";
 
 import { useRouter } from "next/navigation";
 import React, { useState, useCallback } from "react";
+import { trpc } from "@/lib/trpc/client";
+import { Skeleton } from "../ui/skeleton";
 
 const Header = () => {
   const auth = useAuth();
@@ -33,6 +35,11 @@ const Header = () => {
 
   const [search, setSearch] = useState(params.get("query") || "");
   const [location, setLocation] = useState(params.get("location") || "");
+
+  const { data: businesses, isLoading } = trpc.getBusinessesByUserId.useQuery(
+    { userId: auth.user?.$id || "" },
+    { enabled: auth.isAuthenticated && !!auth.user?.$id }
+  );
 
   // Handler to perform search
   const handleSearch = useCallback(() => {
@@ -106,13 +113,33 @@ const Header = () => {
                 <NavigationMenuItem>
                   <NavigationMenuTrigger>For User</NavigationMenuTrigger>
                   <NavigationMenuContent>
-                    <Link
-                      href="/business/create"
-                      className="flex items-center select-none space-x-2 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground w-[10vw]"
-                    >
-                      <Briefcase className="h-4 w-4" />
-                      <span>Add a business</span>
-                    </Link>
+                    {isLoading ? (
+                      <div className="flex items-center select-none space-x-2 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground w-[10vw]">
+                        <Skeleton className="h-4 w-4" />
+                        <Skeleton className="h-4 w-3/4" />
+                      </div>
+                    ) : businesses && businesses.length > 0 ? (
+                      <Link
+                        href={`/business/${businesses[0].$id}`} // Assuming the first business is the primary one
+                        className="flex items-center select-none space-x-2 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground w-[10vw]"
+                      >
+                        <div className="flex items-center">
+                          <Store className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-primary" />
+                          <span>My Business</span>
+                        </div>
+                        <span className="text-xs text-muted-foreground ml-8">
+                          {businesses[0].name}
+                        </span>
+                      </Link>
+                    ) : (
+                      <Link
+                        href="/business/create"
+                        className="flex items-center select-none space-x-2 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground w-[10vw]"
+                      >
+                        <Briefcase className="h-4 w-4" />
+                        <span>Add a business</span>
+                      </Link>
+                    )}
                   </NavigationMenuContent>
                 </NavigationMenuItem>
               </NavigationMenuList>

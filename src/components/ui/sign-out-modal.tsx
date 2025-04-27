@@ -57,7 +57,7 @@ export const SignOutModal: React.FC<SignOutModalProps> = ({
         {/* Title */}
         <h2 className="mb-2 text-2xl font-semibold text-center text-[#2B3674]">Sign out?</h2>
         {/* Subtitle */}
-        <p className="mb-8 text-center text-gray-500">
+        <p className="mb-8 text-center">
           Oh no! We are sad to see you leave.<br />
           Are you sure you want to sign out?
         </p>

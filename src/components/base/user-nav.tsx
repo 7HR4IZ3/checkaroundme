@@ -12,14 +12,21 @@ import {
 import { LogOut, MessageSquare, Store, User, ChevronDown } from "lucide-react";
 import { useAuth } from "@/lib/hooks/useClientAuth";
 import { useRouter } from "next/navigation";
+import { trpc } from "@/lib/trpc/client";
 
-import { SignOutModal } from "@/components/ui/SignOutModal";
+import { SignOutModal } from "@/components/ui/sign-out-modal";
 import { useState } from "react";
+import { Skeleton } from "../ui/skeleton";
 
 export function UserNav() {
   const auth = useAuth();
   const router = useRouter();
   const [showSignOut, setShowSignOut] = useState(false);
+
+  const { data: businesses, isLoading } = trpc.getBusinessesByUserId.useQuery(
+    { userId: auth.user?.$id || "" },
+    { enabled: auth.isAuthenticated && !!auth.user?.$id }
+  );
 
   if (!auth.profile || !auth.user) return null;
 
@@ -83,16 +90,37 @@ export function UserNav() {
           {/* <DropdownMenuSeparator /> */}
 
           {/* Action Items */}
-          <DropdownMenuItem
-            className="text-base py-2 cursor-pointer group"
-            onClick={() => router.push("/business/create")}
-          >
-            {/* Used Store icon for "Add a Business" */}
-            <Store className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-primary" />
-            <span>Add a Business</span>
-          </DropdownMenuItem>
+          {isLoading ? (
+            <DropdownMenuItem className="text-base py-2 flex-col items-start">
+              <div className="flex items-center">
+                <Skeleton className="mr-3 h-5 w-5" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+              <Skeleton className="h-3 w-16 ml-8" />
+            </DropdownMenuItem>
+          ) : businesses && businesses.length > 0 ? (
+            <DropdownMenuItem
+              className="text-base py-2 cursor-pointer group flex-col items-start"
+              onClick={() => router.push(`/business/${businesses[0].$id}`)} // Assuming the first business is the primary one
+            >
+              <div className="flex items-center">
+                <Store className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-primary" />
+                <span>My Business</span>
+              </div>
+              <span className="text-xs text-muted-foreground ml-8">
+                {businesses[0].name}
+              </span>
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem
+              className="text-base py-2 cursor-pointer group"
+              onClick={() => router.push("/business/create")}
+            >
+              <Store className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-primary" />
+              <span>Add a Business</span>
+            </DropdownMenuItem>
+          )}
 
-          {/* Example of a highlighted/selected item */}
           <DropdownMenuItem
             className="text-base py-2 cursor-pointer group bg-gray-100 dark:bg-muted"
             onClick={() => router.push("/messages")}

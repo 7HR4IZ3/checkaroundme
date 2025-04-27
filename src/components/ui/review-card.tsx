@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-import { Star, ThumbsUp, ThumbsDown, Trash2 } from "lucide-react";
+import { Star, ThumbsUp, ThumbsDown, Trash2, Pencil } from "lucide-react";
 import Loading, { LoadingSVG } from "@/components/ui/loading";
 import { Review } from "@/lib/schema";
 import { useAuth } from "@/lib/hooks/useClientAuth";
@@ -57,10 +57,14 @@ export const ReviewCard = ({
   review,
   children,
   onReviewDeleted,
+  onEditReview,
+  onReplyToReview,
 }: {
   review: Review;
   children?: ReactNode;
   onReviewDeleted?: () => void;
+  onEditReview?: (review: Review) => void;
+  onReplyToReview?: (review: Review) => void;
 }) => {
   const { data: reviewUser, isLoading } = trpc.getUserById.useQuery({
     userId: review.userId,
@@ -68,6 +72,10 @@ export const ReviewCard = ({
   const { user: currentUser, isAuthenticated } = useAuth(); // Get isAuthenticated
 
   const utils = trpc.useUtils(); // For invalidating queries
+
+  // Fetch replies for this review
+  const { data: replies, isLoading: isRepliesLoading } =
+    trpc.getReviewReplies.useQuery({ parentReviewId: review.$id });
 
   // State to track user's current reaction
   const [userReaction, setUserReaction] = useState<"like" | "dislike" | null>(
@@ -112,6 +120,17 @@ export const ReviewCard = ({
       toast.info("Please sign in to react to reviews.");
       return;
     }
+
+    if (type === "like") {
+      setLocalLikes((likes) => likes + 1);
+      setLocalDislikes((dislikes) => dislikes - 1);
+    } else {
+      setLocalLikes((likes) => likes - 1);
+      setLocalDislikes((dislikes) => dislikes + 1);
+    }
+
+    setUserReaction(type);
+
     await reactMutation.mutateAsync({
       reviewId: review.$id,
       userId: currentUser.$id,
@@ -135,7 +154,7 @@ export const ReviewCard = ({
     await deleteMutation.mutateAsync({ reviewId: review.$id });
   };
 
-  if (isLoading || !reviewUser)
+  if (isLoading || isRepliesLoading || !reviewUser)
     return (
       <div className="w-full h-full flex items-center justify-center">
         <LoadingSVG />
@@ -182,36 +201,47 @@ export const ReviewCard = ({
             </div>
           </div>
           {currentUser?.$id === review.userId && (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="ml-auto">
-                  <Trash2 className="w-4 h-4 text-red-500" />
+            <div className="flex items-center gap-2 ml-auto">
+              {onEditReview && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onEditReview(review)}
+                >
+                  <Pencil className="w-4 h-4 text-gray-500" />
                 </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Confirm Deletion</DialogTitle>
-                  <DialogDescription>
-                    Are you sure you want to delete this review? This action
-                    cannot be undone.
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button variant="outline">Cancel</Button>
-                  </DialogClose>
-                  <Button
-                    variant="destructive"
-                    onClick={handleDelete}
-                    disabled={deleteMutation.status === "pending"}
-                  >
-                    {deleteMutation.status === "pending"
-                      ? "Deleting..."
-                      : "Delete"}
+              )}
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Trash2 className="w-4 h-4 text-red-500" />
                   </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Confirm Deletion</DialogTitle>
+                    <DialogDescription>
+                      Are you sure you want to delete this review? This action
+                      cannot be undone.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <DialogClose asChild>
+                      <Button variant="outline">Cancel</Button>
+                    </DialogClose>
+                    <Button
+                      variant="destructive"
+                      onClick={handleDelete}
+                      disabled={deleteMutation.status === "pending"}
+                    >
+                      {deleteMutation.status === "pending"
+                        ? "Deleting..."
+                        : "Delete"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
           )}
         </div>
       </CardHeader>
@@ -229,8 +259,36 @@ export const ReviewCard = ({
             <p key={pIndex}>{paragraph}</p>
           ))}
         </div>
-        {children} {/* Render children here */}
+        {/* Action buttons (Reply, Edit) */}
+        <div className="flex gap-2 mt-4">
+          {onReplyToReview && (
+            <Button
+              variant="link"
+              size="sm"
+              className="p-0 h-auto text-sm"
+              onClick={() => onReplyToReview(review)}
+            >
+              Reply
+            </Button>
+          )}
+          {children} {/* Render any additional children here */}
+        </div>
       </CardContent>
+      {/* Render replies recursively */}
+      {replies && replies.length > 0 && (
+        <div className="ml-8 mt-4 space-y-4"> {/* Add left margin for indentation */}
+          {replies.map((reply) => (
+            <ReviewCard
+              key={reply.$id}
+              review={reply}
+              onReviewDeleted={onReviewDeleted} // Pass down delete handler
+              onEditReview={onEditReview} // Pass down edit handler
+              onReplyToReview={onReplyToReview} // Pass down reply handler
+              // Replies of replies are not supported in this structure, so no 'replies' prop here
+            />
+          ))}
+        </div>
+      )}
     </Card>
   );
 };

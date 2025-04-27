@@ -9,11 +9,14 @@ import { Button } from "@/components/ui/button"; // Use the reusable button
 import { Business } from "@/lib/schema";
 import { trpc } from "@/lib/trpc/client";
 import { Skeleton } from "../ui/skeleton";
+import { useAuth } from "@/lib/hooks/useClientAuth";
+import { redirect } from "next/navigation";
 
 const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
   business,
   hideButton = false,
 }) => {
+  const auth = useAuth();
   const { data: image, isLoading } = trpc.getBusinessImage.useQuery({
     businessId: business.$id,
   });
@@ -66,7 +69,7 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
   }, [business]);
 
   return (
-    <div className="h-[18em] bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-row p-2 relative">
+    <div className="h-[18em] bg-white rounded-lg shadow-xs overflow-hidden flex flex-row p-2 relative">
       <div className="w-[20em] m:w-1/2 relative">
         {isLoading || !image ? (
           <Skeleton />
@@ -90,7 +93,12 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
             </Link>
             <div className="flex items-center text-xs">
               <FaMapMarkerAlt className="mr-1.5" />
-              <span>{business.addressLine1}</span>
+              <span>
+                {business.addressLine1},{" "}
+                {business.city},{" "}
+                {/* {business.state ? business.state + ", " : ""} */}
+                {business.country}
+              </span>
             </div>
           </div>
           <div className="flex items-center mt-1 mb-2">
@@ -120,9 +128,9 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
             </button> */}
           </p>
         </div>
-        {!hideButton && (
+        {!hideButton && auth.isAuthenticated && (
           <div className="flex flex-row sm:items-center justify-end align-end mt-auto">
-            <Button size="sm" className="bg-[#2E57A9]">
+            <Button size="sm" className="bg-[#2E57A9]" onClick={() => redirect(`/messages?recipient=${business.ownerId}`)}>
               <FaCommentDots /> Write a message
             </Button>
           </div>

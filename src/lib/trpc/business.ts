@@ -1,9 +1,7 @@
 import { z } from "zod";
-import {
-  BusinessService,
-  BusinessImagesService,
-  BusinessHoursService,
-} from "../appwrite";
+import { BusinessService } from "../appwrite/services/business";
+import { BusinessImagesService } from "../appwrite/services/business-images";
+import { BusinessHoursService } from "../appwrite/services/business-hours";
 import {
   createBusinessSchema,
   updateBusinessSchema,
@@ -62,18 +60,20 @@ export function createBusinessProcedures(
         z.object({
           businessId: z.string(),
           data: updateBusinessSchema.extend({
-            hours: z.object({
-              Mon: daySchema,
-              Tue: daySchema,
-              Wed: daySchema,
-              Thu: daySchema,
-              Fri: daySchema,
-              Sat: daySchema,
-              Sun: daySchema,
-            }).optional(),
-            images: z.array(
-              z.object({ isPrimary: z.boolean(), imageID: z.string() })
-            ).optional(),
+            hours: z
+              .object({
+                Mon: daySchema,
+                Tue: daySchema,
+                Wed: daySchema,
+                Thu: daySchema,
+                Fri: daySchema,
+                Sat: daySchema,
+                Sun: daySchema,
+              })
+              .optional(),
+            images: z
+              .array(z.object({ isPrimary: z.boolean(), imageID: z.string() }))
+              .optional(),
           }),
         })
       )
@@ -94,9 +94,17 @@ export function createBusinessProcedures(
           offset: z.number().optional(),
           sortBy: z.string().optional(),
           sortDirection: z.enum(["asc", "desc"]).optional(),
+          // Add filter parameters
+          price: z.string().optional(), // Assuming price is passed as a string like "$10"
+          features: z.array(z.string()).optional(),
+          distances: z.array(z.string()).optional(),
         })
       )
       .query(async ({ input }) => {
+        // The BusinessService.listBusinesses function needs to be updated
+        // to handle the new price, features, and distances parameters.
+        // The interpretation of the 'price' string (e.g., "$10") as a maximum
+        // price or range needs to be implemented in the backend service.
         return await BusinessService.listBusinesses(input);
       }),
 
@@ -208,6 +216,12 @@ export function createBusinessProcedures(
       // .output(z.array(businessHoursSchema))
       .query(async ({ input }) => {
         return await BusinessHoursService.getBusinessHours(input.businessId);
+      }),
+
+    getBusinessesByUserId: t.procedure
+      .input(z.object({ userId: z.string() }))
+      .query(async ({ input }) => {
+        return await BusinessService.getBusinessesByUserId(input.userId);
       }),
   };
 }

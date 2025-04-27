@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useGeolocation } from "@uidotdev/usehooks";
+import useGeolocation from "@/lib/hooks/useGeolocation"; // Import custom hook
 import { trpc } from "@/lib/trpc/client";
 import ListingCard from "../listing/listing-card";
 import { Skeleton } from "../ui/skeleton";
+import { Business } from "@/lib/schema";
 
 const ServicesNearYou = () => {
   const {
@@ -100,7 +101,7 @@ const ServicesNearYou = () => {
           Services Near You
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {businesses?.map((business) => (
+          {businesses?.map((business: Business) => (
             <ListingCard
               key={business.$id}
               hideButton={true}

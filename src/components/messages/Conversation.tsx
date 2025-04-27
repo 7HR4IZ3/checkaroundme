@@ -1,23 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
+import { Phone, Send, File, ArrowLeft } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, Phone, Send, ArrowUpCircle, File, ArrowLeft } from "lucide-react";
+import { Message } from "@/lib/schema"; // Renamed to avoid conflict
 import { trpc } from "@/lib/trpc/client";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useAuth } from "@/lib/hooks/useClientAuth";
-import { redirect } from "next/navigation";
-import { Conversation as ConversationType, Message } from "@/lib/schema"; // Renamed to avoid conflict
-import { LoadingSVG } from "@/components/ui/loading";
 
 interface ConversationProps {
   selectedChatId: string | null;
   messages: Message[];
+  refetchConversations: () => void;
   isLoadingMessages: boolean;
   activeChatUser: any; // Use a more specific user type if available
   currentUserAvatar: string | undefined;
@@ -33,6 +27,7 @@ interface ConversationProps {
 export default function Conversation({
   selectedChatId,
   messages,
+  refetchConversations,
   isLoadingMessages,
   activeChatUser,
   currentUserAvatar,
@@ -179,7 +174,9 @@ export default function Conversation({
                           {/* File details card */}
                           <div
                             className={`flex items-center gap-2 p-2 rounded-md ${
-                              senderIsMe ? "bg-[#2E57A9]/80" : "bg-background/80"
+                              senderIsMe
+                                ? "bg-[#2E57A9]/80"
+                                : "bg-background/80"
                             }`}
                           >
                             <File

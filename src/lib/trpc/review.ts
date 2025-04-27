@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { ReviewService } from "../appwrite";
-import { reviewSchema } from "../schema";
+import { ReviewService } from "../appwrite"; // Import Review type if needed
+import { reviewSchema, Review } from "../schema";
 import type SuperJSON from "superjson";
 
 export function createReviewProcedures(
@@ -20,20 +20,12 @@ export function createReviewProcedures(
           text: z.string().min(5, "Review must be at least 5 characters"),
           title: z.string().optional(),
           recommendation: z.string().optional(),
+          parentReviewId: z.string().optional(), // Added for replies
         })
       )
       // .output(reviewSchema)
       .mutation(async ({ input }) => {
-        const { businessId, userId, rating, text, title, recommendation } =
-          input;
-        return await ReviewService.createReview(
-          businessId,
-          userId,
-          rating,
-          text,
-          title,
-          recommendation
-        );
+        return await ReviewService.createReview(input);
       }),
 
     getBusinessReviews: t.procedure
@@ -64,7 +56,11 @@ export function createReviewProcedures(
       // .output(z.object({ success: z.boolean() }))
       .mutation(async ({ input }) => {
         const { reviewId, userId, type } = input;
-        const result = await ReviewService.reactToReview(reviewId, userId, type);
+        const result = await ReviewService.reactToReview(
+          reviewId,
+          userId,
+          type
+        );
         return result; // Return the result from the service
       }),
 
@@ -72,31 +68,43 @@ export function createReviewProcedures(
     getUserReaction: t.procedure
       .input(z.object({ reviewId: z.string(), userId: z.string() }))
       .query(async ({ input }) => {
-        const reaction = await ReviewService.getUserReaction(input.reviewId, input.userId);
+        const reaction = await ReviewService.getUserReaction(
+          input.reviewId,
+          input.userId
+        );
         return reaction; // Return the reaction object or null
       }),
 
-    replyToReview: t.procedure
+    deleteReview: t.procedure
+      .input(z.object({ reviewId: z.string() }))
+      .mutation(async ({ input }) => {
+        await ReviewService.deleteReview(input.reviewId);
+        return { success: true };
+      }),
+
+    updateReview: t.procedure
       .input(
         z.object({
           reviewId: z.string(),
-          replyText: z.string().min(1, "Reply cannot be empty"),
-          // userId: z.string(), // Optional: Pass userId if needed for auth in ReviewService
+          text: z.string().min(5, "Review text must be at least 5 characters"),
+          rating: z.number().min(1).max(5), // Added rating for editing
+          // Add other fields like title if needed for editing
         })
       )
-      // .output(reviewSchema) // Assuming replyToReview returns the updated review
+      // .output(reviewSchema) // Or maybe just { success: boolean }
       .mutation(async ({ input }) => {
-        const { reviewId, replyText } = input;
-        // TODO: Potentially get userId from context if auth is implemented in tRPC middleware
-        // and pass it to ReviewService.replyToReview if needed for authorization.
-        return await ReviewService.replyToReview(reviewId, replyText);
+        return await ReviewService.updateReview(input.reviewId, {
+          text: input.text,
+          rating: input.rating, // Pass the rating to the service
+        });
       }),
 
-   deleteReview: t.procedure
-     .input(z.object({ reviewId: z.string() }))
-     .mutation(async ({ input }) => {
-       await ReviewService.deleteReview(input.reviewId);
-       return { success: true };
-     }),
+    getReviewReplies: t.procedure
+      .input(z.object({ parentReviewId: z.string() }))
+      // .output(z.array(reviewSchema)) // Output can be inferred
+      .query(async ({ input }) => {
+        return await ReviewService.getReviewReplies(input.parentReviewId);
+      }),
+
   };
 }

@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
 import { useAuth } from "@/lib/hooks/useClientAuth";
-import BusinessForm from "@/components/business/BusinessForm"; // Import the new component
+import BusinessForm from "@/components/business/business-form"; // Import the new component
 import { toast } from "sonner";
 
 export default function BusinessEditForm() {
@@ -29,40 +29,36 @@ export default function BusinessEditForm() {
     error: businessError,
   } = trpc.getBusinessById.useQuery({ businessId }, { enabled: !!businessId });
 
-   const {
-    data: images,
-    isLoading: isImagesLoading,
-  } = trpc.getBusinessImages.useQuery(
-    { businessId },
-    { enabled: !!businessId }
-  );
+  const { data: images, isLoading: isImagesLoading } =
+    trpc.getBusinessImages.useQuery({ businessId }, { enabled: !!businessId });
 
-   const {
-    data: hours,
-    isLoading: isHoursLoading,
-  } = trpc.getBusinessHours.useQuery({ businessId }, { enabled: !!businessId });
-
+  const { data: hours, isLoading: isHoursLoading } =
+    trpc.getBusinessHours.useQuery({ businessId }, { enabled: !!businessId });
 
   const updateBusiness = trpc.updateBusiness.useMutation();
 
   const handleUpdateBusiness = async (formData: any) => {
     if (!businessId) {
-        toast("Error", { description: "Business ID is missing." });
-        return;
+      toast("Error", { description: "Business ID is missing." });
+      return;
     }
     try {
       await updateBusiness.mutateAsync({
         businessId,
         data: formData,
       });
-      toast("Business Updated", { description: "Your business has been successfully updated." });
+      toast("Business Updated", {
+        description: "Your business has been successfully updated.",
+      });
       router.push(`/business/${businessId}`);
     } catch (error: any) {
       console.error("Failed to update business", error);
-       if (error.data?.httpStatus === 400) {
+      if (error.data?.httpStatus === 400) {
         const errors = JSON.parse(error.message);
-         console.error("Validation errors:", errors);
-         toast("Validation Error", { description: "Please check the form for errors." });
+        console.error("Validation errors:", errors);
+        toast("Validation Error", {
+          description: "Please check the form for errors.",
+        });
       } else {
         toast("Failed to Update Business", {
           description: error.message || "An unexpected error occurred.",
@@ -72,12 +68,13 @@ export default function BusinessEditForm() {
   };
 
   // Combine data from multiple queries into initialData for the form
-  const initialData = business ? {
-      ...business,
-      images: images,
-      hours: hours,
-  } : undefined;
-
+  const initialData = business
+    ? {
+        ...business,
+        images: images,
+        hours: hours,
+      }
+    : undefined;
 
   if (isBusinessLoading || isImagesLoading || isHoursLoading) {
     return <div>Loading...</div>; // Or a loading spinner
@@ -86,7 +83,6 @@ export default function BusinessEditForm() {
   if (businessError) {
     return <div>Error loading business data.</div>; // Or an error message
   }
-
 
   return (
     <BusinessForm

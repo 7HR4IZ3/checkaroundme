@@ -31,35 +31,47 @@ const distanceOptions: CheckboxOption[] = [
   { id: "across_city", label: "Across the City" },
 ];
 
-export function FiltersPanel() {
-  // State for selected filters
-  const [selectedPrice, setSelectedPrice] = useState<string | null>(
-    null
+export interface Filters {
+  price: string | undefined; // Change type to undefined to match TRPC input
+  features: string[];
+  distances: string[];
+}
+
+interface FiltersPanelProps {
+  initialFilters: Filters;
+  onApplyFilters: (filters: Filters) => void;
+  onClose: () => void; // Add onClose prop
+}
+
+export function FiltersPanel({
+  initialFilters,
+  onApplyFilters,
+  onClose,
+}: FiltersPanelProps) {
+  // State for selected filters, initialized from props
+  const [selectedPrice, setSelectedPrice] = useState<string | undefined>(
+    initialFilters.price
   ); // Store the value like "$", "$$", etc.
 
   // Using an object to store checkbox states is often easier to manage
   const [selectedFeatures, setSelectedFeatures] = useState<
     Record<string, boolean>
-  >({
-    open_now: true, // Pre-selected based on design
-    // Initialize others as false
-    on_site_parking: false,
-    garage_parking: false,
-    wifi: false,
-    bank_transfers: false,
-    cash: false,
+  >(() => {
+    const initialState: Record<string, boolean> = {};
+    featureOptions.forEach((option) => {
+      initialState[option.id] = initialFilters.features.includes(option.id);
+    });
+    return initialState;
   });
 
   const [selectedDistances, setSelectedDistances] = useState<
     Record<string, boolean>
-  >({
-    // birds_eye: true, // Pre-selected based on design
-    // Initialize others as false
-    within_2km: true,
-    within_5km: false,
-    within_6km: false,
-    within_10km: false,
-    across_city: false,
+  >(() => {
+    const initialState: Record<string, boolean> = {};
+    distanceOptions.forEach((option) => {
+      initialState[option.id] = initialFilters.distances.includes(option.id);
+    });
+    return initialState;
   });
 
   // Handlers for updating state
@@ -82,8 +94,8 @@ export function FiltersPanel() {
   };
 
   const handleReset = () => {
-    // Reset to defult states
-    setSelectedPrice(null);
+    // Reset to default states (or initial filters if preferred, but design implies reset to a specific default)
+    setSelectedPrice(undefined);
     setSelectedFeatures({
       open_now: true,
       on_site_parking: false,
@@ -102,7 +114,7 @@ export function FiltersPanel() {
   };
 
   const handleConfirm = () => {
-    console.log("Confirm clicked. Filters:", {
+    const filtersToApply: Filters = {
       price: selectedPrice,
       features: Object.keys(selectedFeatures).filter(
         (key) => selectedFeatures[key]
@@ -110,8 +122,9 @@ export function FiltersPanel() {
       distances: Object.keys(selectedDistances).filter(
         (key) => selectedDistances[key]
       ), // Get array of selected distance IDs
-    });
-    // Add logic to apply filters / close panel etc.
+    };
+    onApplyFilters(filtersToApply);
+    onClose(); // Close panel after applying
   };
 
   return (
@@ -124,11 +137,11 @@ export function FiltersPanel() {
         <Label className="text-base font-medium">Price</Label>
         <ToggleGroup
           type="single" // Only one price can be selected
-          value={selectedPrice ?? "$10"}
+          value={selectedPrice ?? ""} // Use "" for unselected in ToggleGroup
           onValueChange={(value) => {
             // If the user clicks the currently selected value, it returns "", deselecting it.
             // We store undefined if empty or the actual value.
-            setSelectedPrice(value || null);
+            setSelectedPrice(value || undefined);
           }}
           className="flex border rounded-md overflow-hidden gap-2 w-full" // Group styling
         >
