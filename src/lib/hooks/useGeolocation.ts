@@ -1,4 +1,5 @@
-import { trpc } from "@/lib/trpc/client"; // Import trpc client
+import { trpc } from "@/lib/trpc/client";
+import { useGeolocation as useNativeGeolocation } from "@uidotdev/usehooks";
 
 interface GeolocationState {
   loading: boolean;
@@ -8,14 +9,20 @@ interface GeolocationState {
 }
 
 const useGeolocation = (): GeolocationState => {
-  const { data, isLoading, error } = trpc.getGeolocation.useQuery();
+  const { latitude, longitude, error, loading } = useNativeGeolocation();
+  const {
+    data,
+    isLoading,
+    error: geoError,
+  } = trpc.getGeolocation.useQuery(void 0, {
+    enabled: !loading && (!latitude || !longitude),
+  });
 
-  // Directly return the state derived from the tRPC query
   return {
-    loading: isLoading,
-    error: error || null,
-    latitude: data?.latitude ?? null, // Use nullish coalescing for default null
-    longitude: data?.longitude ?? null, // Use nullish coalescing for default null
+    error: geoError || null,
+    loading: loading || isLoading,
+    latitude: latitude ?? data?.latitude ?? null,
+    longitude: longitude ?? data?.longitude ?? null,
   };
 };
 
