@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
-import { BusinessImagesService } from "@/lib/appwrite";
+import { BusinessImagesService } from "@/lib/appwrite/services/business-images";
 
 export async function POST(req: NextRequest) {
   const formData = await req.formData();

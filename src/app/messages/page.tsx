@@ -1,22 +1,16 @@
 // src/components/MessagesPage.tsx
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation"; // Added import
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-// import { Separator } from "@/components/ui/separator"; // Optional
-import { Search, Phone, Send, ArrowUpCircle, File } from "lucide-react";
 import { trpc } from "@/lib/trpc/client";
-import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/lib/hooks/useClientAuth";
 import { redirect } from "next/navigation";
 import { Conversation as ConversationType } from "@/lib/schema";
-import { LoadingSVG } from "@/components/ui/loading";
 import Conversation from "@/components/messages/conversation";
 
 // --- Data Fetching and State ---

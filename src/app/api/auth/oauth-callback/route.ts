@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { AuthService } from "@/lib/appwrite";
+import { AuthService } from "@/lib/appwrite/services/auth";
 
 // Handles the redirect from Appwrite after Google OAuth
 export async function GET(req: NextRequest) {
