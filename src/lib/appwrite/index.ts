@@ -576,7 +576,7 @@ export const BusinessService = {
         const latDiff = business.coordinates.latitude - latitude;
         const lngDiff = business.coordinates.longitude - longitude;
         const approxDistance =
-          Math.sqrt(latDiff * latDiff + lngDiff * lngDiff) * 111; // rough conversion to km
+          Math.sqrt(latDiff * latDiff + lngDiff * lngDiff) * 11100; // rough conversion to km
 
         return approxDistance <= distance;
       });
