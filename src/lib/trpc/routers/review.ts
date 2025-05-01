@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { ReviewService } from "../appwrite"; // Import Review type if needed
-import { reviewSchema, Review } from "../schema";
+import { ReviewService } from "../../appwrite"; // Import Review type if needed
+import { reviewSchema, Review } from "../../schema";
 import type SuperJSON from "superjson";
 
 export function createReviewProcedures(
@@ -105,6 +105,5 @@ export function createReviewProcedures(
       .query(async ({ input }) => {
         return await ReviewService.getReviewReplies(input.parentReviewId);
       }),
-
   };
 }

@@ -1,3 +1,5 @@
+"use client";
+
 import { createContext, useContext } from 'react';
 import { User } from '../schema';
 import type { Models } from 'appwrite';

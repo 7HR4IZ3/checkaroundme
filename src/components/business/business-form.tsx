@@ -567,7 +567,12 @@ export default function BusinessForm({
             value={country}
             onValueChange={(value) => {
               setCountry(value);
-              setCountryError(""); // Clear error on change
+              setCountryError("");
+
+              const country = countries.find(
+                (country) => country.name === value
+              );
+              country && setPhoneCountryCode(country.phoneCode);
             }}
             required
           >
@@ -658,16 +663,18 @@ export default function BusinessForm({
             <Select
               value={phoneCountryCode}
               onValueChange={setPhoneCountryCode}
-            >
+            >2
               <SelectTrigger id="phoneCountryCode" className="w-24">
                 <SelectValue placeholder="Code" />
               </SelectTrigger>
               <SelectContent>
-                {/* TODO: Populate with actual country codes */}
-                <SelectItem value="+234">+234</SelectItem>
-                <SelectItem value="+1">+1</SelectItem>
-                <SelectItem value="+44">+44</SelectItem>
-                <SelectItem value="+233">+233</SelectItem>
+                {countries
+                  .sort((a, b) => Number(a.phoneCode) - Number(b.phoneCode))
+                  .map((country) => (
+                    <SelectItem value={country.phonecode}>
+                      +{country.phonecode}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
             <Input

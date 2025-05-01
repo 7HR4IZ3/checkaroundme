@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { MessageService } from "../appwrite";
-import { messageSchema } from "../schema";
+import { MessageService } from "../../appwrite";
+import { messageSchema } from "../../schema";
 
 import type SuperJSON from "superjson";
 

@@ -21,7 +21,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   const signInMutation = trpc.login.useMutation();
   const signoutMutation = trpc.logout.useMutation();
 
-  if (loadingCurrentUser) return <Loading />
+  // if (loadingCurrentUser) return <Loading />;
 
   const login = async (
     method: "email" | "google",
@@ -61,12 +61,11 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       // @ts-ignore
       value={{
-        isAuthenticated: isAuthenticated,
+        login, logout,
         user: user?.user ?? null,
         profile: user?.profile ?? null,
-        login,
-        logout,
         isLoading: loadingCurrentUser,
+        isAuthenticated: isAuthenticated,
       }}
     >
       {children}

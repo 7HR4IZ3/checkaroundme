@@ -1,6 +1,6 @@
 # CheckAroundMe - Business Listing Platform
 
-CheckAroundMe is a modern web application that allows users to discover, review, and interact with local businesses. Built with Next.js and React, it provides a seamless experience for users to find services in their area.
+CheckAroundMe is a modern web application designed to connect users with local businesses. It allows users to easily discover, review, and interact with services in their area, providing a seamless and intuitive experience. Built with Next.js and React, the platform aims to be a comprehensive resource for finding and evaluating local businesses.
 
 ## Features
 
@@ -12,11 +12,13 @@ CheckAroundMe is a modern web application that allows users to discover, review,
 
 ## Technology Stack
 
-- **Framework**: Next.js (App Router)
-- **UI Components**: Custom UI components with Shadcn UI
-- **Styling**: Tailwind CSS
-- **Icons**: Lucide React
-- **Image Optimization**: Next.js Image component
+- **Framework**: Next.js (App Router) - A React framework for building full-stack web applications.
+- **UI Components**: Custom UI components with Shadcn UI - Reusable UI components built using Radix UI and Tailwind CSS.
+- **Styling**: Tailwind CSS - A utility-first CSS framework for rapid styling.
+- **Icons**: Lucide React - A collection of open-source icons for React applications.
+- **Image Optimization**: Next.js Image component - An optimized image component for performance.
+- **Database/Backend**: Appwrite - A self-hosted backend-as-a-service platform providing authentication, database, storage, and more.
+- **API**: tRPC - A typesafe API layer for building end-to-end typesafe APIs without GraphQL or REST.
 
 ## Getting Started
 
@@ -28,21 +30,25 @@ CheckAroundMe is a modern web application that allows users to discover, review,
 ### Installation
 
 1. Clone the repository
+
 ```bash
-git clone https://github.com/yourusername/checkaroundme.git
+git clone https://github.com/checkaroundme/checkaroundme.git
 ```
 
 2. Navigate to the project directory
+
 ```bash
 cd checkaroundme
 ```
 
 3. Install dependencies
+
 ```bash
 npm install
 ```
 
 4. Start the development server
+
 ```bash
 npm run dev
 ```
@@ -53,38 +59,54 @@ npm run dev
 
 ```
 checkaroundme/
-├── public/                  # Static assets
+├── public/                  # Static assets (images, fonts, etc.)
 │   ├── images/              # Image assets
-│   │   ├── cat-placeholder.png
-│   │   └── service-placeholder.png
-│   └── placeholder-avatar1.jpg
-│
+│   └── leaflet/             # Leaflet map assets
 ├── src/                     # Source code
-│   ├── app/                 # Next.js app router pages
-│   │   ├── business/        # Business listing pages
-│   │   │   └── page.tsx     # Main business profile page
-│   │   └── layout.tsx       # Root layout component
-│   │
-│   ├── components/          # Reusable UI components
-│   │   ├── ui/              # UI component library
-│   │   │   ├── avatar.tsx   # User avatar component
-│   │   │   ├── badge.tsx    # Badge component for categories/tags
-│   │   │   ├── button.tsx   # Button component
-│   │   │   ├── card.tsx     # Card component for reviews/listings
-│   │   │   ├── carousel.tsx # Image carousel component
-│   │   │   └── separator.tsx # Visual separator component
-│   │   │
-│   │   └── [other components]
-│   │
-│   └── lib/                 # Utility functions and shared logic
-│
-├── .eslintrc.json          # ESLint configuration
-├── .gitignore              # Git ignore file
-├── next.config.js          # Next.js configuration
-├── package.json            # Project dependencies and scripts
-├── postcss.config.js       # PostCSS configuration for Tailwind
-├── tailwind.config.js      # Tailwind CSS configuration
-└── tsconfig.json           # TypeScript configuration
+│   ├── app/                 # Next.js app router (pages, layouts, API routes)
+│   │   ├── api/             # API route handlers
+│   │   │   ├── auth/
+│   │   │   ├── trpc/
+│   │   │   └── upload/
+│   │   ├── auth/            # Authentication related pages
+│   │   ├── business/        # Business related pages
+│   │   │   ├── [businessId]/
+│   │   │   │   ├── edit/
+│   │   │   │   └── review/
+│   │   │   ├── create/
+│   │   │   └── terms-of-service/
+│   │   ├── messages/        # Messaging pages
+│   │   ├── profile/         # User profile pages
+│   │   ├── about-us/
+│   │   ├── contact-us/
+│   │   ├── listings/
+│   │   ├── privacy-policy/
+│   │   └── terms-of-service/
+│   ├── components/          # Reusable React components
+│   │   ├── auth/
+│   │   ├── base/            # Basic layout components (header, footer)
+│   │   ├── business/
+│   │   ├── home/
+│   │   ├── listing/
+│   │   ├── map/
+│   │   ├── messages/
+│   │   └── ui/              # UI primitives (Shadcn UI)
+│   └── lib/                 # Shared libraries, utilities, hooks
+│       ├── appwrite/        # Appwrite client and services
+│       │   └── services/
+│       ├── hooks/           # Custom React hooks
+│       └── trpc/            # tRPC client, router, procedures
+├── utils/                   # Utility scripts (e.g., seeding, setup)
+│   └── appwrite/
+├── .gitignore               # Git ignore rules
+├── bun.lock                 # Bun lock file
+├── components.json          # Shadcn UI configuration
+├── next.config.ts           # Next.js configuration
+├── package.json             # Project dependencies and scripts
+├── postcss.config.mjs       # PostCSS configuration
+├── README.md                # Project README file
+├── tailwind.config.js       # Tailwind CSS configuration
+└── tsconfig.json            # TypeScript configuration
 ```
 
 ## Key Components

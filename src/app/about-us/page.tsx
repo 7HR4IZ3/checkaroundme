@@ -1,9 +1,21 @@
+"use client";
+
 import Hero from "@/components/home/hero";
+import { useRouter } from "next/navigation";
 
 const AboutUsPage = () => {
+  const router = useRouter();
+
   return (
     <>
-      <Hero title="About Us" subtitles={["Learn more about our company and mission"]} />
+      <Hero
+        title="About Us"
+        subtitles={["Learn more about our company and mission"]}
+        button={{
+          text: "Contact Us",
+          onclick: () => router.push("/contact-us"),
+        }}
+      />
       <div className="container mx-auto px-4 py-8">
         <section className="mb-8">
           <h2 className="text-3xl font-bold mb-4">Our Story</h2>

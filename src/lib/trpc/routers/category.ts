@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { CategoryService } from "../appwrite";
-import { categorySchema } from "../schema";
+import { CategoryService } from "../../appwrite";
+import { categorySchema } from "../../schema";
 import type SuperJSON from "superjson";
 
 export function createCategoryProcedures(
@@ -23,7 +23,12 @@ export function createCategoryProcedures(
       // .output(categorySchema)
       .mutation(async ({ input }) => {
         const { name, description, imageUrl, parentId } = input;
-        return await CategoryService.createCategory(name, description, imageUrl, parentId);
+        return await CategoryService.createCategory(
+          name,
+          description,
+          imageUrl,
+          parentId
+        );
       }),
 
     getAllCategories: t.procedure

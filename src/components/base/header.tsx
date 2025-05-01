@@ -32,6 +32,7 @@ const Header = () => {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
+  
 
   const [search, setSearch] = useState(params.get("query") || "");
   const [location, setLocation] = useState(params.get("location") || "");

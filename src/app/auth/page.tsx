@@ -262,14 +262,6 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
     setPasswordError("");
     setTermsError("");
 
-    console.log("Registering with:", {
-      fullName,
-      email,
-      phone,
-      password,
-      termsAccepted,
-    });
-
     if (!termsAccepted) {
       setTermsError("Please accept the terms and conditions.");
       return;
@@ -284,7 +276,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
       });
 
       // Login user
-      console.log("Logging in with:", { email, password });
+      // console.log("Logging in with:", { email, password });
       const result = await login.mutateAsync({ email, password });
       if (result.success) {
         router.push("/");
@@ -555,7 +547,7 @@ function AuthPageInner() {
       </div>
       <div className="flex flex-col md:flex-row">
         <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 lg:p-16 h-[80vh]">
-          <div className="w-full max-w-md space-y-6">
+          <div className="w-screen max-w-md space-y-6">
             {isLogin ? (
               <LoginForm onToggle={() => setIsLogin(false)} />
             ) : (

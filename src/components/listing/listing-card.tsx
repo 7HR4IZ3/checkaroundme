@@ -1,4 +1,6 @@
-import React, { useEffect } from "react";
+"use client";
+
+import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import axios from "axios";
@@ -20,53 +22,54 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
   const { data: image, isLoading } = trpc.getBusinessImage.useQuery({
     businessId: business.$id,
   });
-  const updateBusinessMutation = trpc.updateBusiness.useMutation();
 
-  useEffect(() => {
-    if (!business.coordinates) {
-      const address = `${business.addressLine1} ${business.city} ${
-        business.state || ""
-      } ${business.country || ""} ${business.postalCode || ""}`;
-      axios
-        .get("https://nominatim.openstreetmap.org/search", {
-          params: {
-            q: address,
-            format: "json",
-            limit: 1,
-          },
-          headers: {
-            "User-Agent": "CheckAroundMe/1.0 (contact@checkaroundme.com)", // Replace with your app name and contact
-          },
-        })
-        .then((response) => {
-          if (response.data && response.data.length > 0) {
-            const result = response.data[0];
-            const newCoordinates = {
-              latitude: parseFloat(result.lat),
-              longitude: parseFloat(result.lon),
-            };
-            console.log(
-              `Client-side geocoded address "${address}" to`,
-              newCoordinates
-            );
-            // Update the business in the background
-            updateBusinessMutation.mutate({
-              businessId: business.$id,
-              data: {
-                coordinates: newCoordinates,
-              },
-            });
-          } else {
-            console.warn(
-              `Client-side geocoding failed for address: "${address}". No results found.`
-            );
-          }
-        })
-        .catch((error) => {
-          console.error("Client-side geocoding error:", error);
-        });
-    }
-  }, [business]);
+  // const updateBusinessMutation = trpc.updateBusiness.useMutation();
+
+  // useEffect(() => {
+  //   if (!business.coordinates) {
+  //     const address = `${business.addressLine1} ${business.city} ${
+  //       business.state || ""
+  //     } ${business.country || ""} ${business.postalCode || ""}`;
+  //     axios
+  //       .get("https://nominatim.openstreetmap.org/search", {
+  //         params: {
+  //           q: address,
+  //           format: "json",
+  //           limit: 1,
+  //         },
+  //         headers: {
+  //           "User-Agent": "CheckAroundMe/1.0 (contact@checkaroundme.com)", // Replace with your app name and contact
+  //         },
+  //       })
+  //       .then((response) => {
+  //         if (response.data && response.data.length > 0) {
+  //           const result = response.data[0];
+  //           const newCoordinates = {
+  //             latitude: parseFloat(result.lat),
+  //             longitude: parseFloat(result.lon),
+  //           };
+  //           console.log(
+  //             `Client-side geocoded address "${address}" to`,
+  //             newCoordinates
+  //           );
+  //           // Update the business in the background
+  //           updateBusinessMutation.mutate({
+  //             businessId: business.$id,
+  //             data: {
+  //               coordinates: newCoordinates,
+  //             },
+  //           });
+  //         } else {
+  //           console.warn(
+  //             `Client-side geocoding failed for address: "${address}". No results found.`
+  //           );
+  //         }
+  //       })
+  //       .catch((error) => {
+  //         console.error("Client-side geocoding error:", error);
+  //       });
+  //   }
+  // }, [business]);
 
   return (
     <div className="h-[18em] bg-white rounded-lg shadow-xs overflow-hidden flex flex-row p-2 relative">
@@ -91,7 +94,7 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
                 {business.name}
               </h3>
             </Link>
-            <div className="flex items-center text-xs">
+            <div className="flex items-center text-xs w-30">
               <FaMapMarkerAlt className="mr-1.5" />
               <span>
                 {business.addressLine1},{" "}

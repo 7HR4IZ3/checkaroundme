@@ -41,11 +41,6 @@ export default function Home() {
     [priceParam, featuresParam, distancesParam]
   );
 
-  // State for manual location input
-  const [manualLocation, setManualLocation] = useState(locationParam);
-  // State to control editing mode for location
-  const [isEditingLocation, setIsEditingLocation] = useState(false);
-
   // State for FilterSortBar special filters (e.g., "Open Now", "Offers Delivery")
   // These are separate from the main FiltersPanel filters but can be combined for the query
   const [filterBarCategories, setFilterBarCategories] = useState<string[]>([]);
@@ -151,6 +146,31 @@ export default function Home() {
     distances: initialFilters.distances, // Pass distances filter
   });
 
+  // Extract unique locations from the business list
+  const locations = useMemo(() => {
+    if (!list?.businesses) return [];
+    const uniqueLocations = new Set(
+      list.businesses.map((b) => `${b.city} ${b.country}`)
+    );
+    return Array.from(uniqueLocations);
+  }, [list?.businesses]);
+
+  // Handler to update location in URL
+  const onChangeLocation = useCallback(
+    (location: string | null) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (location) {
+        params.set("location", location);
+      } else {
+        params.delete("location");
+      }
+      // Reset to first page when location changes
+      params.set("offset", "0");
+      router.replace(`?${params.toString()}`);
+    },
+    [router, searchParams]
+  );
+
   // Calculate pagination
   const currentPage = Math.floor(offset / limit) + 1;
   const totalPages = useMemo(() => {
@@ -168,47 +188,17 @@ export default function Home() {
         <div className="flex flex-row flex-wrap gap-8 w-full">
           {/* Listings Section */}
           <div className="">
-            {/* Location Display/Edit */}
-            <div className="flex items-center gap-2 mb-4">
-              {isEditingLocation ? (
-                <>
-                  <Input
-                    placeholder="Enter location"
-                    value={manualLocation}
-                    onChange={(e) => setManualLocation(e.target.value)}
-                    className="flex-grow"
-                  />
-                  <Button onClick={() => {
-                    const params = new URLSearchParams(searchParams.toString());
-                    if (manualLocation) {
-                      params.set("location", manualLocation);
-                    } else {
-                      params.delete("location");
-                    }
-                    // Reset to first page when location changes
-                    params.set("offset", "0");
-                    router.replace(`?${params.toString()}`);
-                    setIsEditingLocation(false);
-                  }}>Save</Button>
-                  <Button variant="outline" onClick={() => {
-                    setManualLocation(locationParam); // Reset to URL param on cancel
-                    setIsEditingLocation(false);
-                  }}>Cancel</Button>
-                </>
-              ) : (
-                <>
-                  <h1 className="text-2xl font-semibold text-gray-800">
-                    {/* Display current category and location */}
-                    {selectedCategory || "All business"} near {locationParam || "You"}
-                  </h1>
-                  {/* <Button variant="outline" size="sm" onClick={() => setIsEditingLocation(true)}>Edit</Button> */}
-                </>
-              )}
-            </div>
+            {/* Display current category and location */}
+            <h1 className="text-2xl font-semibold text-gray-800 mb-4">
+              {selectedCategory || "All business"} near {locationParam || "You"}
+            </h1>
             <FilterSortBar
               selectedCategories={filterBarCategories}
               onChangeCategories={onChangeFilterBarCategories}
               onOpenFiltersPanel={onOpenFiltersPanel}
+              locations={locations} // Pass locations
+              selectedLocation={locationParam} // Pass selectedLocation
+              onChangeLocation={onChangeLocation} // Pass onChangeLocation
             />
             <div className="space-y-6">
               {isLoading ? (

@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { UserService } from "../appwrite";
-import { updateUserSchema } from "../schema";
+import { UserService } from "../../appwrite";
+import { updateUserSchema } from "../../schema";
 
 import type SuperJSON from "superjson";
 

@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { BusinessService } from "../appwrite/services/business";
-import { BusinessImagesService } from "../appwrite/services/business-images";
-import { BusinessHoursService } from "../appwrite/services/business-hours";
+import { BusinessService } from "../../appwrite/services/business";
+import { BusinessImagesService } from "../../appwrite/services/business-images";
+import { BusinessHoursService } from "../../appwrite/services/business-hours";
 import {
   createBusinessSchema,
   updateBusinessSchema,
@@ -9,7 +9,7 @@ import {
   businessHoursSchema,
   businessSchema,
   daySchema,
-} from "../schema";
+} from "../../schema";
 
 import type SuperJSON from "superjson";
 
