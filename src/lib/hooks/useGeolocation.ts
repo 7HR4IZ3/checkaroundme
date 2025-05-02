@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import { trpc } from "@/lib/trpc/client";
 import { useGeolocation as useNativeGeolocation } from "@uidotdev/usehooks";
+import { useGeolocationPermission } from "@/lib/context/GeolocationPermissionContext";
 
 interface GeolocationState {
   loading: boolean;
@@ -10,6 +12,8 @@ interface GeolocationState {
 
 const useGeolocation = (): GeolocationState => {
   const { latitude, longitude, error, loading } = useNativeGeolocation();
+  const { showModal } = useGeolocationPermission();
+
   const {
     data,
     isLoading,
@@ -17,6 +21,13 @@ const useGeolocation = (): GeolocationState => {
   } = trpc.getGeolocation.useQuery(void 0, {
     enabled: !loading && (!latitude || !longitude),
   });
+
+  useEffect(() => {
+    console.error(error);
+    if (error && error.code === 1) { // GeolocationPositionError.PERMISSION_DENIED
+      showModal();
+    }
+  }, [error]);
 
   return {
     error: geoError || null,

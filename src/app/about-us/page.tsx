@@ -6,6 +6,20 @@ import { useRouter } from "next/navigation";
 const AboutUsPage = () => {
   const router = useRouter();
 
+  const faqs = [
+    {
+      question: "How do I find services?",
+      answer: "Use the search bar or browse categories.",
+    },
+    {
+      question: "Is it free to use?",
+      answer: "Yes, it's free for users to find and connect with services.",
+    },
+    {
+      question: "How can I list my business?",
+      answer: "Sign up as a business and create your profile.",
+    },
+  ];
   return (
     <>
       <Hero
@@ -46,6 +60,24 @@ const AboutUsPage = () => {
           </p>
         </section>
       </div>
+      <section id="faq" className="py-12">
+        <div>
+          <h2 className="text-3xl font-bold text-center mb-3">
+            Frequently Asked Questions
+          </h2>
+          <p className="text-md text-muted-foreground text-center mb-10 max-w-xl mx-auto">
+            Find answers to common questions.
+          </p>
+          <div className="grid gap-6 max-w-2xl mx-auto">
+            {faqs.map((faq, index) => (
+              <div key={index} className="border-b pb-4">
+                <h3 className="text-lg font-semibold mb-1">{faq.question}</h3>
+                <p className="text-muted-foreground text-sm">{faq.answer}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
     </>
   );
 };

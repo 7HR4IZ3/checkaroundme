@@ -5,6 +5,7 @@ import Header from "@/components/base/header";
 import Footer from "@/components/base/footer";
 import AuthProvider from "@/components/auth/provider";
 import { TrpcProvider } from "@/lib/trpc/components/provider";
+import { GeolocationPermissionProvider } from "@/lib/context/GeolocationPermissionContext";
 
 import "./globals.css";
 import { Suspense } from "react";
@@ -44,10 +45,12 @@ export default function RootLayout({
           <HydrateClient>
             <Suspense fallback={<Loading />}>
               <AuthProvider>
-                <Header />
-                <main>{children}</main>
-                <Toaster />
-                <Footer />
+                <GeolocationPermissionProvider>
+                  <Header />
+                  <main>{children}</main>
+                  <Toaster />
+                  <Footer />
+                </GeolocationPermissionProvider>
               </AuthProvider>
             </Suspense>
           </HydrateClient>

@@ -6,6 +6,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { FaGoogle } from "react-icons/fa";
 import { toast } from "sonner";
+import { Star } from "lucide-react";
+import {
+  GoogleReCaptchaCheckbox,
+  GoogleReCaptchaProvider,
+} from "@google-recaptcha/react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +21,8 @@ import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/lib/hooks/useClientAuth";
 import { redirect, useRouter, useSearchParams } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
+import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"; // Corrected import path
 
 function LoginForm({ onToggle }: { onToggle: () => void }) {
   const router = useRouter();
@@ -25,6 +32,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
 
+  const [captchaToken, setCaptchaToken] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(true);
 
   const login = trpc.login.useMutation();
@@ -37,7 +45,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
 
     try {
       console.log("Logging in with:", { email, password });
-      const result = await login.mutateAsync({ email, password });
+      const result = await login.mutateAsync({ email, password, captchaToken }); // Added captchaToken
       console.log("Login result:", result);
 
       if (result.success) {
@@ -80,9 +88,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
     <>
       <div className="text-left mb-12">
         <h1 className="text-3xl font-bold">Welcome Back! 👋</h1>
-        <p className="text-sm mt-2">
-          Please login to your account
-        </p>
+        <p className="text-sm mt-2">Please login to your account</p>
       </div>
 
       <form onSubmit={handleLogin} className="space-y-4">
@@ -159,6 +165,10 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
           </Label>
         </div>
 
+        <div className="p-3 mt-4 flex items-center justify-center">
+          <GoogleReCaptchaCheckbox onChange={setCaptchaToken} />
+        </div>
+
         <Button type="submit" className="w-full mt-6 h-11">
           {login.isPending ? (
             <svg
@@ -213,7 +223,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
           Reset Password
         </Link>
       </p>
-      
+
       <div className="relative my-6">
         <Separator />
         <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-2 text-xs text-sm">
@@ -249,6 +259,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
   const [phoneError, setPhoneError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [termsError, setTermsError] = useState("");
+  const [captchaToken, setCaptchaToken] = useState("");
 
   const login = trpc.login.useMutation();
   const register = trpc.register.useMutation();
@@ -273,11 +284,12 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
         email,
         password,
         phone,
+        captchaToken, // Added captchaToken
       });
 
       // Login user
       // console.log("Logging in with:", { email, password });
-      const result = await login.mutateAsync({ email, password });
+      const result = await login.mutateAsync({ email, password, captchaToken }); // Added captchaToken
       if (result.success) {
         router.push("/");
       } else {
@@ -439,28 +451,8 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
           <p className="text-red-500 text-sm mt-1">{termsError}</p>
         )}
 
-        <div className="border rounded-md p-3 mt-4 flex items-center justify-between bg-gray-50">
-          <div className="flex items-center space-x-2">
-            <Checkbox id="recaptcha" disabled checked={isRecaptchaVerified} />
-            <Label htmlFor="recaptcha" className="text-sm font-normal">
-              I'm not a robot
-            </Label>
-          </div>
-          <div className="text-center">
-            <svg
-              className="inline-block h-8 w-8 text-blue-600"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"></path>
-            </svg>
-            <p className="text-[10px] text-muted-foreground leading-tight">
-              reCAPTCHA
-            </p>
-            <p className="text-[8px] text-muted-foreground leading-tight">
-              Privacy - Terms
-            </p>
-          </div>
+        <div className="p-3 mt-4 flex items-center justify-center">
+          <GoogleReCaptchaCheckbox onChange={setCaptchaToken} />
         </div>
 
         <Button
@@ -526,6 +518,264 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
   );
 }
 
+// Helper component for star ratings (can be simplified for landing page)
+const StarRating = ({ rating }: { rating: number }) => {
+  const fullStars = Math.floor(rating);
+  const emptyStars = 5 - fullStars;
+
+  return (
+    <div className="flex items-center gap-1">
+      {[...Array(fullStars)].map((_, i) => (
+        <Star
+          key={`full-${i}`}
+          className="w-4 h-4 fill-yellow-400 text-yellow-400"
+        />
+      ))}
+      {[...Array(emptyStars)].map((_, i) => (
+        <Star key={`empty-${i}`} className="w-4 h-4 text-gray-300" />
+      ))}
+    </div>
+  );
+};
+
+// New component for displaying landing page reviews
+const LandingReviewCard = ({
+  review,
+}: {
+  review: {
+    id: string;
+    reviewerName: string;
+    rating: number;
+    comment: string;
+    createdAt: Date;
+    reviewerImage: string;
+  };
+}) => {
+  // Adjusted styles for LandingReviewCard
+  return (
+    // Use bg-muted/40 like other cards, adjust padding
+    <Card className="border-none shadow-none bg-muted/40 p-4">
+      <CardHeader className="p-0 mb-3">
+        <div className="flex items-center gap-3">
+          <Avatar className="w-10 h-10">
+            <AvatarImage src={review.reviewerImage} alt={review.reviewerName} />
+            <AvatarFallback>
+              {review.reviewerName.substring(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <p className="font-semibold text-sm">{review.reviewerName}</p>
+            <StarRating rating={review.rating} />
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0">
+        <p className="text-muted-foreground text-sm mb-2">{review.comment}</p>
+        <p className="text-xs text-muted-foreground/80">
+          {new Date(review.createdAt).toDateString()}
+        </p>
+      </CardContent>
+    </Card>
+  );
+};
+
+const howItWorksSteps = [
+  {
+    title: "Step 1: Sign Up",
+    description: "Create your account in seconds.",
+    icon: "👤",
+  },
+  {
+    title: "Step 2: Find Services",
+    description: "Browse local services near you.",
+    icon: "🔍",
+  },
+  {
+    title: "Step 3: Connect",
+    description: "Connect with businesses instantly.",
+    icon: "💬",
+  },
+];
+
+const reviews = [
+  {
+    id: "rev1",
+    reviewerName: "Alex Johnson",
+    rating: 5,
+    comment: "Amazing platform! Found exactly what I needed quickly.",
+    createdAt: new Date(),
+    reviewerImage: "/images/cat-placeholder.png", // Placeholder image
+  },
+  {
+    id: "rev2",
+    reviewerName: "Samantha Lee",
+    rating: 4,
+    comment: "Very helpful service, easy to use interface.",
+    createdAt: new Date(Date.now() - 86400000 * 2), // 2 days ago
+    reviewerImage: "/images/cat-placeholder.png", // Placeholder image
+  },
+  {
+    id: "rev3",
+    reviewerName: "Mike Brown",
+    rating: 5,
+    comment: "Highly recommend! Saved me a lot of time.",
+    createdAt: new Date(Date.now() - 86400000 * 5), // 5 days ago
+    reviewerImage: "/images/cat-placeholder.png", // Placeholder image
+  },
+];
+
+const benefits = [
+  {
+    title: "Easy Discovery",
+    description: "Find local services quickly and easily.",
+    icon: "✨",
+  },
+  {
+    title: "Connect Directly",
+    description:
+      "Communicate with service providers directly through the platform.",
+    icon: "💬",
+  },
+  {
+    title: "Trusted Reviews",
+    description: "Make informed decisions based on real user reviews.",
+    icon: "⭐",
+  },
+];
+
+const faqs = [
+  {
+    question: "How do I find services?",
+    answer: "Use the search bar or browse categories.",
+  },
+  {
+    question: "Is it free to use?",
+    answer: "Yes, it's free for users to find and connect with services.",
+  },
+  {
+    question: "How can I list my business?",
+    answer: "Sign up as a business and create your profile.",
+  },
+];
+
+function LandingPage() {
+  // Adjusted styles for integration into auth page
+  return (
+    <div className="flex flex-col h-full text-foreground">
+      <main className="flex-grow overflow-y-auto p-4 md:p-8">
+        <section className="text-center mb-12">
+          <div className="relative z-10">
+            <div className="flex flex-row justify-center align-center">
+              <Link href="/">
+                <Image
+                  src="/images/logo.png"
+                  alt="Checkaroundme"
+                  width={200}
+                  height={40}
+                />
+              </Link>
+            </div>
+            <p className="text-md md:text-lg mb-6 max-w-xl mx-auto text-muted-foreground">
+              Discover and connect with the best local services right in your
+              neighborhood. Fast, easy, and reliable.
+            </p>
+          </div>
+        </section>
+
+        <section id="benefits" className="py-12">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-3">Why Choose Us?</h2>
+            <p className="text-md text-muted-foreground mb-10 max-w-xl mx-auto">
+              Discover the advantages of using our platform.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {benefits.map((benefit, index) => (
+                <Card
+                  key={index}
+                  className="text-center bg-muted/40 shadow-none border-none"
+                >
+                  <CardHeader className="pb-3 pt-4">
+                    <div className="text-4xl mb-3">{benefit.icon}</div>
+                    <CardTitle className="text-xl font-semibold">
+                      {benefit.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pb-4">
+                    <p className="text-muted-foreground text-sm">
+                      {benefit.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="how-it-works" className="py-12">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-3">How It Works</h2>
+            <p className="text-md text-muted-foreground mb-10 max-w-xl mx-auto">
+              Get started in just a few simple steps.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {howItWorksSteps.map((step, index) => (
+                <div
+                  key={index}
+                  className="flex flex-col items-center p-4 rounded-lg bg-muted/40"
+                >
+                  <div className="text-4xl mb-3 p-3 bg-primary/10 rounded-full text-primary">
+                    {step.icon}
+                  </div>
+                  <h3 className="text-xl font-semibold mb-1">{step.title}</h3>
+                  <p className="text-muted-foreground text-sm">
+                    {step.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="reviews" className="py-12">
+          <div>
+            <h2 className="text-2xl font-bold text-center mb-3">
+              What Our Users Say
+            </h2>
+            <p className="text-md text-muted-foreground text-center mb-10 max-w-xl mx-auto">
+              Real feedback from our community.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {reviews.map((review) => (
+                <LandingReviewCard key={review.id} review={review} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="faq" className="py-12">
+          <div>
+            <h2 className="text-2xl font-bold text-center mb-3">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-md text-muted-foreground text-center mb-10 max-w-xl mx-auto">
+              Find answers to common questions.
+            </p>
+            <div className="grid gap-6 max-w-2xl mx-auto">
+              {faqs.map((faq, index) => (
+                <div key={index} className="border-b pb-4">
+                  <h3 className="text-lg font-semibold mb-1">{faq.question}</h3>
+                  <p className="text-muted-foreground text-sm">{faq.answer}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}
+
 function AuthPageInner() {
   const auth = useAuth();
   const params = useSearchParams();
@@ -548,23 +798,34 @@ function AuthPageInner() {
       <div className="flex flex-col md:flex-row">
         <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 lg:p-16 h-[80vh]">
           <div className="w-screen max-w-md space-y-6">
-            {isLogin ? (
-              <LoginForm onToggle={() => setIsLogin(false)} />
-            ) : (
-              <SignUpForm onToggle={() => setIsLogin(true)} />
-            )}
+            <GoogleReCaptchaProvider
+              type="v2-checkbox"
+              siteKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ?? ""}
+            >
+              {isLogin ? (
+                <LoginForm onToggle={() => setIsLogin(false)} />
+              ) : (
+                <SignUpForm onToggle={() => setIsLogin(true)} />
+              )}
+            </GoogleReCaptchaProvider>
           </div>
         </div>
 
         <div className="hidden md:block md:w-1/2 relative">
-          <Image
-            className="rounded-xl"
-            src="/images/signin-placeholder.jpg"
-            alt="Mechanic working on car engine"
-            style={{ objectFit: "cover" }}
-            fill
-            priority
-          />
+          {isLogin ? (
+            <Image
+              className="rounded-xl"
+              src="/images/signin-placeholder.jpg"
+              alt="Mechanic working on car engine"
+              style={{ objectFit: "cover" }}
+              fill
+              priority
+            />
+          ) : (
+            <div className="overflow-y h-full">
+              <LandingPage />
+            </div>
+          )}
         </div>
       </div>
     </div>

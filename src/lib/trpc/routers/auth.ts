@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { AuthService } from "../../appwrite/services/auth";
 import SuperJSON from "superjson";
+import { TRPCError } from "@trpc/server";
 
 export function createAuthProcedures(
   t: ReturnType<
@@ -9,6 +10,40 @@ export function createAuthProcedures(
     }>
   >
 ) {
+  async function verifyCaptcha(
+    token: string
+  ): Promise<{ success: boolean; score?: number; "error-codes"?: string[] }> {
+    const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+    if (!secretKey) {
+      console.error(
+        "RECAPTCHA_SECRET_KEY is not set in environment variables."
+      );
+      // Depending on security policy, either fail open or closed. Failing closed is safer.
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Captcha configuration error.",
+      });
+    }
+
+    const verificationUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`;
+
+    try {
+      const response = await fetch(verificationUrl, { method: "POST" });
+      const data: {
+        success: boolean;
+        score?: number;
+        "error-codes"?: string[];
+      } = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Captcha verification request failed:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to verify captcha.",
+      });
+    }
+  }
+
   return {
     register: t.procedure
       .input(
@@ -17,9 +52,19 @@ export function createAuthProcedures(
           password: z.string().min(6),
           name: z.string(),
           phone: z.string().optional(),
+          captchaToken: z.string(), // Added captcha token
         })
       )
       .mutation(async ({ input }) => {
+        const captchaResult = await verifyCaptcha(input.captchaToken);
+        if (!captchaResult.success) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Captcha verification failed: ${
+              captchaResult["error-codes"]?.join(", ") || "Unknown error"
+            }`,
+          });
+        }
         return await AuthService.register(
           input.email,
           input.password,
@@ -33,9 +78,19 @@ export function createAuthProcedures(
         z.object({
           email: z.string().email(),
           password: z.string().min(6),
+          captchaToken: z.string(), // Added captcha token
         })
       )
       .mutation(async ({ input }) => {
+        const captchaResult = await verifyCaptcha(input.captchaToken);
+        if (!captchaResult.success) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Captcha verification failed: ${
+              captchaResult["error-codes"]?.join(", ") || "Unknown error"
+            }`,
+          });
+        }
         return await AuthService.login(input.email, input.password);
       }),
 
