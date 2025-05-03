@@ -591,7 +591,7 @@ export default function BusinessPage() {
             <section>
               <div className="flex items-center gap-2 mb-4">
                 <h2 className="text-xl font-semibold">Service Offered</h2>
-                {business.isVerified && (
+                {business.verificationStatus === "verified" && (
                   <div className="flex items-center gap-1 text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
                     <CheckCircle className="w-3 h-3" />
                     <span>Verified Business</span>

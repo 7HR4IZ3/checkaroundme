@@ -18,32 +18,32 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [loadingCurrentUser]);
 
-  const signInMutation = trpc.login.useMutation();
+  // const signInMutation = trpc.login.useMutation();
   const signoutMutation = trpc.logout.useMutation();
 
   // if (loadingCurrentUser) return <Loading />;
 
-  const login = async (
-    method: "email" | "google",
-    data: { email: string; password: string }
-  ) => {
-    console.log(data);
-    try {
-      if (method === "google") {
-      } else {
-        const result = await signInMutation.mutateAsync(data);
-        if (result.success) {
-          window.location.assign("/");
-          window.location.reload();
-        } else {
-          // ... error handling
-        }
-      }
-    } catch (error) {
-      console.error("Login error:", error);
-      throw error;
-    }
-  };
+  // const login = async (
+  //   method: "email" | "google",
+  //   data: { email: string; password: string }
+  // ) => {
+  //   console.log(data);
+  //   try {
+  //     if (method === "google") {
+  //     } else {
+  //       const result = await signInMutation.mutateAsync(data);
+  //       if (result.success) {
+  //         window.location.assign("/");
+  //         window.location.reload();
+  //       } else {
+  //         // ... error handling
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error("Login error:", error);
+  //     throw error;
+  //   }
+  // };
 
   const logout = async () => {
     try {
@@ -61,7 +61,8 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider
       // @ts-ignore
       value={{
-        login, logout,
+        // login,
+        logout,
         user: user?.user ?? null,
         profile: user?.profile ?? null,
         isLoading: loadingCurrentUser,
