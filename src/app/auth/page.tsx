@@ -40,6 +40,11 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
+
+    if (!captchaToken) {
+      return setPasswordError("Invalid captcha");
+    }
+
     setEmailError("");
     setPasswordError("");
 
@@ -58,14 +63,18 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
     } catch (error: any) {
       console.error("Login error:", error);
       if (error.data?.httpStatus === 400) {
-        const errors = JSON.parse(error.message);
+        try {
+          const errors = JSON.parse(error.message);
 
-        for (const item of errors) {
-          if (item.path[0] === "email") {
-            setEmailError(item.message);
-          } else if (item.path[0] === "password") {
-            setPasswordError(item.message);
+          for (const item of errors) {
+            if (item.path[0] === "email") {
+              setEmailError(item.message);
+            } else if (item.path[0] === "password") {
+              setPasswordError(item.message);
+            }
           }
+        } catch {
+          setPasswordError(error.message);
         }
       } else {
         setPasswordError(error.message || "An unexpected error occurred.");
@@ -267,16 +276,20 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
 
   const handleRegister = async (event: React.FormEvent) => {
     event.preventDefault();
-    setFullNameError("");
-    setEmailError("");
-    setPhoneError("");
-    setPasswordError("");
-    setTermsError("");
 
     if (!termsAccepted) {
       setTermsError("Please accept the terms and conditions.");
       return;
     }
+
+    if (!captchaToken) {
+      return setPasswordError("Invalid captcha");
+    }
+    setFullNameError("");
+    setEmailError("");
+    setPhoneError("");
+    setPasswordError("");
+    setTermsError("");
 
     try {
       await register.mutateAsync({
@@ -302,21 +315,24 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
     } catch (error: any) {
       console.error("Registration error:", error);
       if (error.data?.httpStatus === 400) {
-        const errors = JSON.parse(error.message);
-
-        for (const error of errors) {
-          if (error.path[0] === "name") {
-            setFullNameError(error.message);
+        try {
+          const errors = JSON.parse(error.message);
+          for (const error of errors) {
+            if (error.path[0] === "name") {
+              setFullNameError(error.message);
+            }
+            if (error.path[0] === "email") {
+              setEmailError(error.message);
+            }
+            if (error.path[0] === "phone") {
+              setPhoneError(error.message);
+            }
+            if (error.path[0] === "password") {
+              setPasswordError(error.message);
+            }
           }
-          if (error.path[0] === "email") {
-            setEmailError(error.message);
-          }
-          if (error.path[0] === "phone") {
-            setPhoneError(error.message);
-          }
-          if (error.path[0] === "password") {
-            setPasswordError(error.message);
-          }
+        } catch {
+          setPasswordError(error.message);
         }
       } else {
         toast("Registration Error", {
