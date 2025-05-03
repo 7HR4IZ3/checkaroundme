@@ -455,7 +455,7 @@ export default function BusinessPage() {
                 </div>
               </div>
               <div className="flex items-center gap-1 mb-2 text-sm">
-                {business.isVerified && (
+                {business.verificationStatus === "verified" && (
                   <div className="flex items-center gap-1 text-green-600">
                     <CheckCircle className="w-4 h-4" />
                     <span>Verified</span>
