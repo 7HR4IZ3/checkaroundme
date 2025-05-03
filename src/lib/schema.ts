@@ -39,7 +39,7 @@ export const businessSchema = z.object({
   about: z.string(),
   categories: z.array(z.string()),
   services: z.array(z.string()).optional(),
-  isVerified: z.boolean().default(false),
+  verificationStatus: z.enum(["pending", "verified", "rejected", "not_submitted"]).default("not_submitted"),
   rating: z.number().min(0).max(5).default(0),
   reviewCount: z.number().default(0),
   addressLine1: z.string(),
@@ -178,6 +178,17 @@ export const authSessionSchema = z.object({
   createdAt: z.date().default(() => new Date()),
 });
 
+// Verification Document schema
+export const verificationDocumentSchema = z.object({
+  $id: z.string(), // Appwrite document ID
+  businessId: z.string(), // Link to business
+  userId: z.string(), // Link to user who uploaded
+  documentFileId: z.string(), // Appwrite Storage file ID
+  documentType: z.string().optional(), // e.g., "Passport", "Driver's License"
+  submittedAt: z.date().default(() => new Date()), // Timestamp
+  adminNotes: z.string().optional(), // Admin review comments
+});
+
 // Type definitions to use throughout the application
 export type User = z.infer<typeof userSchema>;
 export type Business = z.infer<typeof businessSchema>;
@@ -190,3 +201,4 @@ export type Message = z.infer<typeof messageSchema>;
 export type Conversation = z.infer<typeof conversationSchema>;
 export type AuthSession = z.infer<typeof authSessionSchema>;
 export type DaySchema = z.infer<typeof daySchema>;
+export type VerificationDocument = z.infer<typeof verificationDocumentSchema>;

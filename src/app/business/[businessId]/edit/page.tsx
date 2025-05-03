@@ -6,6 +6,14 @@ import { trpc } from "@/lib/trpc/client";
 import { useAuth } from "@/lib/hooks/useClientAuth";
 import BusinessForm from "@/components/business/business-form"; // Import the new component
 import { toast } from "sonner";
+import { VerificationUpload } from "@/components/business/verification-upload";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function BusinessEditForm() {
   const { isAuthenticated } = useAuth();
@@ -85,12 +93,26 @@ export default function BusinessEditForm() {
   }
 
   return (
-    <BusinessForm
-      businessId={businessId}
-      initialData={initialData}
-      onSubmit={handleUpdateBusiness}
-      submitButtonText="Update Business"
-      isSubmitting={updateBusiness.status === "pending"}
-    />
+    <div className="space-y-6">
+      <BusinessForm
+        businessId={businessId}
+        initialData={initialData}
+        onSubmit={handleUpdateBusiness}
+        submitButtonText="Update Business"
+        isSubmitting={updateBusiness.isPending}
+      />
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Business Verification</CardTitle>
+          <CardDescription>
+            Upload documents to verify your business.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <VerificationUpload businessId={businessId} />
+        </CardContent>
+      </Card>
+    </div>
   );
 }

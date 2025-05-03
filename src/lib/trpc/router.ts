@@ -8,7 +8,8 @@ import { createCategoryProcedures } from "./routers/category";
 import { createReviewProcedures } from "./routers/review";
 import { createMessageProcedures } from "./routers/message";
 import { createConversationProcedures } from "./routers/conversation";
-import { createLocationProcedures } from "./routers/location"; // Import location procedures
+import { createLocationProcedures } from "./routers/location";
+import { createVerificationProcedures } from "./routers/verification";
 import { cache } from "react";
 
 export const createTRPCContext = cache(async () => {
@@ -31,6 +32,7 @@ export const appRouter = t.router({
   ...createCategoryProcedures(t),
   ...createConversationProcedures(t),
   ...createLocationProcedures(t),
+  ...createVerificationProcedures(t),
 });
 
 // Export type definition of API
