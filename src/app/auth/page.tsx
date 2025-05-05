@@ -266,7 +266,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("+44 65762354");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isRecaptchaVerified, setIsRecaptchaVerified] = useState(false);
@@ -417,7 +417,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
           <Input
             id="phone"
             type="tel"
-            placeholder="+44 123 456 7890"
+            placeholder="+2348123456789"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             className={`mt-1 ${phoneError ? "border-red-500" : ""}`}

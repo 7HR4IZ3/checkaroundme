@@ -86,7 +86,7 @@ const Footer = () => {
 
         {/* Copyright */}
         <div className="border-t border-gray-700 pt-8 text-center text-sm text-gray-500">
-          © Copyright checkaroundme 2025. All right reserved
+          © Copyright checkaroundme 2023. All right reserved
         </div>
       </div>
     </footer>
