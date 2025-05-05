@@ -20,11 +20,20 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { X, Plus, Trash2, MoreVertical } from "lucide-react";
+import { X, Plus, Trash2, MoreVertical, ShieldCheck } from "lucide-react"; // Added ShieldCheck
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"; // Added Dialog components
 import { useAuth } from "@/lib/hooks/useClientAuth";
 import { Business, BusinessImage } from "@/lib/schema";
 import { LoadingSVG } from "@/components/ui/loading";
+import { VerificationUpload } from "@/components/business/verification-upload"; // Changed to named import
 
 interface BusinessFormProps {
   initialData?: Business & {
@@ -447,6 +456,30 @@ export default function BusinessForm({
               <span className="sr-only">More options</span>
             </Button>
           )}
+          {/* --- Verify Business Button & Modal (Edit Mode Only) --- */}
+          {businessId && (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <ShieldCheck className="mr-2 h-4 w-4" /> Verify Business
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Business Verification</DialogTitle>
+                  <DialogDescription>
+                    Upload a document to verify your business ownership (e.g.,
+                    utility bill, business registration). This helps build trust
+                    with customers.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                  <VerificationUpload businessId={businessId} />
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+          {/* --- End Verify Business Button & Modal --- */}
         </div>
       </div>
 
@@ -663,7 +696,7 @@ export default function BusinessForm({
             <Select
               value={phoneCountryCode}
               onValueChange={setPhoneCountryCode}
-            >2
+            >
               <SelectTrigger id="phoneCountryCode" className="w-24">
                 <SelectValue placeholder="Code" />
               </SelectTrigger>

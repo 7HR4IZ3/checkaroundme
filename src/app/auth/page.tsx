@@ -31,9 +31,10 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
 
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [captchaError, setCaptchaError] = useState("");
 
   const [captchaToken, setCaptchaToken] = useState("");
-  const [termsAccepted, setTermsAccepted] = useState(true);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const login = trpc.login.useMutation();
   const googleLogin = trpc.loginWithGoogle.useMutation();
@@ -42,7 +43,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
     event.preventDefault();
 
     if (!captchaToken) {
-      return setPasswordError("Invalid captcha");
+      return setCaptchaError("Invalid captcha");
     }
 
     setEmailError("");
@@ -83,6 +84,10 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
   };
 
   const handleGoogleSignIn = async () => {
+    if (!captchaToken) {
+      return setCaptchaError("Invalid captcha");
+    }
+
     try {
       const redirectUrl = window.location.origin + "/api/auth/oauth-callback";
       const url = await googleLogin.mutateAsync({ redirectUrl });
@@ -174,8 +179,11 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
           </Label>
         </div>
 
-        <div className="p-3 mt-4 flex items-center justify-center">
+        <div className="p-3 mt-4 flex flex-col items-center justify-center">
           <GoogleReCaptchaCheckbox onChange={setCaptchaToken} />
+          {captchaError && (
+            <p className="text-red-500 text-sm mt-1">{captchaError}</p>
+          )}
         </div>
 
         <Button type="submit" className="w-full mt-6 h-11">
@@ -260,7 +268,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("+44 65762354");
   const [password, setPassword] = useState("");
-  const [termsAccepted, setTermsAccepted] = useState(true);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [isRecaptchaVerified, setIsRecaptchaVerified] = useState(false);
 
   const [fullNameError, setFullNameError] = useState("");
@@ -269,6 +277,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
   const [passwordError, setPasswordError] = useState("");
   const [termsError, setTermsError] = useState("");
   const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaError, setCaptchaError] = useState("");
 
   const login = trpc.login.useMutation();
   const register = trpc.register.useMutation();
@@ -283,7 +292,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
     }
 
     if (!captchaToken) {
-      return setPasswordError("Invalid captcha");
+      return setCaptchaError("Invalid captcha");
     }
     setFullNameError("");
     setEmailError("");
@@ -343,6 +352,10 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
   };
 
   const handleGoogleSignIn = async () => {
+    if (!captchaToken) {
+      return setCaptchaError("Invalid captcha");
+    }
+
     try {
       const redirectUrl = window.location.origin + "/api/auth/oauth-callback";
       const url = await googleLogin.mutateAsync({ redirectUrl });
@@ -467,8 +480,11 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
           <p className="text-red-500 text-sm mt-1">{termsError}</p>
         )}
 
-        <div className="p-3 mt-4 flex items-center justify-center">
+        <div className="p-3 mt-4 flex flex-col items-center justify-center">
           <GoogleReCaptchaCheckbox onChange={setCaptchaToken} />
+          {captchaError && (
+            <p className="text-red-500 text-sm mt-1">{captchaError}</p>
+          )}
         </div>
 
         <Button

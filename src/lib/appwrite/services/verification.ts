@@ -18,9 +18,8 @@ import { AuthService } from "./auth"; // To fetch user details
 
 // Use process.env directly for IDs not exported from index.ts
 const VERIFICATION_COLLECTION_ID = "verifications";
-const VERIFICATION_BUCKET_ID = "verifications";
+const VERIFICATION_BUCKET_ID = "67fc0ef9000e1bba4e5d";
 
-// Helper function to safely get user details
 async function getUserDetails(
   userId: string
 ): Promise<Partial<Models.User<Models.Preferences>> | null> {
