@@ -8,13 +8,9 @@ import { Models } from "node-appwrite"; // Import Models for type safety
 
 // Placeholder for admin check logic
 // In a real application, this would involve checking user roles, teams, etc.
-const isAdmin = (userId: string): boolean => {
-  // Replace with actual admin check logic
-  console.warn(`isAdmin check for user ${userId} is a placeholder!`);
-  // For now, let's assume a specific user ID is admin for testing,
-  // or simply return true/false based on development needs.
-  // return userId === 'admin-user-id';
-  return true; // Placeholder: Allow all authenticated users for now
+const isAdmin = (user: Models.User<Models.Preferences>): boolean => {
+  console.warn(`isAdmin check for user ${user.$id} is a placeholder!`);
+  return user.labels.includes("admin");
 };
 
 // --- Schemas ---
@@ -94,7 +90,7 @@ export function createVerificationProcedures(t: TRPCInstance) {
         throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'User context missing in admin procedure.' });
     }
     // Perform the admin check using the placeholder function
-    if (!isAdmin(ctx.user.$id)) {
+    if (!isAdmin(ctx.user)) {
       throw new TRPCError({ code: "UNAUTHORIZED", message: "Admin privileges required." });
     }
     return next({ ctx }); // Pass context along
