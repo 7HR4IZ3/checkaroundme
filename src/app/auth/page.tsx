@@ -25,8 +25,6 @@ import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"; // Corrected import path
 
 function LoginForm({ onToggle }: { onToggle: () => void }) {
-  let captcha: any;
-
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -189,7 +187,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
         </div>
 
         <div className="p-3 mt-4 flex flex-col items-center justify-center">
-          <GoogleReCaptchaCheckbox ref={(el) => {captcha = el}} onChange={setCaptchaToken} />
+          <GoogleReCaptchaCheckbox onChange={setCaptchaToken} />
           {captchaError && (
             <p className="text-red-500 text-sm mt-1">{captchaError}</p>
           )}
@@ -278,7 +276,6 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [isRecaptchaVerified, setIsRecaptchaVerified] = useState(false);
 
   const [fullNameError, setFullNameError] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -848,7 +845,7 @@ function AuthPageInner() {
           <div className="w-screen max-w-md space-y-6">
             <GoogleReCaptchaProvider
               type="v2-checkbox"
-              siteKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ?? ""}
+              siteKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
             >
               {isLogin ? (
                 <LoginForm onToggle={() => setIsLogin(false)} />
