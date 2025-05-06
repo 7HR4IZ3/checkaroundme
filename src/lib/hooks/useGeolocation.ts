@@ -12,19 +12,22 @@ interface GeolocationState {
 
 const useGeolocation = (): GeolocationState => {
   const { latitude, longitude, error, loading } = useNativeGeolocation();
-  const { showModal } = useGeolocationPermission();
+  const { showModal, onResponse } = useGeolocationPermission();
 
   const {
     data,
     isLoading,
     error: geoError,
   } = trpc.getGeolocation.useQuery(void 0, {
-    enabled: !loading && (!latitude || !longitude),
+    enabled: Boolean(
+      !loading && (!latitude || !longitude) && error && error.code !== 1
+    ),
   });
 
   useEffect(() => {
-    console.error(error);
-    if (error && error.code === 1) { // GeolocationPositionError.PERMISSION_DENIED
+    // console.error(error);
+    if (error && error.code === 1) {
+      // GeolocationPositionError.PERMISSION_DENIED
       showModal();
     }
   }, [error]);

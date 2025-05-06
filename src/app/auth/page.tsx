@@ -54,7 +54,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
     setEmailError("");
     setPasswordError("");
 
-    try {
+    try {feat: fix
       console.log("Logging in with:", { email, password });
       const result = await login.mutateAsync({ email, password, captchaToken }); // Added captchaToken
       console.log("Login result:", result);

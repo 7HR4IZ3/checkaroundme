@@ -25,22 +25,31 @@ export const GeolocationPermissionProvider: React.FC<{
   children: ReactNode;
 }> = ({ children }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [doNotAskAgain, setDoNotAskAgain] = useState(false);
-  const [maybeLater, setMaybeLater] = useState(false);
+  const [doNotAskAgain, setDoNotAskAgain] = useState(
+    typeof window !== "undefined" &&
+      window.localStorage.getItem(DO_NOT_ASK_AGAIN_KEY) === "true"
+  );
+  const [maybeLater, setMaybeLater] = useState(
+    typeof window !== "undefined" &&
+      window.sessionStorage.getItem(MAYBE_LATER_KEY) === "true"
+  );
 
-  useEffect(() => {
-    const storedDoNotAskAgain = localStorage.getItem(DO_NOT_ASK_AGAIN_KEY);
-    if (storedDoNotAskAgain === "true") {
-      setDoNotAskAgain(true);
-    }
+  // useEffect(() => {
+  //   const storedDoNotAskAgain = localStorage.getItem(DO_NOT_ASK_AGAIN_KEY);
+  //   if (storedDoNotAskAgain === "true") {
+  //     setDoNotAskAgain(true);
+  //   }
 
-    const storedMaybeLater = sessionStorage.getItem(MAYBE_LATER_KEY);
-    if (storedMaybeLater === "true") {
-      setMaybeLater(true);
-    }
-  }, []);
+  //   console.log(doNotAskAgain, storedDoNotAskAgain);
+
+  //   const storedMaybeLater = sessionStorage.getItem(MAYBE_LATER_KEY);
+  //   if (storedMaybeLater === "true") {
+  //     setMaybeLater(true);
+  //   }
+  // }, []);
 
   const showModal = () => {
+    console.log(doNotAskAgain);
     if (!doNotAskAgain && !maybeLater) {
       setIsModalOpen(true);
     }
