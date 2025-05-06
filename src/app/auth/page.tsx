@@ -42,6 +42,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
   const googleLogin = trpc.loginWithGoogle.useMutation();
 
   const resetCaptcha = () => {
+    // @ts-ignore
     window.grecaptcha.reset();
   }
 
@@ -292,6 +293,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
   const googleLogin = trpc.loginWithGoogle.useMutation();
 
   const resetCaptcha = () => {
+    // @ts-ignore
     window.grecaptcha.reset();
   }
 
