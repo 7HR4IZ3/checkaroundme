@@ -25,6 +25,8 @@ import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"; // Corrected import path
 
 function LoginForm({ onToggle }: { onToggle: () => void }) {
+  let captcha: any;
+
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,6 +40,10 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
 
   const login = trpc.login.useMutation();
   const googleLogin = trpc.loginWithGoogle.useMutation();
+
+  const resetCaptcha = () => {
+    window.grecaptcha.reset();
+  }
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -80,6 +86,8 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
       } else {
         setPasswordError(error.message || "An unexpected error occurred.");
       }
+    } finally {
+      resetCaptcha();
     }
   };
 
@@ -90,7 +98,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
 
     try {
       const redirectUrl = window.location.origin + "/api/auth/oauth-callback";
-      const url = await googleLogin.mutateAsync({ redirectUrl });
+      const url = await googleLogin.mutateAsync({ redirectUrl, captchaToken });
       window.location.href = url;
     } catch (error) {
       console.error("Google sign-in error:", error);
@@ -180,7 +188,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
         </div>
 
         <div className="p-3 mt-4 flex flex-col items-center justify-center">
-          <GoogleReCaptchaCheckbox onChange={setCaptchaToken} />
+          <GoogleReCaptchaCheckbox ref={(el) => {captcha = el}} onChange={setCaptchaToken} />
           {captchaError && (
             <p className="text-red-500 text-sm mt-1">{captchaError}</p>
           )}
@@ -283,6 +291,10 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
   const register = trpc.register.useMutation();
   const googleLogin = trpc.loginWithGoogle.useMutation();
 
+  const resetCaptcha = () => {
+    window.grecaptcha.reset();
+  }
+
   const handleRegister = async (event: React.FormEvent) => {
     event.preventDefault();
 
@@ -348,6 +360,8 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
           description: error.message || "An unexpected error occurred.",
         });
       }
+    } finally {
+      resetCaptcha();
     }
   };
 
@@ -358,7 +372,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
 
     try {
       const redirectUrl = window.location.origin + "/api/auth/oauth-callback";
-      const url = await googleLogin.mutateAsync({ redirectUrl });
+      const url = await googleLogin.mutateAsync({ redirectUrl, captchaToken });
       window.location.href = url;
     } catch (error) {
       console.error("Google sign-in error:", error);

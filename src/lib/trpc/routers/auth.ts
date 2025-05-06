@@ -25,6 +25,8 @@ export function createAuthProcedures(
       });
     }
 
+    console.log("Verifying captcha token:", token);
+
     const verificationUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`;
 
     try {
@@ -78,7 +80,7 @@ export function createAuthProcedures(
         z.object({
           email: z.string().email(),
           password: z.string().min(6),
-          captchaToken: z.string(), // Added captcha token
+          captchaToken: z.string()
         })
       )
       .mutation(async ({ input }) => {
@@ -98,9 +100,19 @@ export function createAuthProcedures(
       .input(
         z.object({
           redirectUrl: z.string().url(),
+          captchaToken: z.string(),
         })
       )
       .mutation(async ({ input }) => {
+        const captchaResult = await verifyCaptcha(input.captchaToken);
+        if (!captchaResult.success) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Captcha verification failed: ${
+              captchaResult["error-codes"]?.join(", ") || "Unknown error"
+            }`,
+          });
+        }
         return await AuthService.loginWithGoogle(input.redirectUrl);
       }),
 
