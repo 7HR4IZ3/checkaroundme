@@ -77,11 +77,11 @@ const Header = () => {
 
         <div className="flex justify-center items-center space-x-2 flex-grow">
           <div className="flex items-center justify-center gap-2 w-full md:w-[40vw] lg:w-[40%]">
-            <div className="flex flex-col md:flex-row items-center md:border md:border-gray-300 md:rounded-full flex-grow w-full">
+            <div className="flex items-center border border-gray-300 rounded-full flex-grow">
               <Input
                 type="text"
                 placeholder="Search..."
-                className="w-full px-4 py-2 focus:outline-none rounded-md mb-2 md:mb-0 md:rounded-none md:rounded-l-full md:border-r-0 md:w-2/5"
+                className="w-full md:w-2/5 px-4 py-2 focus:outline-none rounded-full md:rounded-none md:rounded-l-full md:border-r-0"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -90,7 +90,7 @@ const Header = () => {
               <Input
                 type="text"
                 placeholder="Location..."
-                className="w-full px-4 py-2 focus:outline-none rounded-md md:rounded-none md:rounded-r-full md:border-l-0 md:w-3/5 block"
+                className="w-3/5 px-4 py-2 focus:outline-none rounded-r-full hidden md:block md:rounded-none md:rounded-r-full md:border-l-0"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 onKeyDown={handleKeyDown}

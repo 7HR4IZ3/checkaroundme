@@ -325,16 +325,16 @@ export const BusinessService = {
 
       // Filter businesses by distance (simplified version)
       const nearbyBusinesses = businesses.filter((business) => {
-        // if (!business.coordinates) return false;
+        if (!business.coordinates) return false;
 
-        // // Calculate distance (Haversine formula would be better in production)
-        // const latDiff = business.coordinates.latitude - latitude;
-        // const lngDiff = business.coordinates.longitude - longitude;
-        // const approxDistance =
-        //   Math.sqrt(latDiff * latDiff + lngDiff * lngDiff) * 11100; // rough conversion to km
+        // Calculate distance (Haversine formula would be better in production)
+        const latDiff = business.coordinates.latitude - latitude;
+        const lngDiff = business.coordinates.longitude - longitude;
+        const approxDistance =
+          Math.sqrt(latDiff * latDiff + lngDiff * lngDiff) * 1110; // rough conversion
 
-        // return approxDistance <= distance;
-        return true;
+        return approxDistance <= distance;
+        // return true;
       });
 
       return nearbyBusinesses.slice(0, limit);

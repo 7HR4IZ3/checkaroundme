@@ -6,7 +6,7 @@ import ListingCardSkeleton from "../listing/listing-card-skeleton";
 const PopularServices = async () => {
   let error: any;
 
-  const { businesses } = await trpc.listBusinesses({ limit: 4, sortBy: "createdAt" });
+  const { businesses } = await trpc.listBusinesses({ limit: 4, sortBy: "rating" });
 
   if (error) {
     return (
