@@ -1,0 +1,10 @@
+{
+  "buildCommand": "pnpm turbo build",
+  "ignoreCommand": "pnpm dlx turbo-ignore",
+  "crons": [
+    {
+      "path": "/api/cron/delete-expired-messages",
+      "schedule": "0 */12 * * *"
+    }
+  ]
+}

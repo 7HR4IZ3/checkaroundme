@@ -48,14 +48,8 @@
 }
 
 body {
-  font-size: 12px;
-  font-weight: 100;
-}
-
-/* Add any custom global styles if needed */
-body {
-  /* Example: Set a default font if desired */
-  /* font-family: 'Inter', sans-serif; */
+  /* font-size: 15px !important; */
+  /* font-weight: 100; */
 }
 
 /* Customize slick dots/arrows if needed */

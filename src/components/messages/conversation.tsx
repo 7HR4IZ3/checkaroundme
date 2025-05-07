@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Message } from "@/lib/schema"; // Renamed to avoid conflict
 import { trpc } from "@/lib/trpc/client";
+import Link from "next/link";
 
 interface ConversationProps {
   selectedChatId: string | null;
@@ -39,6 +40,12 @@ export default function Conversation({
   showBackButton, // Destructure new prop
   onBackButtonClick, // Destructure new prop
 }: ConversationProps) {
+  // const { data: userBusiness } = trpc.getBusinessesByUserId.useQuery({
+  //   userId: activeChatUser.$id
+  // });
+
+  // console.log(userBusiness)
+
   return (
     <div className="flex-1 flex flex-col">
       {selectedChatId ? (
@@ -95,9 +102,9 @@ export default function Conversation({
               disabled={!activeChatUser}
             >
               <Phone className="h-5 w-5" />
-              <span className="sr-only">
-                Call {activeChatUser?.name || "this user"}
-              </span>
+              <Link className="sr-only" href={`tel:${activeChatUser.phone}`}>
+                Call {activeChatUser?.name || "this user"} ({activeChatUser.phone})
+              </Link>
             </Button>
           </div>
 

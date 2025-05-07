@@ -259,7 +259,7 @@ export default function MessagesPage() {
   const markConversationAsRead = trpc.markMessagesAsRead.useMutation({
     onSuccess: () => {
       refetchConversations();
-    }
+    },
   });
   const handleSelectedChatId = (conversationId: string | null) => {
     if (conversationId && unreadCounts[conversationId]) {
@@ -401,10 +401,15 @@ export default function MessagesPage() {
       </div>
       {/* Right Column: Active Chat Window */}
       <div
-        className={`flex-1 ${
-          isMobile && !selectedChatId ? "hidden" : "w-full md:w-2/3 flex"
+        className={`flex flex-col flex-1 ${
+          isMobile && !selectedChatId ? "hidden" : "w-full md:w-2/3"
         }`}
       >
+        {selectedChatId && (
+          <div className="p-2 text-center text-xs text-muted-foreground bg-accent border-b border-border">
+            Messages are automatically deleted after 24 hours.
+          </div>
+        )}
         <Conversation
           selectedChatId={selectedChatId}
           messages={messages}

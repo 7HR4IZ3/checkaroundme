@@ -42,7 +42,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
   const resetCaptcha = () => {
     // @ts-ignore
     window.grecaptcha.reset();
-  }
+  };
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -54,7 +54,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
     setEmailError("");
     setPasswordError("");
 
-    try {feat: fix
+    try {
       console.log("Logging in with:", { email, password });
       const result = await login.mutateAsync({ email, password, captchaToken }); // Added captchaToken
       console.log("Login result:", result);
@@ -193,7 +193,11 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
           )}
         </div>
 
-        <Button type="submit" className="w-full mt-6 h-11">
+        <Button
+          type="submit"
+          className="w-full mt-6 h-11"
+          disabled={!termsAccepted || !captchaToken || login.isPending || googleLogin.isPending}
+        >
           {login.isPending ? (
             <svg
               className="animate-spin h-8 w-8 text-gray-500"
@@ -233,6 +237,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
         variant="outline"
         className="w-full h-11 bg-black text-white hover:bg-gray-800 hover:text-white"
         onClick={handleGoogleSignIn}
+        disabled={!termsAccepted || !captchaToken || login.isPending || googleLogin.isPending}
       >
         <FaGoogle />
         <span className="ml-2">Login with Google</span>
@@ -292,7 +297,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
   const resetCaptcha = () => {
     // @ts-ignore
     window.grecaptcha.reset();
-  }
+  };
 
   const handleRegister = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -312,17 +317,15 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
     setTermsError("");
 
     try {
-      await register.mutateAsync({
+      const result = await register.mutateAsync({
         name: fullName,
         email,
         password,
         phone,
-        captchaToken, // Added captchaToken
+        captchaToken,
+        login: true
       });
 
-      // Login user
-      // console.log("Logging in with:", { email, password });
-      const result = await login.mutateAsync({ email, password, captchaToken }); // Added captchaToken
       if (result.success) {
         router.push("/");
       } else {
@@ -430,7 +433,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
           <Input
             id="phone"
             type="tel"
-            placeholder="+2348123456789"
+            placeholder="+000 000 000 000"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             className={`mt-1 ${phoneError ? "border-red-500" : ""}`}
@@ -503,7 +506,12 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
         <Button
           type="submit"
           className="w-full mt-6 h-11"
-          disabled={!termsAccepted}
+          disabled={
+            !termsAccepted || !captchaToken ||
+            login.isPending ||
+            googleLogin.isPending ||
+            register.isPending
+          }
         >
           {register.isPending || login.isPending ? (
             <svg
@@ -544,6 +552,12 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
         variant="outline"
         className="w-full h-11 bg-black text-white hover:bg-gray-800 hover:text-white"
         onClick={handleGoogleSignIn}
+        disabled={
+          !termsAccepted || !captchaToken ||
+          login.isPending ||
+          googleLogin.isPending ||
+          register.isPending
+        }
       >
         <FaGoogle />
         <span className="ml-2">Register with Google</span>

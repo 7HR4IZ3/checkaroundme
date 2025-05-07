@@ -54,6 +54,7 @@ export function createAuthProcedures(
           password: z.string().min(6),
           name: z.string(),
           phone: z.string().optional(),
+          login: z.boolean().default(true),
           captchaToken: z.string(), // Added captcha token
         })
       )
@@ -67,12 +68,18 @@ export function createAuthProcedures(
             }`,
           });
         }
-        return await AuthService.register(
+        await AuthService.register(
           input.email,
           input.password,
           input.name,
           input.phone
         );
+
+        if (input.login) {
+          return await AuthService.login(input.email, input.password);
+        } else {
+          return { success: true };
+        }
       }),
 
     login: t.procedure
@@ -80,7 +87,7 @@ export function createAuthProcedures(
         z.object({
           email: z.string().email(),
           password: z.string().min(6),
-          captchaToken: z.string()
+          captchaToken: z.string(),
         })
       )
       .mutation(async ({ input }) => {

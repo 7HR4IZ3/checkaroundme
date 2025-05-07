@@ -64,5 +64,12 @@ export function createMessageProcedures(
         );
         return { success: true };
       }),
+
+    deleteExpiredMessages: t.procedure
+      // No input needed for this procedure
+      // .output(z.object({ deletedCount: z.number() })) // Define output schema
+      .mutation(async () => {
+        return await MessageService.deleteExpiredMessages();
+      }),
   };
 }

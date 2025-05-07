@@ -56,7 +56,6 @@ export const AUTH_SESSIONS_COLLECTION_ID = "auth_sessions";
 export const BUSINESS_IMAGES_BUCKET_ID = "67fc0ef9000e1bba4e5d";
 export const MESSAGE_IMAGES_BUCKET_ID = "67fc0ef9000e1bba4e5d";
 
-
 // User Service
 export const UserService = {
   // Get user by ID
@@ -538,6 +537,9 @@ export const MessageService = {
       }
 
       // Create message
+      const createdAt = new Date();
+      const expiresAt = new Date(createdAt.getTime() + 24 * 60 * 60 * 1000); // 24 hours later
+
       const newMessage = await databases.createDocument(
         DATABASE_ID,
         MESSAGES_COLLECTION_ID,
@@ -550,7 +552,8 @@ export const MessageService = {
           imageName,
           imageSize,
           isRead: false,
-          createdAt: new Date().toISOString(),
+          createdAt: createdAt.toISOString(),
+          expiresAt: expiresAt.toISOString(), // Add expiresAt timestamp
         }
       );
 
@@ -624,6 +627,77 @@ export const MessageService = {
     } catch (error) {
       console.error("Mark messages as read error:", error);
       throw error;
+    }
+  },
+  // Delete expired messages
+  async deleteExpiredMessages(): Promise<{ totalDeletedCount: number }> {
+    let totalDeletedCount = 0;
+    let hasMore = true;
+    let offset = 0;
+    const batchSize = 100; // Appwrite's default limit is 25, max is 100 per request for listDocuments
+
+    try {
+      const now = new Date().toISOString();
+
+      while (hasMore) {
+        const expiredMessagesBatch = await databases.listDocuments(
+          DATABASE_ID,
+          MESSAGES_COLLECTION_ID,
+          [
+            Query.lessThanEqual("expiresAt", now),
+            Query.limit(batchSize),
+            Query.offset(offset),
+          ]
+        );
+
+        if (expiredMessagesBatch.documents.length === 0) {
+          hasMore = false;
+          break;
+        }
+
+        const deletePromises = expiredMessagesBatch.documents.map((message) =>
+          databases
+            .deleteDocument(DATABASE_ID, MESSAGES_COLLECTION_ID, message.$id)
+            .catch((deleteError) => {
+              // Log individual deletion errors but don't let one failure stop the batch
+              console.error(
+                `Error deleting message ${message.$id}:`,
+                deleteError
+              );
+              return null; // Indicate failure for this specific promise
+            })
+        );
+
+        const results = await Promise.all(deletePromises);
+        const successfulDeletionsInBatch = results.filter(
+          (r) => r !== null
+        ).length;
+        totalDeletedCount += successfulDeletionsInBatch;
+
+        console.log(
+          `Processed batch: ${successfulDeletionsInBatch} messages deleted.`
+        );
+
+        // Appwrite's listDocuments total refers to the total matching documents in the DB,
+        // not just the current batch. We check if the number of documents returned is less than batchSize
+        // or if the total count is met by the current offset + returned documents.
+        // A simpler way for looping is just checking if documents.length < batchSize.
+        if (expiredMessagesBatch.documents.length < batchSize) {
+          hasMore = false;
+        } else {
+          offset += batchSize; // Prepare for the next batch
+        }
+      }
+
+      console.log(
+        `Successfully deleted a total of ${totalDeletedCount} expired messages.`
+      );
+      return { totalDeletedCount };
+    } catch (error) {
+      console.error("Error in batch deleting expired messages:", error);
+      // Depending on requirements, you might want to return partial success
+      // or re-throw to indicate a larger failure.
+      return { totalDeletedCount }; // Return count of messages deleted so far
     }
   },
 };
