@@ -844,7 +844,7 @@ function AuthPageInner() {
   if (auth.isAuthenticated) return redirect("/");
 
   return (
-    <div className="flex flex-col p-8 gap-6 bg-background">
+    <div className="container flex flex-col p-8 gap-6 bg-background">
       <div className="my-auto">
         <Link href="/">
           <Image
@@ -856,8 +856,8 @@ function AuthPageInner() {
         </Link>
       </div>
       <div className="flex flex-col md:flex-row">
-        <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 lg:p-16 h-[80vh]">
-          <div className="w-screen max-w-md space-y-6">
+        <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 lg:p-16">
+          <div className="space-y-6">
             <GoogleReCaptchaProvider
               type="v2-checkbox"
               siteKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
