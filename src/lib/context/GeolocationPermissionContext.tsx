@@ -12,6 +12,7 @@ import { LocationPermissionModal } from "@/components/ui/location-permission-mod
 interface GeolocationPermissionContextType {
   showModal: () => void;
   hideModal: () => void;
+  isModalOpen: boolean;
 }
 
 const GeolocationPermissionContext = createContext<
@@ -75,7 +76,9 @@ export const GeolocationPermissionProvider: React.FC<{
   };
 
   return (
-    <GeolocationPermissionContext.Provider value={{ showModal, hideModal }}>
+    <GeolocationPermissionContext.Provider
+      value={{ showModal, hideModal, isModalOpen }}
+    >
       {children}
       <LocationPermissionModal
         open={isModalOpen}

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc/client";
 import { useGeolocation as useNativeGeolocation } from "@uidotdev/usehooks";
 import { useGeolocationPermission } from "@/lib/context/GeolocationPermissionContext";
@@ -12,7 +12,8 @@ interface GeolocationState {
 
 const useGeolocation = (): GeolocationState => {
   const { latitude, longitude, error, loading } = useNativeGeolocation();
-  const { showModal, onResponse } = useGeolocationPermission();
+  const { showModal, isModalOpen } = useGeolocationPermission();
+  const [permissionDeniedOccurred, setPermissionDeniedOccurred] = useState(false);
 
   const {
     data,
@@ -20,7 +21,8 @@ const useGeolocation = (): GeolocationState => {
     error: geoError,
   } = trpc.getGeolocation.useQuery(void 0, {
     enabled: Boolean(
-      !loading && (!latitude || !longitude) && error && error.code !== 1
+      (!loading && (!latitude || !longitude) && error && error.code !== 1) ||
+        (permissionDeniedOccurred && !isModalOpen)
     ),
   });
 
@@ -28,13 +30,14 @@ const useGeolocation = (): GeolocationState => {
     // console.error(error);
     if (error && error.code === 1) {
       // GeolocationPositionError.PERMISSION_DENIED
+      setPermissionDeniedOccurred(true);
       showModal();
     }
-  }, [error]);
+  }, [error, showModal]);
 
   return {
     error: geoError || null,
-    loading: loading || isLoading,
+    loading: loading || isLoading || isModalOpen,
     latitude: latitude ?? data?.latitude ?? null,
     longitude: longitude ?? data?.longitude ?? null,
   };
