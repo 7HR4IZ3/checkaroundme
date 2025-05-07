@@ -85,6 +85,9 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
       } else {
         setPasswordError(error.message || "An unexpected error occurred.");
       }
+      toast.error("Error logging in", {
+        description: error.message || "An unexpected error occurred."
+      })
     } finally {
       resetCaptcha();
     }
@@ -329,9 +332,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
       if (result.success) {
         router.push("/");
       } else {
-        // This block might be reached if the mutation succeeds but the server returns success: false
-        // Handle based on your API's specific error structure if different from mutation error
-        toast("Registration Failed", {
+        toast.error("Registration Failed", {
           description: "An unexpected error occurred.",
         });
       }
@@ -358,7 +359,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
           setPasswordError(error.message);
         }
       } else {
-        toast("Registration Error", {
+        toast.error("Registration Error", {
           description: error.message || "An unexpected error occurred.",
         });
       }
