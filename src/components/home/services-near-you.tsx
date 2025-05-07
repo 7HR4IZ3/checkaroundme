@@ -80,7 +80,7 @@ const ServicesNearYou = () => {
         <h2 className="text-2xl font-semibold text-gray-800 mb-8">
           Services Near You
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-6">
           {businesses?.map((business: Business) => (
             <ListingCard
               key={business.$id}

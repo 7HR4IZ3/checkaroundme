@@ -39,16 +39,16 @@ export default async function Categories() {
             {categories.map((category, index) => (
               <CarouselItem
                 key={category.$id || index}
-                className="pl-2 md:pl-4 basis-1/3 md:basis-1/4 lg:basis-1/5"
+                className="pl-2 md:pl-4 basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6"
               >
                 <Link href={`/listings?categories=${category.name}`} className="flex flex-col items-center text-center cursor-pointer group">
-                  <div className="w-[10em] h-[10em] w-[10rem] h-[10rem] rounded-full p-1 bg-gradient-to-br from-[#F3B53F] via-[#FF4D00] to-[#AE06C9] transition duration-200">
+                  <div className="w-[10rem] h-[10rem] rounded-full p-1 bg-gradient-to-br from-[#F3B53F] via-[#FF4D00] to-[#AE06C9] transition duration-200">
                     <div className="w-full h-full rounded-full overflow-hidden">
                       <Image
                         src={category.imageUrl || "/images/cat-placeholder.png"}
                         alt={category.name}
-                        width={200}
-                        height={200}
+                        width={50}
+                        height={50}
                         objectFit="cover"
                         className="w-full h-full"
                       />

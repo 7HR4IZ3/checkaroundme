@@ -58,10 +58,10 @@ export const BusinessService = {
 
         if (geocodeResponse.data && geocodeResponse.data.length > 0) {
           const result = geocodeResponse.data[0];
-          coordinates = {
+          coordinates = JSON.stringify({
             latitude: parseFloat(result.lat),
             longitude: parseFloat(result.lon),
-          };
+          });
           console.log(`Geocoded address "${address}" to`, coordinates);
         } else {
           console.warn(
