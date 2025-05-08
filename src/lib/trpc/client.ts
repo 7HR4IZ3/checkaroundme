@@ -31,7 +31,7 @@ export const createClient = () => {
           // Retrieve the secret key from environment variables.
           // Ensure NEXT_PUBLIC_TRPC_SECRET_KEY is set in your .env file.
           const secretKey = process.env.NEXT_PUBLIC_TRPC_SECRET_KEY;
-          if (!secretKey && process.env.NODE_ENV === "development") {
+          if (!secretKey) {
             // Warn in development if the key is missing.
             console.warn(
               "Client-side TRPC_SECRET_KEY (NEXT_PUBLIC_TRPC_SECRET_KEY) is not set. Requests to protected routes may fail.",

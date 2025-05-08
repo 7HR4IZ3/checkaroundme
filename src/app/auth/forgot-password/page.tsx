@@ -5,6 +5,10 @@ import { Suspense, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
+import {
+  GoogleReCaptchaCheckbox,
+  GoogleReCaptchaProvider,
+} from "@google-recaptcha/react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,18 +24,30 @@ function ForgotPasswordForm() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaError, setCaptchaError] = useState("");
 
   // Assuming a tRPC mutation for password reset exists
   const forgotPassword = trpc.requestPasswordReset.useMutation(); // Placeholder name
 
+  const resetCaptcha = () => {
+    // @ts-ignore
+    window.grecaptcha.reset();
+  };
+
   const handlePasswordResetRequest = async (event: React.FormEvent) => {
     event.preventDefault();
     setEmailError("");
+    setCaptchaError("");
+
+    if (!captchaToken) {
+      return setCaptchaError("Invalid captcha");
+    }
 
     try {
       console.log("Requesting password reset for:", { email });
       // Call the forgot password mutation
-      const result = await forgotPassword.mutateAsync({ email });
+      const result = await forgotPassword.mutateAsync({ email, captchaToken });
       console.log("Password reset request result:", result);
 
       if (result.success) {
@@ -50,20 +66,26 @@ function ForgotPasswordForm() {
       console.error("Password reset request error:", error);
       if (error.data?.httpStatus === 400) {
         // Handle validation errors specifically for email if needed
-        const errors = JSON.parse(error.message);
-        for (const item of errors) {
-          if (item.path[0] === "email") {
-            setEmailError(item.message);
-            break; // Assuming only one email error
+        try {
+          const errors = JSON.parse(error.message);
+          for (const item of errors) {
+            if (item.path[0] === "email") {
+              setEmailError(item.message);
+              break; // Assuming only one email error
+            }
           }
-        }
-        // If no specific email error, show a generic one
-        if (!emailError) {
-          setEmailError(error.message || "An unexpected error occurred.");
+          // If no specific email error, show a generic one
+          if (!emailError) { // This condition might need adjustment if other errors are possible
+            setEmailError(error.message || "An unexpected error occurred.");
+          }
+        } catch {
+            setEmailError(error.message || "An unexpected error occurred.");
         }
       } else {
         setEmailError(error.message || "An unexpected error occurred.");
       }
+    } finally {
+      resetCaptcha();
     }
   };
 
@@ -97,9 +119,25 @@ function ForgotPasswordForm() {
           )}
         </div>
 
+        <div className="p-3 mt-4 flex flex-col items-center justify-center">
+          <GoogleReCaptchaCheckbox
+            onChange={(token) => {
+              setCaptchaToken(token || "");
+              setCaptchaError("");
+            }}
+          />
+          {captchaError && (
+            <p className="text-red-500 text-sm mt-1">{captchaError}</p>
+          )}
+        </div>
+
         {/* Removed Password field, Terms checkbox, Google Sign in, Separator */}
 
-        <Button type="submit" className="w-full mt-6 h-11">
+        <Button
+          type="submit"
+          className="w-full mt-6 h-11"
+          disabled={!captchaToken || forgotPassword.isPending}
+        >
           {forgotPassword.isPending ? (
             <svg
               className="animate-spin h-8 w-8 text-gray-500"
@@ -166,7 +204,12 @@ function ForgotPasswordPageInner() {
         {/* Form container */}
         <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 lg:p-16 h-[80vh]">
           <div className="w-full max-w-md space-y-6">
-            <ForgotPasswordForm />
+            <GoogleReCaptchaProvider
+              type="v2-checkbox"
+              siteKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
+            >
+              <ForgotPasswordForm />
+            </GoogleReCaptchaProvider>
           </div>
         </div>
 

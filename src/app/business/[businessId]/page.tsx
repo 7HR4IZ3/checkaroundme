@@ -837,7 +837,7 @@ export default function BusinessPage() {
                 variant="ghost"
                 className="w-full flex justify-end md:justify-between flex-row-reverse md:flex-row"
               >
-                <span className="ml-2 hidden sm:inline">{business.phone}</span>{" "}
+                <span className="ml-2">{business.phone}</span>{" "}
                 <Phone className="h-4 w-4" />
               </Button>
               <div className="flex items-center justify-start flex-col">

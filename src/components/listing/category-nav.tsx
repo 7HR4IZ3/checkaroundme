@@ -44,45 +44,45 @@ const CategoryIcon = ({
   size: number;
 }) => {
   switch (category) {
-    case "Cleaning":
+    case "Cleaner":
       return <Sparkle size={size} />;
     case "Beauty & Spa":
       return <Sparkles size={size} />;
-    case "Aluminum Fabrication":
+    case "Aluminum Fabricater":
       return <Layers size={size} />;
     case "Mechanic (Auto Repair)":
       return <Car size={size} />;
-    case "Event":
+    case "Event Planner":
       return <PartyPopper size={size} />;
     case "Electrician":
       return <Lightbulb size={size} />;
-    case "Plumbing":
+    case "Plumber":
       return <Wrench size={size} />;
     case "Handyman":
       return <Hammer size={size} />;
-    case "Painting":
+    case "Painter":
       return <Paintbrush size={size} />;
-    case "Landscaping / Gardening":
+    case "Landscaper / Gardener":
       return <Sprout size={size} />;
     case "Pest Control":
       return <Bug size={size} />;
     case "HVAC":
       return <AirVent size={size} />;
-    case "Tutoring":
+    case "Tutor":
       return <GraduationCap size={size} />;
-    case "Pet Grooming / Pet Sitting":
+    case "Pet Groomer / Sitter":
       return <PawPrint size={size} />;
-    case "Photography":
+    case "Photographer":
       return <Camera size={size} />;
-    case "Catering":
+    case "Caterer":
       return <ChefHat size={size} />;
-    case "Moving":
+    case "Mover":
       return <Truck size={size} />;
-    case "Home Renovation / Contractor":
+    case "Home Renovator / Contractor":
       return <HardHat size={size} />;
     case "IT Support / Computer Repair":
       return <Laptop size={size} />;
-    case "Personal Training / Fitness Instruction":
+    case "Personal Trainer / Fitness Instructor":
       return <Activity size={size} />;
     default:
       return <Ellipsis size={size} />;

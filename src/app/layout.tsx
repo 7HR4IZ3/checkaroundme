@@ -11,6 +11,8 @@ import "./globals.css";
 import { Suspense } from "react";
 import Loading from "@/components/ui/loading";
 import { Toaster } from "@/components/ui/sonner";
+import { SubscriptionBanner } from "@/components/ui/subscription-banner"; // Import the banner
+import { useAuth } from "@/lib/hooks/useClientAuth"; // Import useAuth hook
 
 import { Analytics } from "@vercel/analytics/react";
 import { HydrateClient } from "@/lib/trpc/server";
@@ -33,6 +35,29 @@ export const metadata = {
     "Find and connect with amazing local businesses in your community.",
 };
 
+// Inner component to access auth context
+function LayoutInner({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, user } = useAuth();
+
+  // Determine if the banner should be shown
+  // Show if: user is authenticated AND subscriptionStatus is not 'active'
+  // Assumes user prefs have `subscriptionStatus` field. Adjust if named differently.
+  const showBanner =
+    isAuthenticated &&
+    user?.prefs?.subscriptionStatus !== "active" &&
+    !user?.labels.includes("admin");
+
+  return (
+    <GeolocationPermissionProvider>
+      {showBanner && <SubscriptionBanner />} {/* Conditionally render banner */}
+      <Header />
+      <main>{children}</main>
+      <Toaster />
+      <Footer />
+    </GeolocationPermissionProvider>
+  );
+}
+
 export default function RootLayout({
   children,
 }: {
@@ -45,12 +70,8 @@ export default function RootLayout({
           <HydrateClient>
             <Suspense fallback={<Loading />}>
               <AuthProvider>
-                <GeolocationPermissionProvider>
-                  <Header />
-                  <main>{children}</main>
-                  <Toaster />
-                  <Footer />
-                </GeolocationPermissionProvider>
+                {/* Use LayoutInner to access auth context */}
+                <LayoutInner>{children}</LayoutInner>
               </AuthProvider>
             </Suspense>
           </HydrateClient>
