@@ -143,19 +143,13 @@ export default function OnboardingSubscriptionPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-      <div className="sticky top-0 z-50 w-full bg-yellow-100 border-b border-yellow-300 p-3 text-yellow-900">
+      <div className="absolute sticky top-0 z-50 w-full bg-yellow-100 border-b border-yellow-300 p-3 text-yellow-900">
         <div className="container mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-8 flex-row">
             <AlertTriangle className="h-5 w-5 flex-shrink-0" />
-            <p className="text-sm font-medium">
-              You are currently not subscribed.{" "}
-              <Link
-                href="/auth/onboarding"
-                className="font-semibold underline hover:text-yellow-800"
-              >
-                Subscribe now
-              </Link>{" "}
-              to be able to create a business.
+            <p className="text-sm font-medium flex flex-row">
+              You are currently not subscribed <br />
+              Subscribe now to be able to create a business.
             </p>
           </div>
         </div>
@@ -219,10 +213,10 @@ export default function OnboardingSubscriptionPage() {
           >
             {initializeTransactionMutation.isPending
               ? "Processing..."
-              : `Subscribe to ${selectedPlan?.name || "Selected Plan"}`}
+              : "Subscribe"}
           </Button>
           <Button variant="link" onClick={() => router.push("/")}>
-            Skip for now
+            Cancel
           </Button>
         </CardFooter>
       </Card>
