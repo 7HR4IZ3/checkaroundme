@@ -12,7 +12,7 @@ import { Suspense } from "react";
 import Loading from "@/components/ui/loading";
 import { Toaster } from "@/components/ui/sonner";
 import { SubscriptionBanner } from "@/components/ui/subscription-banner"; // Import the banner
-import { useAuth } from "@/lib/hooks/useClientAuth"; // Import useAuth hook
+// import { useAuth } from "@/lib/hooks/useClientAuth"; // Import useAuth hook
 
 import { Analytics } from "@vercel/analytics/react";
 import { HydrateClient } from "@/lib/trpc/server";
@@ -37,7 +37,7 @@ export const metadata = {
 
 // Inner component to access auth context
 function LayoutInner({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, user } = useAuth();
+  // const { isAuthenticated, user } = useAuth();
 
   // Determine if the banner should be shown
   // Show if: user is authenticated AND subscriptionStatus is not 'active'
