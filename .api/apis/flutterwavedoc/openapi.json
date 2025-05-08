@@ -1,0 +1,28 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "GET STARTED",
+    "version": "unknown"
+  },
+  "servers": [
+    {
+      "url": "https://api.ravepay.co"
+    }
+  ],
+  "components": {
+    "securitySchemes": {}
+  },
+  "security": [
+    {}
+  ],
+  "paths": {},
+  "x-readme": {
+    "headers": [
+      {
+        "key": "Content-Type",
+        "value": "application/json"
+      }
+    ]
+  },
+  "x-readme-fauxas": true
+}

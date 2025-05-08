@@ -90,22 +90,52 @@ export function createBusinessProcedures(
           categories: z.array(z.string()).optional(),
           query: z.string().optional(),
           location: z.string().optional(),
-          limit: z.number().optional(),
-          offset: z.number().optional(),
-          sortBy: z.string().optional(),
-          sortDirection: z.enum(["asc", "desc"]).optional(),
-          // Add filter parameters
-          price: z.string().optional(), // Assuming price is passed as a string like "$10"
+          limit: z.number().optional().default(10),
+          offset: z.number().optional().default(0),
+          sortBy: z.string().optional().default("rating"),
+          sortDirection: z.enum(["asc", "desc"]).optional().default("desc"),
+          price: z.string().optional(),
           features: z.array(z.string()).optional(),
-          distances: z.array(z.string()).optional(),
+          // distances: z.array(z.string()).optional(), // Deprecated
+          openNow: z.boolean().optional(),
+          userLatitude: z.number().optional(),
+          userLongitude: z.number().optional(),
+          maxDistanceKm: z.number().optional(),
         }),
       )
       .query(async ({ input }) => {
-        // The BusinessService.listBusinesses function needs to be updated
-        // to handle the new price, features, and distances parameters.
-        // The interpretation of the 'price' string (e.g., "$10") as a maximum
-        // price or range needs to be implemented in the backend service.
-        return await BusinessService.listBusinesses(input);
+        // Destructure all potential inputs, including new ones
+        const {
+          categories,
+          query,
+          location,
+          limit,
+          offset,
+          sortBy,
+          sortDirection,
+          price,
+          features,
+          openNow,
+          userLatitude,
+          userLongitude,
+          maxDistanceKm,
+        } = input;
+
+        return await BusinessService.listBusinesses({
+          categories,
+          query,
+          location,
+          limit,
+          offset,
+          sortBy,
+          sortDirection,
+          price,
+          features,
+          openNow,
+          userLatitude,
+          userLongitude,
+          maxDistanceKm,
+        });
       }),
 
     getNearbyBusinesses: t.procedure
@@ -113,16 +143,15 @@ export function createBusinessProcedures(
         z.object({
           latitude: z.number(),
           longitude: z.number(),
-          distance: z.number().optional(),
-          limit: z.number().optional(),
+          distanceKm: z.number().optional().default(10), // Renamed from distance
+          limit: z.number().optional().default(10),
         }),
       )
-      // .output(z.array(businessSchema))
       .query(async ({ input }) => {
         return await BusinessService.getNearbyBusinesses(
           input.latitude,
           input.longitude,
-          input.distance,
+          input.distanceKm,
           input.limit,
         );
       }),

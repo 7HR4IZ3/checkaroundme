@@ -25,8 +25,9 @@ const ServicesNearYou = () => {
       limit: 6,
       latitude: cordinates.latitude as number,
       longitude: cordinates.longitude as number,
+      // distanceKm is optional and will use the default in the backend if not provided
     },
-    { enabled: !!cordinates.latitude },
+    { enabled: !!cordinates.latitude && cordinates.latitude !== null && cordinates.longitude !== null },
   );
 
   if (geoError) {

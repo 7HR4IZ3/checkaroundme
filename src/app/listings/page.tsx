@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import CategoryNav from "@/components/listing/category-nav";
 import FilterSortBar from "@/components/listing/filter-sort-bar";
 import ListingCard from "@/components/listing/listing-card";
@@ -8,17 +8,23 @@ import Pagination from "@/components/ui/pagination";
 import MapPlaceholder from "@/components/map/placeholder";
 import { trpc } from "@/lib/trpc/client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FiltersPanel, Filters } from "@/components/ui/filters"; // Import Filters type
+import { FiltersPanel, Filters } from "@/components/ui/filters";
 import Loading from "@/components/ui/loading";
+import useGeolocation from "@/lib/hooks/useGeolocation"; // Import useGeolocation
 
 export default function Home() {
-  // Prefetch
   trpc.getAllCategories.usePrefetchQuery();
 
   const router = useRouter();
   const searchParams = useSearchParams();
+  const {
+    latitude: userLatitude,
+    longitude: userLongitude,
+    error: geoError,
+    loading: geoLoading,
+  } = useGeolocation();
 
-  // Parse filters from URL
+  // Parse main category from URL
   const categoryParam = searchParams.get("categories");
   const selectedCategory =
     categoryParam && categoryParam.length > 0 ? categoryParam : null;
@@ -26,155 +32,189 @@ export default function Home() {
   const queryParam = searchParams.get("query") || "";
   const locationParam = searchParams.get("location") || "";
 
+  // Filters from FiltersPanel
   const priceParam = searchParams.get("price");
   const featuresParam = searchParams.get("features");
-  const distancesParam = searchParams.get("distances");
+  // `distances` from FiltersPanel is deprecated in favor of selectedDistance from FilterSortBar
 
-  const initialFilters: Filters = useMemo(
+  const initialFiltersPanelFilters: Filters = useMemo(
     () => ({
-      price: priceParam ?? undefined, // Assign undefined if priceParam is null
+      price: priceParam ?? undefined,
       features: featuresParam ? featuresParam.split(",") : [],
-      distances: distancesParam ? distancesParam.split(",") : [],
+      distances: [], // Deprecated, handled by selectedDistance
     }),
-    [priceParam, featuresParam, distancesParam],
+    [priceParam, featuresParam],
   );
 
-  // State for FilterSortBar special filters (e.g., "Open Now", "Offers Delivery")
-  // These are separate from the main FiltersPanel filters but can be combined for the query
-  const [filterBarCategories, setFilterBarCategories] = useState<string[]>([]);
+  // State for FilterSortBar specific filters
+  const [otherFilterBarCategories, setOtherFilterBarCategories] = useState<
+    string[]
+  >(searchParams.get("other_filters")?.split(",") || []);
+  const [openNow, setOpenNow] = useState<boolean>(
+    searchParams.get("open_now") === "true",
+  );
+  const [selectedDistance, setSelectedDistance] = useState<string | null>(
+    searchParams.get("max_distance"),
+  ); // e.g., "5km", "10km"
+  const [sortBy, setSortBy] = useState<string>(
+    searchParams.get("sort_by") || "rating",
+  ); // e.g., "rating", "distance", "price_asc"
 
-  // Handler for FilterSortBar special filters (multi-select)
-  const onChangeFilterBarCategories = useCallback((categories: string[]) => {
-    setFilterBarCategories(categories);
-  }, []);
-
-  // Parse pagination from URL
+  // Pagination
   const limitParam = searchParams.get("limit");
   const offsetParam = searchParams.get("offset");
-  const limit = limitParam ? parseInt(limitParam, 10) : 5; // Use base 10 for parseInt
-  const offset = offsetParam ? parseInt(offsetParam, 10) : 0; // Use base 10 for parseInt
+  const limit = limitParam ? parseInt(limitParam, 10) : 10;
+  const offset = offsetParam ? parseInt(offsetParam, 10) : 0;
 
-  // Filters panel state
   const [filtersPanelOpen, setFiltersPanelOpen] = useState(false);
 
-  // Handler to update category in URL (single-select)
-  const onChangeCategory = useCallback(
-    (category: string | null) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (category) {
-        params.set("categories", category);
-      } else {
-        params.delete("categories");
-      }
-      // Reset to first page when filters change
-      params.set("offset", "0");
-      router.replace(`?${params.toString()}`);
-    },
-    [router, searchParams],
-  );
+  // Update URL when filter states change
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
 
-  // Handler to open filters panel
-  const onOpenFiltersPanel = useCallback(() => {
-    setFiltersPanelOpen(true);
+    // Main category
+    if (selectedCategory) params.set("categories", selectedCategory);
+    else params.delete("categories");
+
+    // Query and Location
+    if (queryParam) params.set("query", queryParam); else params.delete("query");
+    if (locationParam) params.set("location", locationParam); else params.delete("location");
+
+    // FiltersPanel filters
+    if (initialFiltersPanelFilters.price) params.set("price", initialFiltersPanelFilters.price); else params.delete("price");
+    if (initialFiltersPanelFilters.features.length > 0) params.set("features", initialFiltersPanelFilters.features.join(",")); else params.delete("features");
+
+    // FilterSortBar filters
+    if (otherFilterBarCategories.length > 0) params.set("other_filters", otherFilterBarCategories.join(",")); else params.delete("other_filters");
+    if (openNow) params.set("open_now", "true"); else params.delete("open_now");
+    if (selectedDistance) params.set("max_distance", selectedDistance); else params.delete("max_distance");
+    if (sortBy) params.set("sort_by", sortBy); else params.delete("sort_by");
+
+    // Pagination
+    params.set("limit", limit.toString());
+    params.set("offset", offset.toString());
+
+    // Only push if params actually changed to avoid loops, though router.replace is safer
+    if (params.toString() !== new URLSearchParams(searchParams.toString()).toString()) {
+       router.replace(`?${params.toString()}`, { scroll: false });
+    }
+  }, [
+    selectedCategory, queryParam, locationParam, initialFiltersPanelFilters,
+    otherFilterBarCategories, openNow, selectedDistance, sortBy,
+    limit, offset, router, searchParams
+  ]);
+
+
+  const updateUrlAndResetOffset = useCallback((newParams: Record<string, string | null>) => {
+    const params = new URLSearchParams(searchParams.toString());
+    Object.entries(newParams).forEach(([key, value]) => {
+      if (value === null) {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
+    });
+    params.set("offset", "0"); // Reset to first page
+    router.replace(`?${params.toString()}`);
+  }, [router, searchParams]);
+
+
+  const onChangeCategory = useCallback((category: string | null) => {
+    updateUrlAndResetOffset({ categories: category });
+  }, [updateUrlAndResetOffset]);
+
+  const onOpenFiltersPanel = useCallback(() => setFiltersPanelOpen(true), []);
+  const onCloseFiltersPanel = useCallback(() => setFiltersPanelOpen(false), []);
+
+  const onApplyFilters = useCallback((filters: Filters) => {
+      const newParams: Record<string, string | null> = {};
+      newParams.price = filters.price ?? null;
+      newParams.features = filters.features.length > 0 ? filters.features.join(",") : null;
+      // distances from panel is deprecated
+      updateUrlAndResetOffset(newParams);
+      onCloseFiltersPanel();
+    }, [updateUrlAndResetOffset, onCloseFiltersPanel]);
+
+  const onChangeOtherFilterBarCategories = useCallback((categories: string[]) => {
+    setOtherFilterBarCategories(categories); // State update will trigger useEffect
   }, []);
 
-  // Handler to close filters panel
-  const onCloseFiltersPanel = useCallback(() => {
-    setFiltersPanelOpen(false);
+  const onToggleOpenNow = useCallback(() => {
+    setOpenNow(prev => !prev); // State update will trigger useEffect
   }, []);
 
-  // Handler to apply filters from FiltersPanel
-  const onApplyFilters = useCallback(
-    (filters: Filters) => {
+  const onChangeDistance = useCallback((distance: string | null) => {
+    setSelectedDistance(distance); // State update will trigger useEffect
+  }, []);
+
+  const onSortByChange = useCallback((sortValue: string) => {
+    setSortBy(sortValue); // State update will trigger useEffect
+  }, []);
+
+  const onPageChange = useCallback((page: number) => {
       const params = new URLSearchParams(searchParams.toString());
-
-      if (filters.price) {
-        params.set("price", filters.price);
-      } else {
-        params.delete("price");
-      }
-
-      if (filters.features.length > 0) {
-        params.set("features", filters.features.join(","));
-      } else {
-        params.delete("features");
-      }
-
-      if (filters.distances.length > 0) {
-        params.set("distances", filters.distances.join(","));
-      } else {
-        params.delete("distances");
-      }
-
-      // Reset to first page when filters change
-      params.set("offset", "0");
-      router.replace(`?${params.toString()}`);
-    },
-    [router, searchParams],
-  );
-
-  // Handler to change page
-  const onPageChange = useCallback(
-    (page: number) => {
-      const params = new URLSearchParams(searchParams.toString());
-      // Clamp page to valid range
       const newPage = Math.max(1, page);
       params.set("offset", ((newPage - 1) * limit).toString());
-      params.set("limit", limit.toString());
+      // limit is already in useEffect dependency, so no need to set it here again
       router.replace(`?${params.toString()}`);
+    }, [router, searchParams, limit]);
+
+  const combinedCategoriesForQuery = useMemo(() => {
+    const mainCat = selectedCategory ? [selectedCategory] : [];
+    return [...mainCat, ...otherFilterBarCategories];
+  }, [selectedCategory, otherFilterBarCategories]);
+
+  const maxDistanceKm = useMemo(() => {
+    if (!selectedDistance || selectedDistance === "any") return undefined;
+    return parseInt(selectedDistance.replace("km", ""), 10);
+  }, [selectedDistance]);
+
+  const { sortField, sortDirection } = useMemo(() => {
+    if (sortBy.includes("_")) {
+      const [field, direction] = sortBy.split("_");
+      return { sortField: field, sortDirection: direction };
+    }
+    return { sortField: sortBy, sortDirection: "desc" }; // Default desc for rating, distance
+  }, [sortBy]);
+
+  const { data: list, isLoading: queryIsLoading } = trpc.listBusinesses.useQuery(
+    {
+      categories: combinedCategoriesForQuery,
+      query: queryParam,
+      location: locationParam,
+      limit,
+      offset,
+      price: initialFiltersPanelFilters.price,
+      features: initialFiltersPanelFilters.features,
+      openNow: openNow,
+      userLatitude: userLatitude === null ? undefined : userLatitude,
+      userLongitude: userLongitude === null ? undefined : userLongitude,
+      maxDistanceKm: maxDistanceKm,
+      sortBy: sortField,
+      sortDirection: sortDirection as "asc" | "desc",
     },
-    [router, searchParams, limit],
+    { enabled: !geoLoading }, // Only enable query once geolocation is resolved (or errored)
   );
 
-  // Combine filterBarCategories and selectedCategory for the query
-  const combinedCategories = useMemo(() => {
-    const categories = selectedCategory ? [selectedCategory] : [];
-    return [...categories, ...filterBarCategories];
-  }, [selectedCategory, filterBarCategories]);
+  const isLoading = queryIsLoading || geoLoading;
 
-  // Query businesses with category, query, location, and pagination
-  const { data: list, isLoading } = trpc.listBusinesses.useQuery({
-    categories: combinedCategories,
-    query: queryParam,
-    location: locationParam, // Use locationParam from URL
-    limit,
-    offset,
-    price: initialFilters.price, // Pass price filter
-    features: initialFilters.features, // Pass features filter
-    distances: initialFilters.distances, // Pass distances filter
-  });
-
-  // Extract unique locations from the business list
   const locations = useMemo(() => {
     if (!list?.businesses) return [];
     const uniqueLocations = new Set(
-      list.businesses.map((b) => `${b.city} ${b.country}`),
+      list.businesses.map((b) => `${b.city}, ${b.country}`),
     );
     return Array.from(uniqueLocations);
   }, [list?.businesses]);
 
-  // Handler to update location in URL
-  const onChangeLocation = useCallback(
-    (location: string | null) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (location) {
-        params.set("location", location);
-      } else {
-        params.delete("location");
-      }
-      // Reset to first page when location changes
-      params.set("offset", "0");
-      router.replace(`?${params.toString()}`);
-    },
-    [router, searchParams],
-  );
+  const onChangeLocation = useCallback((newLocation: string | null) => {
+    updateUrlAndResetOffset({ location: newLocation });
+  }, [updateUrlAndResetOffset]);
 
-  // Calculate pagination
   const currentPage = Math.floor(offset / limit) + 1;
   const totalPages = useMemo(() => {
     if (!list || isLoading) return 1;
-    return Math.max(1, Math.ceil(list.total / limit));
-  }, [isLoading, list, limit]); // Add list and limit to dependencies
+    return Math.max(1, Math.ceil((list.total || 0) / limit));
+  }, [isLoading, list, limit]);
 
   return (
     <>
@@ -183,31 +223,41 @@ export default function Home() {
         onChangeCategory={onChangeCategory}
       />
       <div className="container flex flex-row mx-auto px-4 py-8 min-h-[70vh]">
-        <div className="flex flex-row flex-wrap gap-8">
-          {/* Listings Section */}
-          <div className="">
-            {/* Display current category and location */}
-            <h1 className="text-2xl font-semibold text-gray-800 mb-4">
-              {selectedCategory || "All business"} near {locationParam || "You"}
+        <div className="flex flex-col md:flex-row flex-wrap gap-8">
+          <div className="w-auto flex flex-col gap-4">
+            <h1 className="text-lg md:text-2xl font-semibold text-gray-800">
+              {selectedCategory || "All Businesses"} near{" "}
+              {locationParam || "your current location"}
             </h1>
             <FilterSortBar
-              selectedCategories={filterBarCategories}
-              onChangeCategories={onChangeFilterBarCategories}
+              selectedCategories={otherFilterBarCategories}
+              onChangeCategories={onChangeOtherFilterBarCategories}
               onOpenFiltersPanel={onOpenFiltersPanel}
-              locations={locations} // Pass locations
-              selectedLocation={locationParam} // Pass selectedLocation
-              onChangeLocation={onChangeLocation} // Pass onChangeLocation
+              locations={locations}
+              selectedLocation={locationParam}
+              onChangeLocation={onChangeLocation}
+              openNow={openNow}
+              onToggleOpenNow={onToggleOpenNow}
+              selectedDistance={selectedDistance}
+              onChangeDistance={onChangeDistance}
+              sortBy={sortBy}
+              onSortByChange={onSortByChange}
             />
             <div className="space-y-6">
               {isLoading ? (
                 <Loading />
-              ) : !list || list.businesses.length === 0 ? ( // Check for empty businesses array
+              ) : geoError && !userLatitude ? (
                 <div className="text-center text-gray-500">
-                  No businesses found.
+                  Could not determine your location. Please enable location
+                  services or select a location manually.
+                </div>
+              ) : !list || list.businesses.length === 0 ? (
+                <div className="text-center text-gray-500">
+                  No businesses found matching your criteria.
                 </div>
               ) : (
                 list.businesses.map((business, index) => (
-                  <ListingCard key={index} business={business} />
+                  <ListingCard key={business.$id || index} business={business} />
                 ))
               )}
             </div>
@@ -217,14 +267,11 @@ export default function Home() {
               onPageChange={onPageChange}
             />
           </div>
-
-          {/* Map Section */}
-          <div className="md:w-1/3 flex-grow">
+          <div className="">
             <MapPlaceholder />
           </div>
         </div>
       </div>
-      {/* Right-side Filters Panel (modal for mobile/tablet only) */}
 
       {filtersPanelOpen && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/30">
@@ -239,12 +286,11 @@ export default function Home() {
               </button>
             </div>
             <FiltersPanel
-              initialFilters={initialFilters}
+              initialFilters={initialFiltersPanelFilters}
               onApplyFilters={onApplyFilters}
               onClose={onCloseFiltersPanel}
             />
           </div>
-          {/* Click outside to close */}
           <div
             className="flex-1"
             onClick={onCloseFiltersPanel}

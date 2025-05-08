@@ -24,6 +24,90 @@ import {
 import { BusinessHoursService } from "./business-hours"; // Assuming BusinessHoursService will be in its own file
 import { BusinessImagesService } from "./business-images"; // Assuming BusinessImagesService will be in its own file
 
+// Helper function to calculate Haversine distance between two points
+function getHaversineDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number {
+  const R = 6371; // Radius of the Earth in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c; // Distance in km
+}
+
+// Helper function to check if a business is currently open
+// Assumes BusinessHoursService.getBusinessHours(businessId) exists and returns BusinessHours or null
+async function checkOpenNow(
+  business: Business,
+  currentTime: Date
+): Promise<boolean> {
+  try {
+    const hoursDoc = await BusinessHoursService.getBusinessHours(business.$id);
+    if (!hoursDoc) return false;
+
+    const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const currentDayName = dayNames[currentTime.getDay()].toLowerCase();
+    const todayHours = hoursDoc.find((hours) => {
+      return hours.day === currentDayName;
+    });
+
+    if (!todayHours || !todayHours.openTime || !todayHours.closeTime) {
+      return false;
+    }
+
+    if (todayHours.isClosed) {
+      return false;
+    }
+
+    const [openHour, openMinute] = todayHours.openTime.split(":").map(Number);
+    const [closeHour, closeMinute] = todayHours.closeTime
+      .split(":")
+      .map(Number);
+
+    const currentTotalMinutes =
+      currentTime.getHours() * 60 + currentTime.getMinutes();
+    const openTotalMinutes = openHour * 60 + openMinute;
+    let closeTotalMinutes = closeHour * 60 + closeMinute;
+
+    // Handle 24-hour open case e.g. open "00:00", close "00:00" or "23:59"
+    if (
+      openTotalMinutes === 0 &&
+      (closeTotalMinutes === 0 || closeTotalMinutes === 24 * 60 - 1)
+    ) {
+      return true;
+    }
+
+    if (closeTotalMinutes <= openTotalMinutes) {
+      // Spans midnight (e.g., open 22:00, close 02:00)
+      return (
+        currentTotalMinutes >= openTotalMinutes ||
+        currentTotalMinutes < closeTotalMinutes
+      );
+    } else {
+      // Closes same day (e.g., open 09:00, close 17:00)
+      return (
+        currentTotalMinutes >= openTotalMinutes &&
+        currentTotalMinutes < closeTotalMinutes
+      );
+    }
+  } catch (error) {
+    console.warn(
+      `Could not determine if business ${business.$id} is open due to error:`,
+      error
+    );
+    return false; // Assume closed on error
+  }
+}
+
 // Business Service
 export const BusinessService = {
   // Create new business
@@ -34,7 +118,7 @@ export const BusinessService = {
     >,
     userId: string,
     hours: { [key: string]: DaySchema },
-    images: { isPrimary: boolean; imageID: string }[],
+    images: { isPrimary: boolean; imageID: string }[]
   ): Promise<Business> {
     try {
       let coordinates = undefined;
@@ -53,7 +137,7 @@ export const BusinessService = {
             headers: {
               "User-Agent": "CheckAroundMe/1.0 (contact@checkaroundme.com)", // Replace with your app name and contact
             },
-          },
+          }
         );
 
         if (geocodeResponse.data && geocodeResponse.data.length > 0) {
@@ -65,19 +149,19 @@ export const BusinessService = {
           console.log(`Geocoded address "${address}" to`, coordinates);
         } else {
           console.warn(
-            `Could not geocode address: "${address}". No results found.`,
+            `Could not geocode address: "${address}". No results found.`
           );
         }
       } catch (error) {
         if (axios.isAxiosError(error)) {
           console.error(
             `Geocoding API error: ${error.message}`,
-            error.response?.data,
+            error.response?.data
           );
         } else {
           console.error(
             "An unexpected error occurred during geocoding:",
-            error,
+            error
           );
         }
         // Continue without coordinates if geocoding fails
@@ -98,14 +182,14 @@ export const BusinessService = {
           ownerId: userId,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        },
+        }
       );
 
       await BusinessHoursService.setBusinessHours(newBusiness.$id, hours);
 
       await BusinessImagesService.uploadTempImagesToBusiness(
         newBusiness.$id,
-        images,
+        images
       );
 
       return newBusiness as unknown as Business;
@@ -121,7 +205,7 @@ export const BusinessService = {
       const business = await databases.getDocument(
         DATABASE_ID,
         BUSINESSES_COLLECTION_ID,
-        businessId,
+        businessId
       );
 
       return business as unknown as Business;
@@ -137,7 +221,7 @@ export const BusinessService = {
     data: Partial<Business> & {
       hours?: { [key: string]: DaySchema };
       images?: { isPrimary: boolean; imageID: string }[];
-    },
+    }
   ): Promise<Business> {
     const { hours, images, ...business } = data;
     try {
@@ -148,18 +232,18 @@ export const BusinessService = {
         {
           ...business,
           updatedAt: new Date().toISOString(),
-        },
+        }
       );
 
       hours &&
         (await BusinessHoursService.setBusinessHours(
           updatedBusiness.$id,
-          hours,
+          hours
         ));
       images &&
         (await BusinessImagesService.uploadTempImagesToBusiness(
           updatedBusiness.$id,
-          images,
+          images
         ));
 
       return updatedBusiness as unknown as Business;
@@ -178,9 +262,12 @@ export const BusinessService = {
     offset = 0,
     sortBy = "rating",
     sortDirection = "desc", // 'asc' or 'desc'
-    price, // Add price filter
-    features = [], // Add features filter
-    distances = [], // Add distances filter (Note: Distance filtering logic is complex and not fully implemented here)
+    price,
+    features = [],
+    openNow, // New filter: boolean
+    userLatitude, // New filter: number
+    userLongitude, // New filter: number
+    maxDistanceKm, // New filter: number (e.g., 5 for 5km)
   }: {
     categories?: string[];
     query?: string;
@@ -189,109 +276,146 @@ export const BusinessService = {
     offset?: number;
     sortBy?: string;
     sortDirection?: "asc" | "desc";
-    price?: string; // e.g., "$1000"
-    features?: string[]; // e.g., ["wifi", "cash"]
-    distances?: string[]; // e.g., ["within_5km"]
+    price?: string;
+    features?: string[];
+    openNow?: boolean;
+    userLatitude?: number;
+    userLongitude?: number;
+    maxDistanceKm?: number;
   }): Promise<{ businesses: Business[]; total: number }> {
-    const filters: string[] = []; // Ensure filters is explicitly typed as string[]
+    const appwriteFilters: string[] = [];
     try {
-      // Add category filter if categories are provided
       if (categories.length > 0) {
-        // Assuming categories is an array of IDs. Appwrite might require Query.equal for single or Query.contains if it's an array attribute
-        // If 'categories' attribute in Appwrite is an array of strings:
-        filters.push(Query.contains("categories", categories)); // Use contains for array matching
-        // If 'categories' is a single string attribute and you want to match any in the list:
-        // filters.push(Query.equal("categories", categories)); // This might need adjustment based on schema
+        appwriteFilters.push(Query.contains("categories", categories));
       }
 
-      // Add name/about search if query is provided
       if (query) {
-        filters.push(
-          Query.or([Query.search("name", query), Query.search("about", query)]),
+        appwriteFilters.push(
+          Query.or([Query.search("name", query), Query.search("about", query)])
         );
       }
 
-      // Add location search if location is provided
       if (location) {
-        filters.push(
+        appwriteFilters.push(
           Query.or([
             Query.search("addressLine1", location),
             Query.search("addressLine2", location),
             Query.search("city", location),
             Query.search("state", location),
             Query.search("country", location),
-          ]),
+          ])
         );
       }
 
-      // Add price filter (less than or equal to)
       if (price) {
-        const priceValue = parseInt(price.replace(/[^0-9]/g, ""), 10); // Extract number
+        const priceValue = parseInt(price.replace(/[^0-9]/g, ""), 10);
         if (!isNaN(priceValue)) {
-          // Assuming 'priceIndicator' stores a comparable numeric value or string that can be compared
-          // If priceIndicator stores strings like "$10", direct comparison might not work as expected.
-          // This requires the 'priceIndicator' attribute in Appwrite to be a number for '<=' to work correctly.
-          // If 'priceIndicator' is a string, this filter might need adjustment or backend data transformation.
-          // For now, assuming it's a number or comparable string:
-          filters.push(Query.lessThanEqual("priceIndicator", priceValue)); // Placeholder - adjust based on actual schema type
+          appwriteFilters.push(
+            Query.lessThanEqual("priceIndicator", priceValue)
+          );
         }
       }
 
-      // Add features filters
       features.forEach((feature) => {
         switch (feature) {
           case "on_site_parking":
           case "garage_parking":
           case "wifi":
-            filters.push(Query.equal(feature, true));
+            appwriteFilters.push(Query.equal(feature, true));
             break;
           case "bank_transfers":
           case "cash":
-            filters.push(Query.contains("paymentOptions", feature));
+            appwriteFilters.push(Query.contains("paymentOptions", feature));
             break;
-          case "open_now":
-            // TODO: Implement complex 'open_now' logic. Requires checking current time against BusinessHours.
-            // This likely needs to be done post-query or with a more complex backend setup.
-            console.warn("'open_now' filter not implemented in this query.");
-            break;
+          // "open_now" is handled by a dedicated parameter and post-filtering
           default:
             console.warn(`Unknown feature filter: ${feature}`);
         }
       });
 
-      // TODO: Implement distance filtering. This is complex with Appwrite's basic queries.
-      // It might require fetching based on broader location and then filtering by coordinates,
-      // or using Appwrite's geospatial capabilities if configured.
-      if (distances.length > 0) {
-        console.warn("Distance filtering not implemented in this query.");
-      }
+      const queryOptions = [
+        ...appwriteFilters,
+        Query.limit(limit),
+        Query.offset(offset),
+        sortDirection === "asc"
+          ? Query.orderAsc(sortBy)
+          : Query.orderDesc(sortBy),
+      ];
 
-      // console.log("Appwrite Filters:", filters);
-      // console.log("Pagination:", limit, offset);
-
-      // Now get paginated results
       const result = await databases.listDocuments(
         DATABASE_ID,
         BUSINESSES_COLLECTION_ID,
-        [
-          ...filters, // Spread the filters array
-          Query.limit(limit),
-          Query.offset(offset),
-          sortDirection === "asc"
-            ? Query.orderAsc(sortBy)
-            : Query.orderDesc(sortBy),
-        ],
+        queryOptions
       );
 
+      let processedBusinesses = result.documents as unknown as Business[];
+      const appwriteTotal = result.total;
+
+      // Post-query filtering for "openNow" and "distance"
+      // Note: This affects pagination accuracy as 'appwriteTotal' is pre-filter.
+
+      // 1. Filter by "Open Now" if requested
+      if (openNow) {
+        const currentTime = new Date();
+        const openBusinessesPromises = processedBusinesses.map(
+          async (business) => ({
+            business,
+            isOpen: await checkOpenNow(business, currentTime),
+          })
+        );
+        const openBusinessesResults = await Promise.all(openBusinessesPromises);
+        processedBusinesses = openBusinessesResults
+          .filter((res) => res.isOpen)
+          .map((res) => res.business);
+      }
+
+      // 2. Filter by distance if requested
+      if (
+        userLatitude !== undefined &&
+        userLongitude !== undefined &&
+        maxDistanceKm !== undefined &&
+        maxDistanceKm > 0
+      ) {
+        processedBusinesses = processedBusinesses.filter((business) => {
+          if (
+            !business.coordinates ||
+            typeof business.coordinates !== "string"
+          ) {
+            return false;
+          }
+          try {
+            const coords = JSON.parse(business.coordinates);
+            if (
+              typeof coords.latitude !== "number" ||
+              typeof coords.longitude !== "number"
+            ) {
+              return false;
+            }
+            const distance = getHaversineDistance(
+              userLatitude,
+              userLongitude,
+              coords.latitude,
+              coords.longitude
+            );
+            return distance <= maxDistanceKm;
+          } catch (e) {
+            console.warn(
+              `Error parsing coordinates for business ${business.$id}: ${business.coordinates}`,
+              e
+            );
+            return false;
+          }
+        });
+      }
+
       return {
-        businesses: result.documents as unknown as Business[],
-        total: result.total,
+        businesses: processedBusinesses,
+        total: appwriteTotal, // This total is from Appwrite before openNow/distance filters.
       };
     } catch (error) {
       console.error("List businesses error:", error);
-      // If error is due to invalid query (e.g., bad attribute name), log more details
       if (error instanceof Error && error.message.includes("Query")) {
-        console.error("Appwrite query details:", filters);
+        console.error("Appwrite query details:", appwriteFilters);
       }
       throw error;
     }
@@ -301,43 +425,57 @@ export const BusinessService = {
   async getNearbyBusinesses(
     latitude: number,
     longitude: number,
-    distance: number = 10, // in kilometers
-    limit: number = 10,
+    distanceKm: number = 10, // Renamed for clarity, in kilometers
+    limit: number = 10
   ): Promise<Business[]> {
     try {
-      // This is a simplified implementation. In a production system,
-      // you would use a geospatial query or a dedicated geospatial service.
-      // For Appwrite, we'll use a combination of filters to approximate this.
-
-      // With Appwrite, you might need to retrieve all documents and filter on the client side
-      // or implement a cloud function that handles more complex geospatial queries
+      // Fetch a larger set of businesses to filter client-side.
+      // Consider Appwrite's default query limit (100) or adjust if needed.
       const result = await databases.listDocuments(
         DATABASE_ID,
         BUSINESSES_COLLECTION_ID,
         [
-          Query.limit(limit * 5), // Get more than we need to filter
-          Query.orderDesc("rating"), // Sort by rating as a fallback
-        ],
+          Query.limit(Math.min(limit * 5, 100)), // Fetch more, up to 100 (Appwrite default max)
+          Query.orderDesc("rating"), // Example sorting
+        ]
       );
 
-      // Client-side filtering based on coordinates
       const businesses = result.documents as unknown as Business[];
 
-      // Filter businesses by distance (simplified version)
-      const nearbyBusinesses = businesses.filter((business) => {
-        if (!business.coordinates) return false;
+      const nearbyBusinesses = businesses
+        .filter((business) => {
+          if (
+            !business.coordinates ||
+            typeof business.coordinates !== "string"
+          ) {
+            return false;
+          }
+          try {
+            const coords = JSON.parse(business.coordinates);
+            if (
+              typeof coords.latitude !== "number" ||
+              typeof coords.longitude !== "number"
+            ) {
+              return false;
+            }
+            const dist = getHaversineDistance(
+              latitude,
+              longitude,
+              coords.latitude,
+              coords.longitude
+            );
+            return dist <= distanceKm;
+          } catch (e) {
+            console.warn(
+              `Error parsing coordinates for business ${business.$id} in getNearbyBusinesses: ${business.coordinates}`,
+              e
+            );
+            return false;
+          }
+        })
+        .slice(0, limit);
 
-        // Calculate distance (Haversine formula would be better in production)
-        const latDiff = business.coordinates.latitude - latitude;
-        const lngDiff = business.coordinates.longitude - longitude;
-        const approxDistance =
-          Math.sqrt(latDiff * latDiff + lngDiff * lngDiff) * 1110; // rough conversion
-
-        return approxDistance <= distance;
-        // return true;
-      });
-
-      return nearbyBusinesses.slice(0, limit);
+      return nearbyBusinesses;
     } catch (error) {
       console.error("Get nearby businesses error:", error);
       throw error;
@@ -350,7 +488,7 @@ export const BusinessService = {
       const { documents: businesses } = await databases.listDocuments(
         DATABASE_ID,
         BUSINESSES_COLLECTION_ID,
-        [Query.equal("ownerId", userId)],
+        [Query.equal("ownerId", userId)]
       );
 
       return businesses as unknown as Business[];

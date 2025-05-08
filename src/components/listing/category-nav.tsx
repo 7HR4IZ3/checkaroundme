@@ -9,23 +9,26 @@ import {
 import { trpc } from "@/lib/trpc/client";
 import {
   Ellipsis,
-  Utensils,
-  Scissors,
-  Dumbbell,
-  Cake,
   Car,
-  Home,
   Sparkles,
   Truck,
   Wrench,
-  Sofa,
-  Zap,
-  Settings,
   Paintbrush,
-  Sun,
-  Hammer,
-  Cookie,
-  Shirt,
+  Sparkle, // New
+  Layers, // New
+  PartyPopper, // New
+  Lightbulb, // New
+  Hammer, // Changed from Toolbox
+  Sprout, // New
+  Bug, // New
+  AirVent, // New
+  GraduationCap, // New
+  PawPrint, // New
+  Camera, // New
+  ChefHat, // New
+  HardHat, // New
+  Laptop, // New
+  Activity, // New
 } from "lucide-react";
 
 type CategoryNavProps = {
@@ -33,44 +36,56 @@ type CategoryNavProps = {
   onChangeCategory: (category: string | null) => void;
 };
 
-const CategoryIcon = ({ category }: { category: string }) => {
+const CategoryIcon = ({
+  category,
+  size,
+}: {
+  category: string;
+  size: number;
+}) => {
   switch (category) {
-    case "Restaurant":
-      return <Utensils size={16} />;
-    case "Salon":
-      return <Scissors size={16} />;
-    case "Gym":
-      return <Dumbbell size={16} />;
-    case "Bakery":
-      return <Cake size={16} />;
-    case "Auto mobile mechanics":
-      return <Car size={16} />;
-    case "Housekeeping":
-      return <Home size={16} />;
-    case "Beauty and Spa":
-      return <Sparkles size={16} />;
-    case "Movers":
-      return <Truck size={16} />;
-    case "Plumber":
-      return <Wrench size={16} />;
-    case "Furniture":
-      return <Sofa size={16} />;
-    case "Appliances and repair":
-      return <Zap size={16} />;
-    case "Engineer":
-      return <Settings size={16} />;
-    case "Painter":
-      return <Paintbrush size={16} />;
-    case "Solar installer":
-      return <Sun size={16} />;
-    case "Welding and fabrication":
-      return <Hammer size={16} />;
-    case "Catering and baking":
-      return <Cookie size={16} />;
-    case "Fashion designer":
-      return <Shirt size={16} />;
+    case "Cleaning":
+      return <Sparkle size={size} />;
+    case "Beauty & Spa":
+      return <Sparkles size={size} />;
+    case "Aluminum Fabrication":
+      return <Layers size={size} />;
+    case "Mechanic (Auto Repair)":
+      return <Car size={size} />;
+    case "Event":
+      return <PartyPopper size={size} />;
+    case "Electrician":
+      return <Lightbulb size={size} />;
+    case "Plumbing":
+      return <Wrench size={size} />;
+    case "Handyman":
+      return <Hammer size={size} />;
+    case "Painting":
+      return <Paintbrush size={size} />;
+    case "Landscaping / Gardening":
+      return <Sprout size={size} />;
+    case "Pest Control":
+      return <Bug size={size} />;
+    case "HVAC":
+      return <AirVent size={size} />;
+    case "Tutoring":
+      return <GraduationCap size={size} />;
+    case "Pet Grooming / Pet Sitting":
+      return <PawPrint size={size} />;
+    case "Photography":
+      return <Camera size={size} />;
+    case "Catering":
+      return <ChefHat size={size} />;
+    case "Moving":
+      return <Truck size={size} />;
+    case "Home Renovation / Contractor":
+      return <HardHat size={size} />;
+    case "IT Support / Computer Repair":
+      return <Laptop size={size} />;
+    case "Personal Training / Fitness Instruction":
+      return <Activity size={size} />;
     default:
-      return <Ellipsis size={16} />;
+      return <Ellipsis size={size} />;
   }
 };
 
@@ -91,15 +106,15 @@ const CategoryNav: React.FC<CategoryNavProps> = ({
 
   return (
     <nav className="container bg-white border-b border-gray-200 py-3">
-      <div className="mx-auto px-4 flex items-center justify-center space-x-4">
-        {categories.slice(0, 5).map((category) => {
+      <div className="mx-auto px-4 flex items-center justify-start space-x-2 md:space-x-3 overflow-x-auto whitespace-nowrap hide-scrollbar">
+        {categories.slice(0, 4).map((category) => {
           const isSelected = selectedCategory === category.name;
           return (
             <button
               type="button"
               key={category.$id}
               onClick={() => handleCategoryClick(category.name)}
-              className={`flex items-center space-x-2 p-2 px-3 rounded-full border transition w-[15%]
+              className={`flex flex-shrink-0 items-center space-x-1.5 px-3 py-1.5 rounded-full border transition
                 ${
                   isSelected
                     ? "bg-blue-100 text-blue-700 border-blue-400 font-semibold"
@@ -107,22 +122,22 @@ const CategoryNav: React.FC<CategoryNavProps> = ({
                 }`}
               aria-pressed={isSelected}
             >
-              <CategoryIcon category={category.name} />
-              <span>{category.name}</span>
+              <CategoryIcon category={category.name} size={14} />
+              <span className="text-xs sm:text-sm">{category.name}</span>
             </button>
           );
         })}
 
-        {categories.length > 5 && (
+        {categories.length > 4 && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 p-2 px-3 rounded-full border border-transparent hover:bg-gray-100 transition">
-                <span>More</span>
-                <FaChevronDown size={12} />
+              <button className="flex flex-shrink-0 items-center space-x-1.5 px-3 py-1.5 text-gray-600 hover:text-blue-600 rounded-full border border-transparent hover:bg-gray-100 transition">
+                <span className="text-xs sm:text-sm">More</span>
+                <FaChevronDown size={14} />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              {categories.slice(5).map((category) => (
+              {categories.slice(4).map((category) => (
                 <DropdownMenuItem
                   key={category.$id}
                   onSelect={() => handleCategoryClick(category.name)}
@@ -132,8 +147,8 @@ const CategoryNav: React.FC<CategoryNavProps> = ({
                       : ""
                   }`}
                 >
-                  <CategoryIcon category={category.name} />
-                  <span>{category.name}</span>
+                  <CategoryIcon category={category.name} size={14} />
+                  <span className="text-xs sm:text-sm">{category.name}</span>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>

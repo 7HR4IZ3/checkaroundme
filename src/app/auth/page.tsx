@@ -340,7 +340,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
       });
 
       if (result.success) {
-        router.push("/");
+        router.push("/auth/onboarding"); // Redirect to onboarding page
       } else {
         toast.error("Registration Failed", {
           description: "An unexpected error occurred.",

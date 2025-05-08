@@ -16,35 +16,54 @@ import {
 } from "@/components/ui/select";
 
 type FilterSortBarProps = {
-  selectedCategories: string[];
+  selectedCategories: string[]; // For filters like "offers_delivery"
   onChangeCategories: (categories: string[]) => void;
   onOpenFiltersPanel: () => void;
-  locations: string[]; // Add locations prop
-  selectedLocation: string | null; // Add selectedLocation prop
-  onChangeLocation: (location: string | null) => void; // Add onChangeLocation prop
+  locations: string[];
+  selectedLocation: string | null;
+  onChangeLocation: (location: string | null) => void;
+  openNow: boolean;
+  onToggleOpenNow: () => void;
+  selectedDistance: string | null; // e.g., "1km", "5km", "any"
+  onChangeDistance: (distance: string | null) => void;
+  sortBy: string; // e.g., "rating", "distance", "price_asc"
+  onSortByChange: (sortValue: string) => void;
 };
 
-const CATEGORIES = [
-  { label: "Open Now", value: "open_now" },
+const OTHER_FILTER_CATEGORIES = [
   { label: "Offers Delivery", value: "offers_delivery" },
+];
+
+const DISTANCE_OPTIONS = [
+  { label: "Any Distance", value: "any" },
+  { label: "Within 1 km", value: "1km" },
+  { label: "Within 5 km", value: "5km" },
+  { label: "Within 10 km", value: "10km" },
+  { label: "Within 25 km", value: "25km" },
+];
+
+const SORT_OPTIONS = [
+  { label: "Rating", value: "rating" },
+  { label: "Distance", value: "distance" },
+  { label: "Price: Low to High", value: "price_asc" },
+  { label: "Price: High to Low", value: "price_desc" },
 ];
 
 const FilterSortBar: React.FC<FilterSortBarProps> = ({
   selectedCategories,
   onChangeCategories,
   onOpenFiltersPanel,
-  locations, // Destructure new prop
-  selectedLocation, // Destructure new prop
-  onChangeLocation, // Destructure new prop
+  locations,
+  selectedLocation,
+  onChangeLocation,
+  openNow,
+  onToggleOpenNow,
+  selectedDistance,
+  onChangeDistance,
+  sortBy,
+  onSortByChange,
 }) => {
-  const [sortBy, setSortBy] = React.useState("recommended");
-
-  const handleCategoryClick = (value: string) => {
-    if (value === "price_low_to_high" || value === "price_high_to_low") {
-      onChangeCategories([value]); // Price sort is exclusive
-      return;
-    }
-
+  const handleOtherCategoryClick = (value: string) => {
     const isSelected = selectedCategories.includes(value);
     if (isSelected) {
       onChangeCategories(selectedCategories.filter((cat) => cat !== value));
@@ -53,99 +72,123 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
     }
   };
 
+  // This function is kept to resolve the error, though direct calls to onSortByChange are preferred
+  const handlePriceSortClick = (sortValue: string) => {
+    onSortByChange(sortValue);
+  };
+
   return (
     <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
       <div className="flex flex-wrap gap-2">
         <Button
           variant="outline"
           size="sm"
-          className="rounded-full"
-          onClick={onOpenFiltersPanel} // All categories
+          className="rounded-full text-xs"
+          onClick={onOpenFiltersPanel}
         >
-          <FaSlidersH className="mr-2" size={16} />
-          All
+          <FaSlidersH className="mr-2" size={12} />
+          All Filters
+        </Button>
+        <Button
+          variant={openNow ? "default" : "outline"}
+          size="sm"
+          className="rounded-full text-xs"
+          onClick={onToggleOpenNow}
+        >
+          Open Now
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="rounded-full">
-              Price <FaChevronDown className="ml-1" size={12} />
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-full text-xs"
+            >
+              {DISTANCE_OPTIONS.find(
+                (d: { value: string; label: string }) =>
+                  d.value === (selectedDistance || "any"),
+              )?.label || "Distance"}
+              <FaChevronDown className="ml-1" size={12} />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56">
-            <DropdownMenuItem
-              onClick={() => handleCategoryClick("price_low_to_high")}
-            >
-              Price: Low to High
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => handleCategoryClick("price_high_to_low")}
-            >
-              Price: High to Low
-            </DropdownMenuItem>
+            {DISTANCE_OPTIONS.map(
+              (option: { value: string; label: string }) => (
+                <DropdownMenuItem
+                  key={option.value}
+                  onClick={() =>
+                    onChangeDistance(
+                      option.value === "any" ? null : option.value,
+                    )
+                  }
+                >
+                  {option.label}
+                </DropdownMenuItem>
+              ),
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
-        {CATEGORIES.map((cat) => (
-          <Button
-            key={cat.value}
-            variant={
-              selectedCategories.includes(cat.value) ? "default" : "outline"
-            }
-            size="sm"
-            className="rounded-full"
-            onClick={() => handleCategoryClick(cat.value)}
-          >
-            {cat.label}
-          </Button>
-        ))}
+        {OTHER_FILTER_CATEGORIES.map(
+          (cat: { value: string; label: string }) => (
+            <Button
+              key={cat.value}
+              variant={
+                selectedCategories.includes(cat.value) ? "default" : "outline"
+              }
+              size="sm"
+              className="rounded-full text-xs"
+              onClick={() => handleOtherCategoryClick(cat.value)}
+            >
+              {cat.label}
+            </Button>
+          ),
+        )}
       </div>
-      <div className="flex items-center gap-2">
-        {" "}
-        {/* Add gap for spacing */}
-        <span className="text-sm text-gray-600">Location:</span>{" "}
-        {/* Add Location label */}
+      <div className="flex flex-row items-center gap-2 text-xs md:text-sm">
+        <span className="text-xs md:text-sm text-gray-600 hidden md:block">
+          Location:
+        </span>{" "}
         <Select
-          value={selectedLocation || ""} // Use selectedLocation prop
+          value={selectedLocation || "all"}
           onValueChange={(newLocation) =>
-            onChangeLocation(
-              newLocation && newLocation !== "all" ? newLocation : null,
-            )
+            onChangeLocation(newLocation === "all" ? null : newLocation)
           }
         >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select a location" />
+          <SelectTrigger className="w-[150px] md:w-[180px] text-xs">
+            <SelectValue placeholder="Select Location" />
           </SelectTrigger>
           <SelectContent>
-            {/* Option for "All Locations" */}
             <SelectItem value="all">All Locations</SelectItem>
-            {/* Options from locations prop */}
-            {locations.map((location) => (
+            {locations.map((location: string) => (
               <SelectItem key={location} value={location}>
                 {location}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <span className="text-sm text-gray-600 mx-2">Sort:</span>
+        <span className="text-xs md:text-sm text-gray-600 mx-2 hidden md:block">
+          Sort:
+        </span>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm">
-              {sortBy === "recommended" && "Recommended"}{" "}
-              {/* Display selected sort */}
-              {sortBy === "price" && "Price"}
-              {sortBy === "distance" && "Distance"}
+            <Button variant="ghost" size="sm" className="text-xs">
+              {SORT_OPTIONS.find(
+                (opt: { value: string; label: string }) => opt.value === sortBy,
+              )?.label || "Sort By"}
               <FaChevronDown className="ml-1" size={12} />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56">
-            <DropdownMenuItem onClick={() => setSortBy("recommended")}>
-              Recommended
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSortBy("price")}>
-              Price
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setSortBy("distance")}>
-              Distance
-            </DropdownMenuItem>
+          <DropdownMenuContent className="w-48">
+            {SORT_OPTIONS.map(
+              (option: { value: string; label: string }) => (
+                <DropdownMenuItem
+                  key={option.value}
+                  onClick={() => handlePriceSortClick(option.value)}
+                >
+                  {option.label}
+                </DropdownMenuItem>
+              ),
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
