@@ -46,6 +46,7 @@ import { Review } from "@/lib/schema";
 import { ReviewCard } from "@/components/ui/review-card";
 import { toast } from "sonner";
 import MapPlaceholder from "@/components/map/placeholder";
+import Link from "next/link";
 
 // Helper component for star ratings
 const StarRating = ({ rating, count }: { rating: number; count?: number }) => {
@@ -223,8 +224,8 @@ export default function BusinessPage() {
     typeof params.businessId === "string"
       ? params.businessId
       : Array.isArray(params.businessId)
-        ? params.businessId[0]
-        : "";
+      ? params.businessId[0]
+      : "";
 
   // tRPC queries
   const {
@@ -238,7 +239,7 @@ export default function BusinessPage() {
     error: imagesError,
   } = trpc.getBusinessImages.useQuery(
     { businessId },
-    { enabled: !!businessId },
+    { enabled: !!businessId }
   );
   const {
     data: hours,
@@ -484,7 +485,7 @@ export default function BusinessPage() {
                 <span>
                   {(() => {
                     const today = openingHours.find(
-                      (h) => h.day === currentDay,
+                      (h) => h.day === currentDay
                     );
                     return today ? today.hours : "";
                   })()}
@@ -631,7 +632,7 @@ export default function BusinessPage() {
                           .map((opt) =>
                             opt
                               .replace(/_/g, " ")
-                              .replace(/\b\w/g, (l) => l.toUpperCase()),
+                              .replace(/\b\w/g, (l) => l.toUpperCase())
                           )
                           .join(", ")}
                       </span>
@@ -715,9 +716,9 @@ export default function BusinessPage() {
                             item.hours === "Closed"
                               ? "text-red-600"
                               : item.day === currentDay &&
-                                  item.hours !== "Closed"
-                                ? "text-green-600"
-                                : ""
+                                item.hours !== "Closed"
+                              ? "text-green-600"
+                              : ""
                           }
                         >
                           {item.hours}
@@ -837,7 +838,9 @@ export default function BusinessPage() {
                 variant="ghost"
                 className="w-full flex justify-end md:justify-between flex-row-reverse md:flex-row"
               >
-                <span className="ml-2">{business.phone}</span>{" "}
+                <Link href={`tel:${business.phone}`}>
+                  <span className="ml-2">{business.phone}</span>{" "}
+                </Link>
                 <Phone className="h-4 w-4" />
               </Button>
               <div className="flex items-center justify-start flex-col">
@@ -916,7 +919,7 @@ export default function BusinessPage() {
                 disabled={currentImageIndex === imageUrls.length - 1}
                 onClick={() =>
                   setCurrentImageIndex((prev) =>
-                    Math.min(imageUrls.length - 1, prev + 1),
+                    Math.min(imageUrls.length - 1, prev + 1)
                   )
                 }
               >

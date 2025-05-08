@@ -695,17 +695,19 @@ export default function BusinessForm({
           <div className="flex gap-2 mt-2">
             <Select
               value={phoneCountryCode}
-              onValueChange={setPhoneCountryCode}
+              onValueChange={(country) => {
+                setPhoneCountryCode(countries.find(c => c.name === country)?.phonecode)
+              }}
             >
               <SelectTrigger id="phoneCountryCode" className="w-24">
                 <SelectValue placeholder="Code" />
               </SelectTrigger>
               <SelectContent>
-                {countries
-                  .sort((a, b) => Number(a.phoneCode) - Number(b.phoneCode))
+                {countries.map(country => country.name)
+                  .sort()
                   .map((country) => (
-                    <SelectItem value={country.phonecode}>
-                      +{country.phonecode}
+                    <SelectItem value={country}>
+                      {country}
                     </SelectItem>
                   ))}
               </SelectContent>

@@ -143,7 +143,7 @@ export default function OnboardingSubscriptionPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-      <div className="absolute sticky top-0 z-50 w-full bg-yellow-100 border-b border-yellow-300 p-3 text-yellow-900">
+      <div className="fixed sticky top-0 z-50 w-full bg-yellow-100 border-b border-yellow-300 p-3 text-yellow-900">
         <div className="container mx-auto flex items-center justify-between gap-4">
           <div className="flex items-center gap-8 flex-row">
             <AlertTriangle className="h-5 w-5 flex-shrink-0" />

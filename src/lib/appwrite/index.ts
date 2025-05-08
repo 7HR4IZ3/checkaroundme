@@ -53,8 +53,10 @@ export const CATEGORIES_COLLECTION_ID = "categories";
 export const MESSAGES_COLLECTION_ID = "messages";
 export const CONVERSATIONS_COLLECTION_ID = "conversations";
 export const AUTH_SESSIONS_COLLECTION_ID = "auth_sessions";
+
 export const BUSINESS_IMAGES_BUCKET_ID = "67fc0ef9000e1bba4e5d";
 export const MESSAGE_IMAGES_BUCKET_ID = "67fc0ef9000e1bba4e5d";
+export const AVATAR_IMAGES_BUCKET_ID = "67fc0ef9000e1bba4e5d";
 
 // User Service
 export const UserService = {
@@ -92,9 +94,8 @@ export const UserService = {
   // Upload avatar
   async uploadAvatar(file: File, userId: string): Promise<string> {
     try {
-      const result = await storage.createFile("avatars", ID.unique(), file);
-
-      const fileUrl = storage.getFileView("avatars", result.$id);
+      const result = await storage.createFile(AVATAR_IMAGES_BUCKET_ID, userId, file);
+      const fileUrl = storage.getFileView(AVATAR_IMAGES_BUCKET_ID, result.$id);
 
       await databases.updateDocument(DATABASE_ID, USERS_COLLECTION_ID, userId, {
         avatarUrl: fileUrl.toString(),
