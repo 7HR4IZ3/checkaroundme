@@ -75,11 +75,12 @@ function ForgotPasswordForm() {
             }
           }
           // If no specific email error, show a generic one
-          if (!emailError) { // This condition might need adjustment if other errors are possible
+          if (!emailError) {
+            // This condition might need adjustment if other errors are possible
             setEmailError(error.message || "An unexpected error occurred.");
           }
         } catch {
-            setEmailError(error.message || "An unexpected error occurred.");
+          setEmailError(error.message || "An unexpected error occurred.");
         }
       } else {
         setEmailError(error.message || "An unexpected error occurred.");

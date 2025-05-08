@@ -42,14 +42,14 @@ function LayoutInner({ children }: { children: React.ReactNode }) {
   // Determine if the banner should be shown
   // Show if: user is authenticated AND subscriptionStatus is not 'active'
   // Assumes user prefs have `subscriptionStatus` field. Adjust if named differently.
-  const showBanner =
-    isAuthenticated &&
-    user?.prefs?.subscriptionStatus !== "active" &&
-    !user?.labels.includes("admin");
+  const showBanner = false;
+  // isAuthenticated &&
+  // user?.prefs?.subscriptionStatus !== "active" &&
+  // !user?.labels.includes("admin");
 
   return (
     <GeolocationPermissionProvider>
-      {showBanner && <SubscriptionBanner />} {/* Conditionally render banner */}
+      {showBanner && <SubscriptionBanner />}
       <Header />
       <main>{children}</main>
       <Toaster />

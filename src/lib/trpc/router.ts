@@ -31,7 +31,7 @@ export const createTRPCContext = cache(async () => {
   if (Array.isArray(clientSecretKeyHeader)) {
     // This case should ideally not happen with `headerStore.get()`
     console.warn(
-      "x-trpc-secret-key header was an array (unexpected for next/headers.get), using first element if possible."
+      "x-trpc-secret-key header was an array (unexpected for next/headers.get), using first element if possible.",
     );
     clientSecretKey = clientSecretKeyHeader[0];
   } else {
@@ -63,7 +63,7 @@ export type AppTRPC = typeof t;
 const enforceSecretKey = t.middleware(({ ctx, next }) => {
   if (!SERVER_TRPC_SECRET_KEY) {
     console.error(
-      "SERVER_TRPC_SECRET_KEY is not set on the server. Ensure it is in your .env file."
+      "SERVER_TRPC_SECRET_KEY is not set on the server. Ensure it is in your .env file.",
     );
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
@@ -100,7 +100,7 @@ export const publicProcedure = t.procedure;
  * Protected procedure that requires JWT authentication.
  * Routes using this procedure will require a valid Bearer token in the Authorization header.
  */
-export const protectedProcedureWithSecret = t.procedure //.use(enforceSecretKey);
+export const protectedProcedureWithSecret = t.procedure; //.use(enforceSecretKey);
 
 export const appRouter = t.router({
   ...createAuthProcedures(t, protectedProcedureWithSecret),

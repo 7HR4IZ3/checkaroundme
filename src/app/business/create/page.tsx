@@ -11,15 +11,17 @@ export default function BusinessCreateForm() {
   const router = useRouter();
 
   if (!isAuthenticated) {
-    router.push("/auth");
-    return null;
+    return router.push("/auth");
+  }
+
+  if (user.prefs.subscriptionStatus !== "active") {
+    return router.push("/business/payment");
   }
 
   const createBusiness = trpc.createBusiness.useMutation();
-
   const handleCreateBusiness = async (formData: any) => {
     if (!user?.$id) {
-      toast("Error", { description: "User not authenticated." });
+      toast.error("Error", { description: "User not authenticated." });
       return;
     }
 
@@ -29,7 +31,7 @@ export default function BusinessCreateForm() {
         ownerId: user.$id,
         userId: user.$id, // Assuming userId is also needed for creation
       });
-      toast("Business Created", {
+      toast.success("Business Created", {
         description: "Your business has been successfully created.",
       });
       router.push(`/business/${result.$id}`);
@@ -40,11 +42,11 @@ export default function BusinessCreateForm() {
         // You might want to handle specific field errors here if needed,
         // but the BusinessForm component now handles basic required field validation.
         console.error("Validation errors:", errors);
-        toast("Validation Error", {
+        toast.error("Validation Error", {
           description: "Please check the form for errors.",
         });
       } else {
-        toast("Failed to Create Business", {
+        toast.error("Failed to Create Business", {
           description: error.message || "An unexpected error occurred.",
         });
       }

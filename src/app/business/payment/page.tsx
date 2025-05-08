@@ -12,20 +12,30 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc/client";
-// Removed direct import of flutterwave functions
+
 import { useAuth } from "@/lib/hooks/useClientAuth"; // For fetching user data
 import { toast } from "sonner"; // For displaying errors
 import { IPlan } from "paystack-sdk/dist/plan";
 import { interval } from "date-fns";
+import { AlertTriangle, Link } from "lucide-react";
 
 export default function OnboardingSubscriptionPage() {
+  const { user, isAuthenticated } = useAuth();
   const router = useRouter();
+
+  if (!isAuthenticated) {
+    return router.push("/auth");
+  }
+
+  if (user.prefs.subscriptionStatus === "active") {
+    return router.back();
+  }
+
   const [selectedPlan, setSelectedPlan] = useState<IPlan | null>(null);
   // Removed local loading/error states managed by tRPC hooks
   // const [isLoadingPlans, setIsLoadingPlans] = useState(true);
   // const [isSubscribing, setIsSubscribing] = useState(false);
   // const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth(); // Get user data from auth context
 
   // Fetch plans using Paystack tRPC query
   const {
@@ -133,6 +143,24 @@ export default function OnboardingSubscriptionPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+      <div className="sticky top-0 z-50 w-full bg-yellow-100 border-b border-yellow-300 p-3 text-yellow-900">
+        <div className="container mx-auto flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+            <p className="text-sm font-medium">
+              You are currently not subscribed.{" "}
+              <Link
+                href="/auth/onboarding"
+                className="font-semibold underline hover:text-yellow-800"
+              >
+                Subscribe now
+              </Link>{" "}
+              to be able to create a business.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <Card className="w-full max-w-2xl">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center">

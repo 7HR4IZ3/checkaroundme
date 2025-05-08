@@ -13,9 +13,20 @@ import {
 } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc/client"; // If you need to update user status via tRPC
 import { toast } from "sonner";
+import { useAuth } from "@/lib/hooks/useClientAuth";
 
 export default function PaymentStatusPage() {
+  const { user, isAuthenticated } = useAuth();
   const router = useRouter();
+
+  if (!isAuthenticated) {
+    return router.push("/auth");
+  }
+
+  if (user.prefs.subscriptionStatus !== "active") {
+    return router.push("/auth/onboarding");
+  }
+
   const searchParams = useSearchParams();
   // Paystack typically uses 'reference' or 'trxref' in the callback
   const reference = searchParams.get("reference") || searchParams.get("trxref");
@@ -80,7 +91,7 @@ export default function PaymentStatusPage() {
         <>
           <p className="text-red-600">{displayMessage}</p>
           <Button
-            onClick={() => router.push("/auth/onboarding")} // Go back to select plan
+            onClick={() => router.push("/business/payment")} // Go back to select plan
             className="mt-4"
           >
             Try Again
@@ -98,8 +109,8 @@ export default function PaymentStatusPage() {
           return (
             <>
               <p className="text-green-600">{displayMessage}</p>
-              <Button onClick={() => router.push("/")} className="mt-4">
-                Go to Homepage
+              <Button onClick={() => router.push("/business/create")} className="mt-4">
+                Continue
               </Button>
             </>
           );
@@ -111,7 +122,7 @@ export default function PaymentStatusPage() {
                 Your payment status is currently pending. Please check back
                 later or contact support.
               </p>
-              <Button onClick={() => router.push("/")} className="mt-4">
+              <Button onClick={() => router.push("/business/create")} className="mt-4">
                 Go to Home
               </Button>
             </>
@@ -121,7 +132,7 @@ export default function PaymentStatusPage() {
             <>
               <p className="text-red-600">{displayMessage}</p>
               <Button
-                onClick={() => router.push("/auth/onboarding")} // Go back to select plan
+                onClick={() => router.push("/business/payment")} // Go back to select plan
                 className="mt-4"
               >
                 Try Again
