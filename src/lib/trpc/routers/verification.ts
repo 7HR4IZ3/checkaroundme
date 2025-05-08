@@ -19,23 +19,25 @@ const isAdmin = (user: Models.User<Models.Preferences>): boolean => {
 const pendingVerificationDetailsSchema = z.object({
   // Use existing schema, ensure it includes necessary fields like $id, businessId, userId, documentFileId
   verificationDocument: verificationDocumentSchema.extend({
-      $id: z.string(), // Ensure $id is present
-      businessId: z.string(),
-      userId: z.string(),
-      documentFileId: z.string(),
-      adminNotes: z.string().nullable().optional(), // Add adminNotes if needed
-      // Add other fields from your verificationDocumentSchema as needed
+    $id: z.string(), // Ensure $id is present
+    businessId: z.string(),
+    userId: z.string(),
+    documentFileId: z.string(),
+    adminNotes: z.string().nullable().optional(), // Add adminNotes if needed
+    // Add other fields from your verificationDocumentSchema as needed
   }),
-  business: businessSchema.pick({ // Pick relevant fields from existing business schema
-      $id: true,
-      name: true,
-      // Add other relevant business fields as needed e.g., address
+  business: businessSchema.pick({
+    // Pick relevant fields from existing business schema
+    $id: true,
+    name: true,
+    // Add other relevant business fields as needed e.g., address
   }),
-  user: z.object({ // Define expected user details explicitly or use/extend a user schema
-      $id: z.string(),
-      name: z.string().nullable(), // Appwrite name can be null
-      email: z.string().email(),
-      // Add other relevant user fields as needed
+  user: z.object({
+    // Define expected user details explicitly or use/extend a user schema
+    $id: z.string(),
+    name: z.string().nullable(), // Appwrite name can be null
+    email: z.string().email(),
+    // Add other relevant user fields as needed
   }),
   documentFileUrl: z.string().url(), // URL for accessing the document
 });
@@ -53,13 +55,11 @@ const updateVerificationStatusOutputSchema = z.object({
   success: z.boolean(),
 });
 
-
-
 // Define the tRPC instance type based on other routers
 type TRPCInstance = ReturnType<
   typeof import("@trpc/server").initTRPC.create<{
     transformer: typeof SuperJSON;
-    innerContext: { user?: Models.User<Models.Preferences>, profile?: any };
+    innerContext: { user?: Models.User<Models.Preferences>; profile?: any };
     meta: {};
   }>
 >;
@@ -87,15 +87,20 @@ export function createVerificationProcedures(t: TRPCInstance) {
   const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {
     // Ensure user context exists (should be guaranteed by protectedProcedure)
     if (!ctx.user) {
-        throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'User context missing in admin procedure.' });
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "User context missing in admin procedure.",
+      });
     }
     // Perform the admin check using the placeholder function
     if (!isAdmin(ctx.user)) {
-      throw new TRPCError({ code: "UNAUTHORIZED", message: "Admin privileges required." });
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "Admin privileges required.",
+      });
     }
     return next({ ctx }); // Pass context along
   });
-
 
   return {
     submitVerification: protectedProcedure
@@ -103,7 +108,7 @@ export function createVerificationProcedures(t: TRPCInstance) {
         z.object({
           businessId: z.string(),
           documentFileId: z.string(), // ID received from the upload API route
-        })
+        }),
       )
       .mutation(async ({ input, ctx }) => {
         const { businessId, documentFileId } = input;
@@ -112,7 +117,7 @@ export function createVerificationProcedures(t: TRPCInstance) {
         // 1. Verify Business Ownership
         const isOwner = await VerificationService.isUserBusinessOwner(
           userId,
-          businessId
+          businessId,
         );
         if (!isOwner) {
           throw new TRPCError({
@@ -127,13 +132,13 @@ export function createVerificationProcedures(t: TRPCInstance) {
             await VerificationService.createVerificationDocumentRecord(
               businessId,
               userId,
-              documentFileId
+              documentFileId,
             );
 
           // 3. Update Business Status to 'pending'
           await VerificationService.updateBusinessVerificationStatus(
             businessId,
-            "pending"
+            "pending",
           );
 
           // 4. Return success or the created record
@@ -169,21 +174,23 @@ export function createVerificationProcedures(t: TRPCInstance) {
           // This function needs to be implemented in VerificationService
           // It should fetch verification docs where business status is 'pending',
           // then fetch related business, user, and generate file URLs.
-          const pendingVerifications = await VerificationService.listPendingVerificationsWithDetails();
+          const pendingVerifications =
+            await VerificationService.listPendingVerificationsWithDetails();
 
           // Validate the structure of the returned data (optional but recommended)
           // This assumes the service function returns data matching the schema structure
           // Use .safeParse for better error handling if needed
-          const parsedData = pendingVerificationDetailsSchema.array().parse(pendingVerifications);
+          const parsedData = pendingVerificationDetailsSchema
+            .array()
+            .parse(pendingVerifications);
           return parsedData;
-
         } catch (error) {
           console.error("Error listing pending verifications:", error);
           if (error instanceof z.ZodError) {
             throw new TRPCError({
-                code: 'INTERNAL_SERVER_ERROR',
-                message: 'Failed to parse verification data.',
-                cause: error,
+              code: "INTERNAL_SERVER_ERROR",
+              message: "Failed to parse verification data.",
+              cause: error,
             });
           }
           if (error instanceof Error) {
@@ -195,7 +202,8 @@ export function createVerificationProcedures(t: TRPCInstance) {
           }
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: "An unknown error occurred while listing pending verifications.",
+            message:
+              "An unknown error occurred while listing pending verifications.",
           });
         }
       }),
@@ -204,7 +212,8 @@ export function createVerificationProcedures(t: TRPCInstance) {
       .input(updateVerificationStatusInputSchema)
       .output(updateVerificationStatusOutputSchema)
       .mutation(async ({ input, ctx }) => {
-        const { verificationDocumentId, businessId, newStatus, adminNotes } = input;
+        const { verificationDocumentId, businessId, newStatus, adminNotes } =
+          input;
 
         try {
           // 1. Optional: Fetch verification document to ensure it exists before proceeding
@@ -218,21 +227,21 @@ export function createVerificationProcedures(t: TRPCInstance) {
           // This service function likely exists or needs creation/modification in BusinessService or VerificationService
           await VerificationService.updateBusinessVerificationStatus(
             businessId,
-            newStatus
+            newStatus,
           );
 
           // 3. If admin notes are provided, update the verification document record
-          if (adminNotes !== undefined) { // Check for undefined explicitly if optional
+          if (adminNotes !== undefined) {
+            // Check for undefined explicitly if optional
             // This service function needs to be implemented in VerificationService
             await VerificationService.updateVerificationAdminNotes(
               verificationDocumentId,
-              adminNotes // Pass null if adminNotes is empty string and you want to clear it
+              adminNotes, // Pass null if adminNotes is empty string and you want to clear it
             );
           }
 
           // 4. Return success
           return { success: true };
-
         } catch (error) {
           console.error("Error updating verification status:", error);
           if (error instanceof Error) {
@@ -245,7 +254,8 @@ export function createVerificationProcedures(t: TRPCInstance) {
           }
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: "An unknown error occurred while updating verification status.",
+            message:
+              "An unknown error occurred while updating verification status.",
           });
         }
       }),

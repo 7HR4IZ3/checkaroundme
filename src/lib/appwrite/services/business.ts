@@ -34,7 +34,7 @@ export const BusinessService = {
     >,
     userId: string,
     hours: { [key: string]: DaySchema },
-    images: { isPrimary: boolean; imageID: string }[]
+    images: { isPrimary: boolean; imageID: string }[],
   ): Promise<Business> {
     try {
       let coordinates = undefined;
@@ -53,7 +53,7 @@ export const BusinessService = {
             headers: {
               "User-Agent": "CheckAroundMe/1.0 (contact@checkaroundme.com)", // Replace with your app name and contact
             },
-          }
+          },
         );
 
         if (geocodeResponse.data && geocodeResponse.data.length > 0) {
@@ -65,19 +65,19 @@ export const BusinessService = {
           console.log(`Geocoded address "${address}" to`, coordinates);
         } else {
           console.warn(
-            `Could not geocode address: "${address}". No results found.`
+            `Could not geocode address: "${address}". No results found.`,
           );
         }
       } catch (error) {
         if (axios.isAxiosError(error)) {
           console.error(
             `Geocoding API error: ${error.message}`,
-            error.response?.data
+            error.response?.data,
           );
         } else {
           console.error(
             "An unexpected error occurred during geocoding:",
-            error
+            error,
           );
         }
         // Continue without coordinates if geocoding fails
@@ -98,14 +98,14 @@ export const BusinessService = {
           ownerId: userId,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        }
+        },
       );
 
       await BusinessHoursService.setBusinessHours(newBusiness.$id, hours);
 
       await BusinessImagesService.uploadTempImagesToBusiness(
         newBusiness.$id,
-        images
+        images,
       );
 
       return newBusiness as unknown as Business;
@@ -121,7 +121,7 @@ export const BusinessService = {
       const business = await databases.getDocument(
         DATABASE_ID,
         BUSINESSES_COLLECTION_ID,
-        businessId
+        businessId,
       );
 
       return business as unknown as Business;
@@ -137,7 +137,7 @@ export const BusinessService = {
     data: Partial<Business> & {
       hours?: { [key: string]: DaySchema };
       images?: { isPrimary: boolean; imageID: string }[];
-    }
+    },
   ): Promise<Business> {
     const { hours, images, ...business } = data;
     try {
@@ -148,18 +148,18 @@ export const BusinessService = {
         {
           ...business,
           updatedAt: new Date().toISOString(),
-        }
+        },
       );
 
       hours &&
         (await BusinessHoursService.setBusinessHours(
           updatedBusiness.$id,
-          hours
+          hours,
         ));
       images &&
         (await BusinessImagesService.uploadTempImagesToBusiness(
           updatedBusiness.$id,
-          images
+          images,
         ));
 
       return updatedBusiness as unknown as Business;
@@ -207,7 +207,7 @@ export const BusinessService = {
       // Add name/about search if query is provided
       if (query) {
         filters.push(
-          Query.or([Query.search("name", query), Query.search("about", query)])
+          Query.or([Query.search("name", query), Query.search("about", query)]),
         );
       }
 
@@ -220,7 +220,7 @@ export const BusinessService = {
             Query.search("city", location),
             Query.search("state", location),
             Query.search("country", location),
-          ])
+          ]),
         );
       }
 
@@ -280,7 +280,7 @@ export const BusinessService = {
           sortDirection === "asc"
             ? Query.orderAsc(sortBy)
             : Query.orderDesc(sortBy),
-        ]
+        ],
       );
 
       return {
@@ -302,7 +302,7 @@ export const BusinessService = {
     latitude: number,
     longitude: number,
     distance: number = 10, // in kilometers
-    limit: number = 10
+    limit: number = 10,
   ): Promise<Business[]> {
     try {
       // This is a simplified implementation. In a production system,
@@ -317,7 +317,7 @@ export const BusinessService = {
         [
           Query.limit(limit * 5), // Get more than we need to filter
           Query.orderDesc("rating"), // Sort by rating as a fallback
-        ]
+        ],
       );
 
       // Client-side filtering based on coordinates
@@ -350,7 +350,7 @@ export const BusinessService = {
       const { documents: businesses } = await databases.listDocuments(
         DATABASE_ID,
         BUSINESSES_COLLECTION_ID,
-        [Query.equal("ownerId", userId)]
+        [Query.equal("ownerId", userId)],
       );
 
       return businesses as unknown as Business[];

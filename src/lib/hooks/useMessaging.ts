@@ -14,10 +14,10 @@ interface ConversationWithDetails {
 export function useMessaging() {
   const { user } = useAuth();
   const [conversations, setConversations] = useState<ConversationWithDetails[]>(
-    []
+    [],
   );
   const [activeConversation, setActiveConversation] = useState<string | null>(
-    null
+    null,
   );
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,9 +87,8 @@ export function useMessaging() {
 
       try {
         setLoading(true);
-        const result = await MessageService.getConversationMessages(
-          activeConversation
-        );
+        const result =
+          await MessageService.getConversationMessages(activeConversation);
         setMessages(result.reverse()); // Reverse to get oldest first
 
         // Mark messages as read
@@ -100,8 +99,8 @@ export function useMessaging() {
           prev.map((conv) =>
             conv.conversation.$id === activeConversation
               ? { ...conv, unreadCount: 0 }
-              : conv
-          )
+              : conv,
+          ),
         );
       } catch (err) {
         console.error("Error loading messages:", err);
@@ -125,7 +124,7 @@ export function useMessaging() {
         activeConversation,
         user.$id,
         text,
-        image
+        image,
       );
 
       // Update messages list
@@ -139,8 +138,8 @@ export function useMessaging() {
                 ...conv,
                 lastMessage: newMessage,
               }
-            : conv
-        )
+            : conv,
+        ),
       );
 
       return newMessage;
@@ -154,7 +153,7 @@ export function useMessaging() {
   // Function to start a new conversation
   const startConversation = async (
     otherUserId: string,
-    initialMessage?: string
+    initialMessage?: string,
   ) => {
     if (!user) {
       throw new Error("User not authenticated");

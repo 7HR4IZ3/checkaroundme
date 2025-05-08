@@ -72,48 +72,53 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
   // }, [business]);
 
   return (
-    <div className=" bg-white rounded-lg shadow-xs overflow-hidden flex flex-row p-2 relative">
-      <div className="w-1/2 relative">
+    <div className="container bg-white rounded-lg shadow-xs overflow-hidden flex flex-row p-2 relative h-[21vh] md:h-auto">
+      <div className="w-1/2 md:w-40 relative">
         {isLoading || !image ? (
           <Skeleton />
         ) : (
           <Image
             src={image.imageUrl}
             alt={business.name}
-            object-fit="cover" fill
+            object-fit="contain"
+            fill
             className="rounded-xl bg-gray-200" // Background while loading
           />
         )}
       </div>
-      <div className="flex-grow px-4 py-4 flex flex-col justify-between">
-        <div className="flex flex-col justify-between">
+      <div className="flex-grow px-4 py-1 md:py-4 flex flex-col justify-between">
+        <div className="flex flex-col justify-between gap-1 md:gap-2">
           <div className="flex p-0 justify-between items-start">
             <Link href={`/business/${business.$id}`}>
-              <h3 className="text-lg font-semibold text-gray-800">
+              <h3 className="text-md md:text-xl font-semibold text-gray-800">
                 {business.name}
               </h3>
             </Link>
-            <div className="flex items-center text-xs w-30">
-              <FaMapMarkerAlt className="mr-1.5" />
-              <span>
-                {business.addressLine1},{" "}
-                {business.city},{" "}
+            <div className="hidden md:flex items-center text-xs w-30">
+              <FaMapMarkerAlt className="mr-1" />
+              <span className="text-xs">
+                {business.addressLine1}, {business.city}{" "}
                 {/* {business.state ? business.state + ", " : ""} */}
-                {business.country}
+                {/* {business.country} */}
               </span>
             </div>
           </div>
-          <div className="flex items-center mt-1 mb-2">
-            <RatingStars rating={business.rating} />
-            <span className="ml-2 text-sm font-bold text-gray-600 mr-2">
+          <div className="flex items-center h-5">
+            <span className="hidden md:block">
+              <RatingStars rating={business.rating} starSize={16} />
+            </span>
+            <span className="block md:hidden">
+              <RatingStars rating={business.rating} starSize={12} />
+            </span>
+            <span className="text-xs font-bold text-gray-600 m-2">
               {business.rating.toFixed(1)}
             </span>
-            <span>
+            <span className="text-xs font-bold text-gray-600">
               ({business.reviewCount}{" "}
               {business.reviewCount === 1 ? "review" : "reviews"})
             </span>
           </div>
-          <div className="flex flex-wrap gap-2 mb-1">
+          <div className="flex flex-wrap gap-2">
             {business.categories.map((category) => (
               <span
                 key={category}
@@ -123,7 +128,7 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
               </span>
             ))}
           </div>
-          <p className="text-sm leading-relaxed mb-1">
+          <p className="text-xs leading-relaxed">
             {business.about}..{" "}
             {/* <button className="text-blue-600 hover:underline text-sm">
               more
@@ -132,7 +137,13 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
         </div>
         {!hideButton && auth.isAuthenticated && (
           <div className="flex flex-row sm:items-center justify-end align-end mt-auto">
-            <Button size="sm" className="bg-[#2E57A9]" onClick={() => redirect(`/messages?recipient=${business.ownerId}`)}>
+            <Button
+              size="sm"
+              className="bg-[#2E57A9]"
+              onClick={() =>
+                redirect(`/messages?recipient=${business.ownerId}`)
+              }
+            >
               <FaCommentDots /> Write a message
             </Button>
           </div>

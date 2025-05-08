@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
       // Check if user object exists in the result
       return NextResponse.json(
         { error: { message: "Unauthorized", code: "UNAUTHORIZED" } },
-        { status: 401 }
+        { status: 401 },
       );
     }
     const userId = authResult.user.$id; // Get user ID from the authenticated user object
@@ -26,13 +26,13 @@ export async function POST(req: NextRequest) {
     if (!file) {
       return NextResponse.json(
         { error: "No verification document file uploaded" },
-        { status: 400 }
+        { status: 400 },
       );
     }
     if (!businessId) {
       return NextResponse.json(
         { error: "Business ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     // Note: We pass userId for potential logging or permissions in the service
     const fileId = await VerificationService.uploadVerificationDocument(
       file,
-      userId
+      userId,
     );
 
     // 5. Return the File ID
@@ -53,28 +53,28 @@ export async function POST(req: NextRequest) {
       const httpCode = getHTTPStatusCodeFromError(cause);
       return NextResponse.json(
         { error: { message: cause.message, code: cause.code } },
-        { status: httpCode }
+        { status: httpCode },
       );
     }
     // Handle errors from VerificationService or other issues
     if (cause instanceof Error) {
       console.error(
         "Error uploading verification document via API route:",
-        cause
+        cause,
       );
       return NextResponse.json(
         {
           error:
             cause.message || "Internal server error during document upload",
         },
-        { status: 500 }
+        { status: 500 },
       );
     }
     // Fallback for unknown errors
     console.error("Unknown error uploading verification document:", cause);
     return NextResponse.json(
       { error: "Internal server error during document upload" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

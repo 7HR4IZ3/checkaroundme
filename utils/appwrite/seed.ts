@@ -59,7 +59,7 @@ async function seedCategories() {
     const existing = await databases.listDocuments(
       DATABASE_ID,
       CATEGORIES_COLLECTION_ID,
-      [Query.equal("name", cat.name)]
+      [Query.equal("name", cat.name)],
     );
     if (existing.total > 0) {
       console.log(`Category '${cat.name}' already exists.`);
@@ -69,7 +69,7 @@ async function seedCategories() {
       DATABASE_ID,
       CATEGORIES_COLLECTION_ID,
       ID.unique(),
-      cat
+      cat,
     );
     console.log(`Category '${cat.name}' created.`);
   }
@@ -117,7 +117,7 @@ async function seedUsers() {
     const existing = await databases.listDocuments(
       DATABASE_ID,
       USERS_COLLECTION_ID,
-      [Query.equal("phone", user.phone)]
+      [Query.equal("phone", user.phone)],
     );
     if (existing.total > 0) {
       console.log(`User '${user.fullName}' already exists.`);
@@ -127,7 +127,7 @@ async function seedUsers() {
       DATABASE_ID,
       USERS_COLLECTION_ID,
       ID.unique(),
-      user
+      user,
     );
     console.log(`User '${user.fullName}' created.`);
   }
@@ -138,16 +138,16 @@ async function seedBusinesses() {
   const users = await databases.listDocuments(
     DATABASE_ID,
     USERS_COLLECTION_ID,
-    [Query.limit(5)]
+    [Query.limit(5)],
   );
   const categories = await databases.listDocuments(
     DATABASE_ID,
     CATEGORIES_COLLECTION_ID,
-    [Query.limit(5)]
+    [Query.limit(5)],
   );
   if (users.total === 0 || categories.total === 0) {
     console.log(
-      "Cannot seed businesses: need at least one user and one category."
+      "Cannot seed businesses: need at least one user and one category.",
     );
     return;
   }
@@ -236,7 +236,7 @@ async function seedBusinesses() {
       state: "Oyo",
       country: "Nigeria",
       postalCode: "200001",
-      coordinates: JSON.stringify({ latitude: 7.3775, longitude: 3.9470 }),
+      coordinates: JSON.stringify({ latitude: 7.3775, longitude: 3.947 }),
       phone: "+2348098765432",
       email: "hello@bookhaven.com",
       website: "https://bookhaven.com",
@@ -273,7 +273,7 @@ async function seedBusinesses() {
     const existing = await databases.listDocuments(
       DATABASE_ID,
       BUSINESSES_COLLECTION_ID,
-      [Query.equal("name", biz.name)]
+      [Query.equal("name", biz.name)],
     );
     if (existing.total > 0) {
       console.log(`Business '${biz.name}' already exists.`);
@@ -283,7 +283,7 @@ async function seedBusinesses() {
       DATABASE_ID,
       BUSINESSES_COLLECTION_ID,
       ID.unique(),
-      biz
+      biz,
     );
     console.log(`Business '${biz.name}' created.`);
   }
@@ -293,7 +293,7 @@ async function seedBusinessHours() {
   const businesses = await databases.listDocuments(
     DATABASE_ID,
     BUSINESSES_COLLECTION_ID,
-    [Query.limit(5)]
+    [Query.limit(5)],
   );
   if (businesses.total === 0) {
     console.log("Cannot seed business hours: need at least one business.");
@@ -313,7 +313,7 @@ async function seedBusinessHours() {
       const existing = await databases.listDocuments(
         DATABASE_ID,
         BUSINESS_HOURS_COLLECTION_ID,
-        [Query.equal("businessId", business.$id), Query.equal("day", d.day)]
+        [Query.equal("businessId", business.$id), Query.equal("day", d.day)],
       );
       if (existing.total > 0) {
         continue;
@@ -325,7 +325,7 @@ async function seedBusinessHours() {
         {
           businessId: business.$id,
           ...d,
-        }
+        },
       );
     }
     console.log(`Business hours for '${business.name}' created.`);
@@ -336,15 +336,17 @@ async function seedBusinessImages() {
   const businesses = await databases.listDocuments(
     DATABASE_ID,
     BUSINESSES_COLLECTION_ID,
-    [Query.limit(5)]
+    [Query.limit(5)],
   );
   const users = await databases.listDocuments(
     DATABASE_ID,
     USERS_COLLECTION_ID,
-    [Query.limit(5)]
+    [Query.limit(5)],
   );
   if (businesses.total === 0 || users.total === 0) {
-    console.log("Cannot seed business images: need at least one business and one user.");
+    console.log(
+      "Cannot seed business images: need at least one business and one user.",
+    );
     return;
   }
   const demoImages = [
@@ -371,7 +373,10 @@ async function seedBusinessImages() {
       const existing = await databases.listDocuments(
         DATABASE_ID,
         BUSINESS_IMAGES_COLLECTION_ID,
-        [Query.equal("businessId", business.$id), Query.equal("title", img.title)]
+        [
+          Query.equal("businessId", business.$id),
+          Query.equal("title", img.title),
+        ],
       );
       if (existing.total > 0) {
         continue;
@@ -387,7 +392,7 @@ async function seedBusinessImages() {
           isPrimary: img.isPrimary,
           uploadedBy,
           createdAt: new Date().toISOString(),
-        }
+        },
       );
     }
     console.log(`Business images for '${business.name}' created.`);
@@ -398,7 +403,7 @@ async function seedConversations() {
   const users = await databases.listDocuments(
     DATABASE_ID,
     USERS_COLLECTION_ID,
-    [Query.limit(5)]
+    [Query.limit(5)],
   );
   if (users.total < 2) {
     console.log("Cannot seed conversations: need at least two users.");
@@ -411,14 +416,16 @@ async function seedConversations() {
       // Check for existing conversation with same participants
       const existing = await databases.listDocuments(
         DATABASE_ID,
-        CONVERSATIONS_COLLECTION_ID
+        CONVERSATIONS_COLLECTION_ID,
       );
       let found = false;
       for (const doc of existing.documents) {
         if (
           Array.isArray(doc.participants) &&
           doc.participants.length === participants.length &&
-          doc.participants.every((id: string, idx: number) => id === participants[idx])
+          doc.participants.every(
+            (id: string, idx: number) => id === participants[idx],
+          )
         ) {
           found = true;
           break;
@@ -434,7 +441,7 @@ async function seedConversations() {
           lastMessageId: null,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        }
+        },
       );
     }
   }
@@ -445,15 +452,17 @@ async function seedMessages() {
   const conversations = await databases.listDocuments(
     DATABASE_ID,
     CONVERSATIONS_COLLECTION_ID,
-    [Query.limit(10)]
+    [Query.limit(10)],
   );
   const users = await databases.listDocuments(
     DATABASE_ID,
     USERS_COLLECTION_ID,
-    [Query.limit(5)]
+    [Query.limit(5)],
   );
   if (conversations.total === 0 || users.total === 0) {
-    console.log("Cannot seed messages: need at least one conversation and one user.");
+    console.log(
+      "Cannot seed messages: need at least one conversation and one user.",
+    );
     return;
   }
   const demoMessages = [
@@ -470,7 +479,11 @@ async function seedMessages() {
       const existing = await databases.listDocuments(
         DATABASE_ID,
         MESSAGES_COLLECTION_ID,
-        [Query.equal("conversationId", conv.$id), Query.equal("senderId", senderId), Query.equal("text", text)]
+        [
+          Query.equal("conversationId", conv.$id),
+          Query.equal("senderId", senderId),
+          Query.equal("text", text),
+        ],
       );
       if (existing.total > 0) continue;
       await databases.createDocument(
@@ -486,7 +499,7 @@ async function seedMessages() {
           imageSize: "",
           isRead: false,
           createdAt: new Date().toISOString(),
-        }
+        },
       );
     }
   }
@@ -497,16 +510,18 @@ async function seedReviews() {
   const businesses = await databases.listDocuments(
     DATABASE_ID,
     BUSINESSES_COLLECTION_ID,
-    [Query.limit(5)] // Ensure we have businesses to link reviews to
+    [Query.limit(5)], // Ensure we have businesses to link reviews to
   );
   const users = await databases.listDocuments(
     DATABASE_ID,
     USERS_COLLECTION_ID,
-    [Query.limit(5)] // Ensure we have users to write reviews
+    [Query.limit(5)], // Ensure we have users to write reviews
   );
 
   if (businesses.total === 0 || users.total === 0) {
-    console.log("Cannot seed reviews: need at least one business and one user.");
+    console.log(
+      "Cannot seed reviews: need at least one business and one user.",
+    );
     return;
   }
 
@@ -609,7 +624,7 @@ async function seedReviews() {
       reviewData.userIndex >= allUsers.length
     ) {
       console.warn(
-        `Skipping review due to invalid index: Business ${reviewData.businessIndex}, User ${reviewData.userIndex}`
+        `Skipping review due to invalid index: Business ${reviewData.businessIndex}, User ${reviewData.userIndex}`,
       );
       continue;
     }
@@ -621,7 +636,10 @@ async function seedReviews() {
     const existing = await databases.listDocuments(
       DATABASE_ID,
       REVIEWS_COLLECTION_ID,
-      [Query.equal("businessId", business.$id), Query.equal("userId", user.$id)]
+      [
+        Query.equal("businessId", business.$id),
+        Query.equal("userId", user.$id),
+      ],
     );
 
     if (existing.total > 0) {
@@ -643,18 +661,18 @@ async function seedReviews() {
           text: reviewData.text,
           recommendation: reviewData.recommendation,
           createdAt: new Date(
-            Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000 // Random date within last 30 days
+            Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000, // Random date within last 30 days
           ).toISOString(),
           updatedAt: new Date().toISOString(),
           likes: reviewData.likes,
           dislikes: reviewData.dislikes,
-        }
+        },
       );
       createdCount++;
     } catch (error) {
       console.error(
         `Failed to create review for ${business.name} by ${user.fullName}:`,
-        error
+        error,
       );
     }
   }
@@ -665,15 +683,17 @@ async function seedReviewReactions() {
   const reviews = await databases.listDocuments(
     DATABASE_ID,
     REVIEWS_COLLECTION_ID,
-    [Query.limit(10)]
+    [Query.limit(10)],
   );
   const users = await databases.listDocuments(
     DATABASE_ID,
     USERS_COLLECTION_ID,
-    [Query.limit(5)]
+    [Query.limit(5)],
   );
   if (reviews.total === 0 || users.total === 0) {
-    console.log("Cannot seed review reactions: need at least one review and one user.");
+    console.log(
+      "Cannot seed review reactions: need at least one review and one user.",
+    );
     return;
   }
   const types = ["like", "dislike"];
@@ -685,7 +705,7 @@ async function seedReviewReactions() {
       const existing = await databases.listDocuments(
         DATABASE_ID,
         REVIEW_REACTIONS_COLLECTION_ID,
-        [Query.equal("reviewId", review.$id), Query.equal("userId", user.$id)]
+        [Query.equal("reviewId", review.$id), Query.equal("userId", user.$id)],
       );
       if (existing.total > 0) continue;
       await databases.createDocument(
@@ -697,7 +717,7 @@ async function seedReviewReactions() {
           userId: user.$id,
           type,
           createdAt: new Date().toISOString(),
-        }
+        },
       );
     }
   }

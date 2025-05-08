@@ -21,7 +21,7 @@ const VERIFICATION_COLLECTION_ID = "verifications";
 const VERIFICATION_BUCKET_ID = "67fc0ef9000e1bba4e5d";
 
 async function getUserDetails(
-  userId: string
+  userId: string,
 ): Promise<Partial<Models.User<Models.Preferences>> | null> {
   try {
     // Assuming AuthService.getUserById exists or implement direct fetch
@@ -30,7 +30,7 @@ async function getUserDetails(
     const user = await databases.getDocument(
       DATABASE_ID,
       USERS_COLLECTION_ID,
-      userId
+      userId,
     );
     return { $id: user.$id, name: user.name, email: user.email }; // Return only needed fields
   } catch (error) {
@@ -41,7 +41,7 @@ async function getUserDetails(
 
 // Helper function to safely get business details
 async function getBusinessDetails(
-  businessId: string
+  businessId: string,
 ): Promise<Partial<Business & Models.Document> | null> {
   try {
     // Use BusinessService or direct fetch
@@ -67,16 +67,16 @@ export const VerificationService = {
    */
   async uploadVerificationDocument(
     file: File,
-    userId: string
+    userId: string,
   ): Promise<string> {
     console.log(
-      `Uploading verification document "${file.name}" for user ${userId} to bucket ${VERIFICATION_BUCKET_ID}`
+      `Uploading verification document "${file.name}" for user ${userId} to bucket ${VERIFICATION_BUCKET_ID}`,
     );
     try {
       const response = await storage.createFile(
         VERIFICATION_BUCKET_ID,
         ID.unique(), // Let Appwrite generate a unique ID
-        file
+        file,
         // TODO: Add permissions if necessary, e.g., read access for specific admin roles
         // [Permission.read(Role.team('admins'))]
       );
@@ -98,10 +98,10 @@ export const VerificationService = {
   async createVerificationDocumentRecord(
     businessId: string,
     userId: string,
-    documentFileId: string
+    documentFileId: string,
   ): Promise<Models.Document & VerificationDocument> {
     console.log(
-      `Creating verification document record for business ${businessId}, user ${userId}, file ${documentFileId}`
+      `Creating verification document record for business ${businessId}, user ${userId}, file ${documentFileId}`,
     );
     try {
       // Prepare data according to schema (excluding fields Appwrite handles)
@@ -121,7 +121,7 @@ export const VerificationService = {
         DATABASE_ID,
         VERIFICATION_COLLECTION_ID,
         ID.unique(),
-        docData
+        docData,
       );
       console.log(`Verification document record created: ${document.$id}`);
       // Cast the result to the combined type
@@ -139,10 +139,10 @@ export const VerificationService = {
    */
   async updateBusinessVerificationStatus(
     businessId: string,
-    status: Business["verificationStatus"]
+    status: Business["verificationStatus"],
   ): Promise<void> {
     console.log(
-      `Updating verification status for business ${businessId} to ${status}`
+      `Updating verification status for business ${businessId} to ${status}`,
     );
     try {
       await BusinessService.updateBusiness(businessId, {
@@ -170,7 +170,7 @@ export const VerificationService = {
    */
   async isUserBusinessOwner(
     userId: string,
-    businessId: string
+    businessId: string,
   ): Promise<boolean> {
     try {
       const business = await BusinessService.getBusinessById(businessId);
@@ -179,7 +179,7 @@ export const VerificationService = {
       // If business not found or other error, assume not owner
       console.error(
         `Error checking business ownership for user ${userId}, business ${businessId}:`,
-        error
+        error,
       );
       return false;
     }
@@ -198,7 +198,7 @@ export const VerificationService = {
       const pendingBusinesses = await databases.listDocuments(
         DATABASE_ID,
         BUSINESSES_COLLECTION_ID,
-        [Query.equal("verificationStatus", "pending")]
+        [Query.equal("verificationStatus", "pending")],
       );
 
       if (pendingBusinesses.total === 0) {
@@ -207,7 +207,7 @@ export const VerificationService = {
       }
 
       const pendingBusinessIds = pendingBusinesses.documents.map(
-        (doc) => doc.$id
+        (doc) => doc.$id,
       );
 
       // 2. Fetch verification documents linked to these businesses
@@ -218,14 +218,14 @@ export const VerificationService = {
         Models.Document & VerificationDocument
       >(
         DATABASE_ID,
-        VERIFICATION_COLLECTION_ID
+        VERIFICATION_COLLECTION_ID,
         // Add query for status='pending' on the verification doc itself if applicable
         // [Query.limit(100)] // Add pagination/limits for production
       );
 
       // Filter verification docs belonging to pending businesses
       const relevantVerificationDocs = allVerificationDocs.documents.filter(
-        (doc) => pendingBusinessIds.includes(doc.business)
+        (doc) => pendingBusinessIds.includes(doc.business),
       );
 
       if (relevantVerificationDocs.length === 0) {
@@ -234,7 +234,7 @@ export const VerificationService = {
       }
 
       console.log(
-        `Found ${relevantVerificationDocs.length} relevant verification documents.`
+        `Found ${relevantVerificationDocs.length} relevant verification documents.`,
       );
 
       // 3. Enrich each document with related data
@@ -248,13 +248,13 @@ export const VerificationService = {
             // Generate a temporary URL to view the file (adjust expiration as needed)
             const url = await storage.getFileView(
               VERIFICATION_BUCKET_ID,
-              doc.documentFileId
+              doc.documentFileId,
             );
             documentFileUrl = url.toString();
           } catch (fileError) {
             console.error(
               `Error getting file view URL for ${doc.documentFileId}:`,
-              fileError
+              fileError,
             );
             // Handle cases where the file might be missing or inaccessible
           }
@@ -289,16 +289,16 @@ export const VerificationService = {
               : null,
             documentFileUrl: documentFileUrl,
           };
-        })
+        }),
       );
 
       // Filter out any entries where essential data couldn't be fetched (optional)
       const validVerifications = detailedVerifications.filter(
-        (v) => v.business && v.user && v.documentFileUrl
+        (v) => v.business && v.user && v.documentFileUrl,
       );
 
       console.log(
-        `Returning ${validVerifications.length} detailed pending verifications.`
+        `Returning ${validVerifications.length} detailed pending verifications.`,
       );
       return validVerifications;
     } catch (error) {
@@ -315,26 +315,26 @@ export const VerificationService = {
    */
   async updateVerificationAdminNotes(
     verificationDocumentId: string,
-    adminNotes: string | null
+    adminNotes: string | null,
   ): Promise<Models.Document> {
     console.log(
-      `Updating admin notes for verification document ${verificationDocumentId}`
+      `Updating admin notes for verification document ${verificationDocumentId}`,
     );
     try {
       const updatedDocument = await databases.updateDocument(
         DATABASE_ID,
         VERIFICATION_COLLECTION_ID,
         verificationDocumentId,
-        { adminNotes: adminNotes } // Pass null to clear the field if desired
+        { adminNotes: adminNotes }, // Pass null to clear the field if desired
       );
       console.log(
-        `Admin notes updated successfully for ${verificationDocumentId}`
+        `Admin notes updated successfully for ${verificationDocumentId}`,
       );
       return updatedDocument;
     } catch (error) {
       console.error(
         `Error updating admin notes for ${verificationDocumentId}:`,
-        error
+        error,
       );
       throw new Error("Failed to update verification admin notes.");
     }

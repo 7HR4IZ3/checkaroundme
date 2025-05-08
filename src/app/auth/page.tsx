@@ -86,8 +86,8 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
         setPasswordError(error.message || "An unexpected error occurred.");
       }
       toast.error("Error logging in", {
-        description: error.message || "An unexpected error occurred."
-      })
+        description: error.message || "An unexpected error occurred.",
+      });
     } finally {
       resetCaptcha();
     }
@@ -199,7 +199,12 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
         <Button
           type="submit"
           className="w-full mt-6 h-11"
-          disabled={!termsAccepted || !captchaToken || login.isPending || googleLogin.isPending}
+          disabled={
+            !termsAccepted ||
+            !captchaToken ||
+            login.isPending ||
+            googleLogin.isPending
+          }
         >
           {login.isPending ? (
             <svg
@@ -240,7 +245,12 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
         variant="outline"
         className="w-full h-11 bg-black text-white hover:bg-gray-800 hover:text-white"
         onClick={handleGoogleSignIn}
-        disabled={!termsAccepted || !captchaToken || login.isPending || googleLogin.isPending}
+        disabled={
+          !termsAccepted ||
+          !captchaToken ||
+          login.isPending ||
+          googleLogin.isPending
+        }
       >
         <FaGoogle />
         <span className="ml-2">Login with Google</span>
@@ -326,7 +336,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
         password,
         phone,
         captchaToken,
-        login: true
+        login: true,
       });
 
       if (result.success) {
@@ -508,7 +518,8 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
           type="submit"
           className="w-full mt-6 h-11"
           disabled={
-            !termsAccepted || !captchaToken ||
+            !termsAccepted ||
+            !captchaToken ||
             login.isPending ||
             googleLogin.isPending ||
             register.isPending
@@ -554,7 +565,8 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
         className="w-full h-11 bg-black text-white hover:bg-gray-800 hover:text-white"
         onClick={handleGoogleSignIn}
         disabled={
-          !termsAccepted || !captchaToken ||
+          !termsAccepted ||
+          !captchaToken ||
           login.isPending ||
           googleLogin.isPending ||
           register.isPending

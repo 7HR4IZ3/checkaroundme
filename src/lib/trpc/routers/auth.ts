@@ -8,15 +8,15 @@ export function createAuthProcedures(
     typeof import("@trpc/server").initTRPC.create<{
       transformer: typeof SuperJSON;
     }>
-  >
+  >,
 ) {
   async function verifyCaptcha(
-    token: string
+    token: string,
   ): Promise<{ success: boolean; score?: number; "error-codes"?: string[] }> {
     const secretKey = process.env.RECAPTCHA_SECRET_KEY;
     if (!secretKey) {
       console.error(
-        "RECAPTCHA_SECRET_KEY is not set in environment variables."
+        "RECAPTCHA_SECRET_KEY is not set in environment variables.",
       );
       // Depending on security policy, either fail open or closed. Failing closed is safer.
       throw new TRPCError({
@@ -56,7 +56,7 @@ export function createAuthProcedures(
           phone: z.string().optional(),
           login: z.boolean().default(true),
           captchaToken: z.string(), // Added captcha token
-        })
+        }),
       )
       .mutation(async ({ input }) => {
         const captchaResult = await verifyCaptcha(input.captchaToken);
@@ -72,7 +72,7 @@ export function createAuthProcedures(
           input.email,
           input.password,
           input.name,
-          input.phone
+          input.phone,
         );
 
         if (input.login) {
@@ -88,7 +88,7 @@ export function createAuthProcedures(
           email: z.string().email(),
           password: z.string().min(6),
           captchaToken: z.string(),
-        })
+        }),
       )
       .mutation(async ({ input }) => {
         const captchaResult = await verifyCaptcha(input.captchaToken);
@@ -108,7 +108,7 @@ export function createAuthProcedures(
         z.object({
           redirectUrl: z.string().url(),
           captchaToken: z.string(),
-        })
+        }),
       )
       .mutation(async ({ input }) => {
         const captchaResult = await verifyCaptcha(input.captchaToken);
@@ -127,7 +127,7 @@ export function createAuthProcedures(
       .input(
         z.object({
           email: z.string().email(),
-        })
+        }),
       )
       .mutation(async ({ input }) => {
         // TODO: Implement AuthService.requestPasswordReset in src/lib/appwrite/index.ts (or relevant file)
@@ -158,12 +158,12 @@ export function createAuthProcedures(
         z.object({
           userId: z.string(),
           secret: z.string(),
-        })
+        }),
       )
       .mutation(async ({ input }) => {
         return await AuthService.completeOauth2Login(
           input.userId,
-          input.secret
+          input.secret,
         );
       }),
 
@@ -177,7 +177,7 @@ export function createAuthProcedures(
           userId: z.string(),
           secret: z.string(),
           password: z.string().min(6), // Ensure password meets minimum length
-        })
+        }),
       )
       .mutation(async ({ input }) => {
         // TODO: Implement AuthService.resetPassword in src/lib/appwrite/index.ts (or relevant file)
@@ -188,7 +188,7 @@ export function createAuthProcedures(
           await AuthService.resetPassword(
             input.userId,
             input.secret,
-            input.password
+            input.password,
           );
           return { success: true };
         } catch (error: any) {

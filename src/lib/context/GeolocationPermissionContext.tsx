@@ -28,11 +28,11 @@ export const GeolocationPermissionProvider: React.FC<{
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [doNotAskAgain, setDoNotAskAgain] = useState(
     typeof window !== "undefined" &&
-      window.localStorage.getItem(DO_NOT_ASK_AGAIN_KEY) === "true"
+      window.localStorage.getItem(DO_NOT_ASK_AGAIN_KEY) === "true",
   );
   const [maybeLater, setMaybeLater] = useState(
     typeof window !== "undefined" &&
-      window.sessionStorage.getItem(MAYBE_LATER_KEY) === "true"
+      window.sessionStorage.getItem(MAYBE_LATER_KEY) === "true",
   );
 
   // useEffect(() => {
@@ -94,7 +94,7 @@ export const useGeolocationPermission = () => {
   const context = useContext(GeolocationPermissionContext);
   if (context === undefined) {
     throw new Error(
-      "useGeolocationPermission must be used within a GeolocationPermissionProvider"
+      "useGeolocationPermission must be used within a GeolocationPermissionProvider",
     );
   }
   return context;

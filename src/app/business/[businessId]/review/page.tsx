@@ -36,7 +36,6 @@ export default function ReviewForm() {
     return <Loading />;
   }
 
-
   const handlePostReview = async () => {
     setRatingError("");
     setReviewTextError("");
@@ -71,7 +70,7 @@ export default function ReviewForm() {
         }
       } else {
         toast.error("Review Submission Failed", {
-          description: error.message || "An unexpected error occurred."
+          description: error.message || "An unexpected error occurred.",
         });
       }
     } finally {

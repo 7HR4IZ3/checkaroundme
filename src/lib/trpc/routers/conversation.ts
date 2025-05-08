@@ -9,14 +9,14 @@ export function createConversationProcedures(
     typeof import("@trpc/server").initTRPC.create<{
       transformer: typeof SuperJSON;
     }>
-  >
+  >,
 ) {
   return {
     getOrCreateConversation: t.procedure
       .input(
         z.object({
           userIds: z.array(z.string()),
-        })
+        }),
       )
       // .output(conversationSchema)
       .mutation(async ({ input }) => {
@@ -27,7 +27,7 @@ export function createConversationProcedures(
       .input(
         z.object({
           userId: z.string(),
-        })
+        }),
       )
       // .output(
       //   z.object({

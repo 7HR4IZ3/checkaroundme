@@ -34,30 +34,33 @@ function ForgotPasswordForm() {
       const result = await forgotPassword.mutateAsync({ email });
       console.log("Password reset request result:", result);
 
-      if (result.success) { // Adjust based on your API response
+      if (result.success) {
+        // Adjust based on your API response
         toast("Password Reset Email Sent", {
           description: "Please check your email for instructions.",
         });
         // Optionally redirect or show a success message state
         // router.push('/auth'); // Example redirect
       } else {
-        toast("Request Failed", { description: result.message || "Could not send reset email." });
+        toast("Request Failed", {
+          description: result.message || "Could not send reset email.",
+        });
       }
     } catch (error: any) {
       console.error("Password reset request error:", error);
       if (error.data?.httpStatus === 400) {
         // Handle validation errors specifically for email if needed
-         const errors = JSON.parse(error.message);
-         for (const item of errors) {
-           if (item.path[0] === "email") {
-             setEmailError(item.message);
-             break; // Assuming only one email error
-           }
-         }
-         // If no specific email error, show a generic one
-         if (!emailError) {
-            setEmailError(error.message || "An unexpected error occurred.");
-         }
+        const errors = JSON.parse(error.message);
+        for (const item of errors) {
+          if (item.path[0] === "email") {
+            setEmailError(item.message);
+            break; // Assuming only one email error
+          }
+        }
+        // If no specific email error, show a generic one
+        if (!emailError) {
+          setEmailError(error.message || "An unexpected error occurred.");
+        }
       } else {
         setEmailError(error.message || "An unexpected error occurred.");
       }
@@ -163,7 +166,7 @@ function ForgotPasswordPageInner() {
         {/* Form container */}
         <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 lg:p-16 h-[80vh]">
           <div className="w-full max-w-md space-y-6">
-             <ForgotPasswordForm />
+            <ForgotPasswordForm />
           </div>
         </div>
 

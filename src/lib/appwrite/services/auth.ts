@@ -1,14 +1,6 @@
-import {
-  Account,
-  ID,
-  Models,
-  OAuthProvider,
-} from "node-appwrite";
+import { Account, ID, Models, OAuthProvider } from "node-appwrite";
 import { cookies } from "next/headers";
-import {
-  User,
-  AuthSession,
-} from "../../schema";
+import { User, AuthSession } from "../../schema";
 
 import { createAdminClient } from "../admin";
 import { createSessionClient } from "../session";
@@ -23,7 +15,7 @@ export const AuthService = {
     email: string,
     password: string,
     name: string,
-    phone?: string
+    phone?: string,
   ): Promise<User> {
     try {
       // Create user account
@@ -31,7 +23,7 @@ export const AuthService = {
         ID.unique(),
         email,
         password,
-        name
+        name,
       );
 
       // Create user profile in database
@@ -45,7 +37,7 @@ export const AuthService = {
           avatarUrl: null,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        }
+        },
       );
 
       return newUser as unknown as User;
@@ -83,7 +75,7 @@ export const AuthService = {
       return await account.createOAuth2Token(
         OAuthProvider.Google,
         redirectUrl,
-        `${redirectUrl}?failure=true`
+        `${redirectUrl}?failure=true`,
       );
     } catch (error) {
       console.error("Google login error:", error);
@@ -108,7 +100,7 @@ export const AuthService = {
             avatarUrl: null,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
-          }
+          },
         );
       }
 
@@ -137,7 +129,7 @@ export const AuthService = {
   } | null> {
     try {
       const session = await cookies().then((cookies) =>
-        cookies.get("cham_appwrite_session")
+        cookies.get("cham_appwrite_session"),
       );
 
       if (!session?.value) {
@@ -150,7 +142,7 @@ export const AuthService = {
       const profile = await databases.getDocument(
         DATABASE_ID,
         USERS_COLLECTION_ID,
-        user.$id
+        user.$id,
       );
 
       return { user, profile } as unknown as {
@@ -168,7 +160,7 @@ export const AuthService = {
     try {
       const { account } = await createAdminClient();
       const session = await cookies().then((cookies) =>
-        cookies.get("cham_appwrite_session")
+        cookies.get("cham_appwrite_session"),
       );
 
       if (!session?.value) {
@@ -203,7 +195,7 @@ export const AuthService = {
   async resetPassword(
     userId: string,
     secret: string,
-    password: string
+    password: string,
   ): Promise<void> {
     try {
       // Appwrite's updateRecovery completes the password reset

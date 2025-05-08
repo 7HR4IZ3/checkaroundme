@@ -1,12 +1,6 @@
-import {
-  ID,
-  Query,
-} from "node-appwrite";
+import { ID, Query } from "node-appwrite";
 
-import {
-  BusinessHours,
-  DaySchema,
-} from "../../schema"; // Corrected schema import path
+import { BusinessHours, DaySchema } from "../../schema"; // Corrected schema import path
 
 import { databases, DATABASE_ID, BUSINESS_HOURS_COLLECTION_ID } from "../index"; // Assuming databases and constants remain in index.ts
 
@@ -15,13 +9,13 @@ export const BusinessHoursService = {
   // Add/update business hours
   async setBusinessHours(
     businessId: string,
-    hours: { [key: string]: DaySchema }
+    hours: { [key: string]: DaySchema },
   ): Promise<BusinessHours[]> {
     try {
       const existing = await databases.listDocuments(
         DATABASE_ID,
         BUSINESS_HOURS_COLLECTION_ID,
-        [Query.equal("businessId", businessId)]
+        [Query.equal("businessId", businessId)],
       );
 
       // Delete old hours
@@ -29,7 +23,7 @@ export const BusinessHoursService = {
         await databases.deleteDocument(
           DATABASE_ID,
           BUSINESS_HOURS_COLLECTION_ID,
-          doc.$id
+          doc.$id,
         );
       }
 
@@ -46,7 +40,7 @@ export const BusinessHoursService = {
             openTime: hours[hour].open,
             closeTime: hours[hour].close,
             isClosed: hours[hour].closed,
-          }
+          },
         );
 
         results.push(newHour);
@@ -65,7 +59,7 @@ export const BusinessHoursService = {
       const result = await databases.listDocuments(
         DATABASE_ID,
         BUSINESS_HOURS_COLLECTION_ID,
-        [Query.equal("businessId", businessId)]
+        [Query.equal("businessId", businessId)],
       );
 
       return result.documents as unknown as BusinessHours[];

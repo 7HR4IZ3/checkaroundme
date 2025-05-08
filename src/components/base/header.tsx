@@ -32,14 +32,13 @@ const Header = () => {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
-  
 
   const [search, setSearch] = useState(params.get("query") || "");
   const [location, setLocation] = useState(params.get("location") || "");
 
   const { data: businesses, isLoading } = trpc.getBusinessesByUserId.useQuery(
     { userId: auth.user?.$id || "" },
-    { enabled: auth.isAuthenticated && !!auth.user?.$id }
+    { enabled: auth.isAuthenticated && !!auth.user?.$id },
   );
 
   // Handler to perform search

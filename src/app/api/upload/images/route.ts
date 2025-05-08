@@ -16,7 +16,11 @@ export async function POST(req: NextRequest) {
 
   try {
     // Call the tRPC mutation, passing the File object directly
-    const result = await BusinessImagesService.uploadTempBusinessImage(files, userID, businessId);
+    const result = await BusinessImagesService.uploadTempBusinessImage(
+      files,
+      userID,
+      businessId,
+    );
     return NextResponse.json(result);
   } catch (cause) {
     if (cause instanceof TRPCError) {
@@ -24,14 +28,14 @@ export async function POST(req: NextRequest) {
       const httpCode = getHTTPStatusCodeFromError(cause);
       return NextResponse.json(
         { error: { message: cause.message, code: cause.code } },
-        { status: httpCode }
+        { status: httpCode },
       );
     }
     // Handle other unexpected errors
     console.error("Error uploading image via API route:", cause);
     return NextResponse.json(
       { error: "Internal server error during image upload" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

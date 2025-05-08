@@ -25,7 +25,7 @@ export function UserNav() {
 
   const { data: businesses, isLoading } = trpc.getBusinessesByUserId.useQuery(
     { userId: auth.user?.$id || "" },
-    { enabled: auth.isAuthenticated && !!auth.user?.$id }
+    { enabled: auth.isAuthenticated && !!auth.user?.$id },
   );
 
   if (!auth.profile || !auth.user) return null;
@@ -62,13 +62,10 @@ export function UserNav() {
           {/* Profile Section */}
           <div className="flex items-center space-x-3 p-2 mb-2">
             <Avatar className="h-9 w-9">
-              <AvatarImage
-                src={auth.profile.avatarUrl}
-                alt={auth.user.name}
-              />
+              <AvatarImage src={auth.profile.avatarUrl} alt={auth.user.name} />
               <AvatarFallback>
-                {auth
-                  .user.name.split(" ")
+                {auth.user.name
+                  .split(" ")
                   .map((n) => n[0])
                   .join("")}
               </AvatarFallback>

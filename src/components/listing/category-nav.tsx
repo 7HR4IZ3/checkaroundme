@@ -90,16 +90,16 @@ const CategoryNav: React.FC<CategoryNavProps> = ({
   };
 
   return (
-    <nav className="bg-white border-b border-gray-200 py-3">
-      <div className="container mx-auto px-4 flex items-center justify-center space-x-4">
+    <nav className="container bg-white border-b border-gray-200 py-3">
+      <div className="mx-auto px-4 flex items-center justify-center space-x-4">
         {categories.slice(0, 5).map((category) => {
           const isSelected = selectedCategory === category.name;
           return (
             <button
-              key={category.$id}
               type="button"
+              key={category.$id}
               onClick={() => handleCategoryClick(category.name)}
-              className={`flex items-center space-x-2 p-2 px-3 rounded-full border transition
+              className={`flex items-center space-x-2 p-2 px-3 rounded-full border transition w-[15%]
                 ${
                   isSelected
                     ? "bg-blue-100 text-blue-700 border-blue-400 font-semibold"

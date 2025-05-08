@@ -9,7 +9,7 @@ export function createMessageProcedures(
     typeof import("@trpc/server").initTRPC.create<{
       transformer: typeof SuperJSON;
     }>
-  >
+  >,
 ) {
   return {
     sendMessage: t.procedure
@@ -19,7 +19,7 @@ export function createMessageProcedures(
           senderId: z.string(),
           text: z.string().optional(),
           image: z.any().optional(), // File upload handling may need to be adapted for your setup
-        })
+        }),
       )
       // .output(messageSchema)
       .mutation(async ({ input }) => {
@@ -28,7 +28,7 @@ export function createMessageProcedures(
           conversationId,
           senderId,
           text,
-          image
+          image,
         );
       }),
 
@@ -38,14 +38,14 @@ export function createMessageProcedures(
           conversationId: z.string(),
           limit: z.number().optional(),
           offset: z.number().optional(),
-        })
+        }),
       )
       // .output(z.array(messageSchema))
       .query(async ({ input }) => {
         return await MessageService.getConversationMessages(
           input.conversationId,
           input.limit,
-          input.offset
+          input.offset,
         );
       }),
 
@@ -54,13 +54,13 @@ export function createMessageProcedures(
         z.object({
           conversationId: z.string(),
           userId: z.string(),
-        })
+        }),
       )
       // .output(z.object({ success: z.boolean() }))
       .mutation(async ({ input }) => {
         await MessageService.markMessagesAsRead(
           input.conversationId,
-          input.userId
+          input.userId,
         );
         return { success: true };
       }),

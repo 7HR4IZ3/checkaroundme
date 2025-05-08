@@ -151,7 +151,7 @@ export default function MessagesPage() {
     refetch: refetchConversations, // Added refetch function
   } = trpc.getUserConversations.useQuery(
     { userId: currentUserId },
-    { enabled: !!currentUserId } // Only fetch if user ID is available
+    { enabled: !!currentUserId }, // Only fetch if user ID is available
   );
 
   const conversations = conversationsData?.conversations || [];
@@ -202,7 +202,7 @@ export default function MessagesPage() {
     refetch: refetchMessages,
   } = trpc.getConversationMessages.useQuery(
     { conversationId: selectedChatId! },
-    { enabled: !!selectedChatId } // Only fetch if a chat is selected
+    { enabled: !!selectedChatId }, // Only fetch if a chat is selected
   );
 
   const messages = messagesData || [];
@@ -225,14 +225,14 @@ export default function MessagesPage() {
 
   // Get the active chat conversation and the other participant's user data
   const activeChatConversation = conversations.find(
-    (conv) => conv.$id === selectedChatId
+    (conv) => conv.$id === selectedChatId,
   );
   const activeChatOtherParticipantId =
     activeChatConversation?.participants.find((p) => p !== currentUserId);
 
   const activeChatUser = activeChatConversation
     ? participantsData[activeChatConversation.$id]?.find(
-        (user) => user.$id === activeChatOtherParticipantId
+        (user) => user.$id === activeChatOtherParticipantId,
       )
     : null;
 
@@ -282,7 +282,7 @@ export default function MessagesPage() {
     ) {
       const existingConversation = conversations.find((conv) => {
         const otherParticipantId = conv.participants.find(
-          (p) => p !== currentUserId
+          (p) => p !== currentUserId,
         );
         return otherParticipantId === recipientId;
       });
@@ -295,7 +295,7 @@ export default function MessagesPage() {
       } else {
         // No existing conversation, try to create or get one
         console.log(
-          `No existing conversation found with recipient: ${recipientId}. Creating...`
+          `No existing conversation found with recipient: ${recipientId}. Creating...`,
         );
         getOrCreateConversationMutation.mutate({
           userIds: [currentUserId, recipientId],
@@ -316,11 +316,11 @@ export default function MessagesPage() {
   const filteredConversations = conversations.filter((conv) => {
     // Find the other participant in a 1:1 chat
     const otherParticipantId = conv.participants.find(
-      (p) => p !== currentUserId
+      (p) => p !== currentUserId,
     );
     const otherParticipant = otherParticipantId
       ? participantsData[conv.$id].find(
-          (user) => user.$id === otherParticipantId
+          (user) => user.$id === otherParticipantId,
         )
       : null;
     return otherParticipant?.name
@@ -373,11 +373,11 @@ export default function MessagesPage() {
           ) : (
             filteredConversations.map((conversation) => {
               const otherParticipantId = conversation.participants.find(
-                (p) => p !== currentUserId
+                (p) => p !== currentUserId,
               );
               const otherParticipant = otherParticipantId
                 ? participantsData[conversation.$id].find(
-                    (user) => user.$id === otherParticipantId
+                    (user) => user.$id === otherParticipantId,
                   )
                 : null;
 

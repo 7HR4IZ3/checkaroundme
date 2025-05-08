@@ -107,7 +107,7 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
           value={selectedLocation || ""} // Use selectedLocation prop
           onValueChange={(newLocation) =>
             onChangeLocation(
-              newLocation && newLocation !== "all" ? newLocation : null
+              newLocation && newLocation !== "all" ? newLocation : null,
             )
           }
         >

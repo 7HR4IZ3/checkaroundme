@@ -13,7 +13,8 @@ interface GeolocationState {
 const useGeolocation = (): GeolocationState => {
   const { latitude, longitude, error, loading } = useNativeGeolocation();
   const { showModal, isModalOpen } = useGeolocationPermission();
-  const [permissionDeniedOccurred, setPermissionDeniedOccurred] = useState(false);
+  const [permissionDeniedOccurred, setPermissionDeniedOccurred] =
+    useState(false);
 
   const {
     data,
@@ -22,7 +23,7 @@ const useGeolocation = (): GeolocationState => {
   } = trpc.getGeolocation.useQuery(void 0, {
     enabled: Boolean(
       (!loading && (!latitude || !longitude) && error && error.code !== 1) ||
-        (permissionDeniedOccurred && !isModalOpen)
+        (permissionDeniedOccurred && !isModalOpen),
     ),
   });
 

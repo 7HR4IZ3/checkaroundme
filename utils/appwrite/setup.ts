@@ -44,7 +44,7 @@ async function ensureAttribute(
   collectionId: string,
   attrId: string,
   type: string,
-  options: any = {}
+  options: any = {},
 ) {
   // Check if attribute exists
   const attrs = await databases.listAttributes(DATABASE_ID, collectionId);
@@ -60,7 +60,7 @@ async function ensureAttribute(
         attrId,
         options.size || 255,
         options.required || false,
-        options.default
+        options.default,
       );
       break;
     case "email":
@@ -69,7 +69,7 @@ async function ensureAttribute(
         collectionId,
         attrId,
         options.required || false,
-        options.default
+        options.default,
       );
       break;
     case "boolean":
@@ -78,7 +78,7 @@ async function ensureAttribute(
         collectionId,
         attrId,
         options.required || false,
-        options.default
+        options.default,
       );
       break;
     case "integer":
@@ -89,7 +89,7 @@ async function ensureAttribute(
         options.required || false,
         options.min,
         options.max,
-        options.default
+        options.default,
       );
       break;
     case "float":
@@ -100,7 +100,7 @@ async function ensureAttribute(
         options.required || false,
         options.min,
         options.max,
-        options.default
+        options.default,
       );
       break;
     case "url":
@@ -109,7 +109,7 @@ async function ensureAttribute(
         collectionId,
         attrId,
         options.required || false,
-        options.default
+        options.default,
       );
       break;
     case "enum":
@@ -119,7 +119,7 @@ async function ensureAttribute(
         attrId,
         options.elements,
         options.required || false,
-        options.default
+        options.default,
       );
       break;
     case "string[]":
@@ -130,7 +130,7 @@ async function ensureAttribute(
         options.size || 255,
         options.required || false,
         options.default,
-        true // array
+        true, // array
       );
       break;
     case "datetime":
@@ -139,7 +139,7 @@ async function ensureAttribute(
         collectionId,
         attrId,
         options.required || false,
-        options.default
+        options.default,
       );
       break;
     default:
@@ -323,7 +323,7 @@ async function setupCollectionsAndAttributes() {
   await ensureAttribute(
     REVIEW_REACTIONS_COLLECTION_ID,
     "createdAt",
-    "datetime"
+    "datetime",
   );
 
   // CATEGORIES
@@ -371,13 +371,13 @@ async function setupCollectionsAndAttributes() {
     CONVERSATIONS_COLLECTION_ID,
     "participants",
     "string[]",
-    { required: true }
+    { required: true },
   );
   await ensureAttribute(
     CONVERSATIONS_COLLECTION_ID,
     "lastMessageId",
     "string",
-    { size: 36 }
+    { size: 36 },
   );
   await ensureAttribute(CONVERSATIONS_COLLECTION_ID, "createdAt", "datetime");
   await ensureAttribute(CONVERSATIONS_COLLECTION_ID, "updatedAt", "datetime");

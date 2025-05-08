@@ -10,8 +10,6 @@ import { trpc } from "@/lib/trpc/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FiltersPanel, Filters } from "@/components/ui/filters"; // Import Filters type
 import Loading from "@/components/ui/loading";
-import { Input } from "@/components/ui/input"; // Import Input component
-import { Button } from "@/components/ui/button"; // Import Button component
 
 export default function Home() {
   // Prefetch
@@ -38,7 +36,7 @@ export default function Home() {
       features: featuresParam ? featuresParam.split(",") : [],
       distances: distancesParam ? distancesParam.split(",") : [],
     }),
-    [priceParam, featuresParam, distancesParam]
+    [priceParam, featuresParam, distancesParam],
   );
 
   // State for FilterSortBar special filters (e.g., "Open Now", "Offers Delivery")
@@ -72,7 +70,7 @@ export default function Home() {
       params.set("offset", "0");
       router.replace(`?${params.toString()}`);
     },
-    [router, searchParams]
+    [router, searchParams],
   );
 
   // Handler to open filters panel
@@ -112,7 +110,7 @@ export default function Home() {
       params.set("offset", "0");
       router.replace(`?${params.toString()}`);
     },
-    [router, searchParams]
+    [router, searchParams],
   );
 
   // Handler to change page
@@ -125,7 +123,7 @@ export default function Home() {
       params.set("limit", limit.toString());
       router.replace(`?${params.toString()}`);
     },
-    [router, searchParams, limit]
+    [router, searchParams, limit],
   );
 
   // Combine filterBarCategories and selectedCategory for the query
@@ -150,7 +148,7 @@ export default function Home() {
   const locations = useMemo(() => {
     if (!list?.businesses) return [];
     const uniqueLocations = new Set(
-      list.businesses.map((b) => `${b.city} ${b.country}`)
+      list.businesses.map((b) => `${b.city} ${b.country}`),
     );
     return Array.from(uniqueLocations);
   }, [list?.businesses]);
@@ -168,7 +166,7 @@ export default function Home() {
       params.set("offset", "0");
       router.replace(`?${params.toString()}`);
     },
-    [router, searchParams]
+    [router, searchParams],
   );
 
   // Calculate pagination
@@ -185,7 +183,7 @@ export default function Home() {
         onChangeCategory={onChangeCategory}
       />
       <div className="container flex flex-row mx-auto px-4 py-8 min-h-[70vh]">
-        <div className="flex flex-row flex-wrap gap-8 w-full">
+        <div className="flex flex-row flex-wrap gap-8">
           {/* Listings Section */}
           <div className="">
             {/* Display current category and location */}

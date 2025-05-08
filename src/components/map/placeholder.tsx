@@ -1,3 +1,5 @@
+"use client";
+
 import useGeolocation from "@/lib/hooks/useGeolocation"; // Import custom hook
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import React from "react";
@@ -78,7 +80,7 @@ const MapPlaceholder: React.FC<MapPlaceholderProps> = ({ businesses }) => {
                 >
                   <Popup>{business.name}</Popup>
                 </Marker>
-              )
+              ),
           )}
       </MapContainer>
     </div>

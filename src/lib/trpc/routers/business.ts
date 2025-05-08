@@ -18,7 +18,7 @@ export function createBusinessProcedures(
     typeof import("@trpc/server").initTRPC.create<{
       transformer: typeof SuperJSON;
     }>
-  >
+  >,
 ) {
   return {
     createBusiness: t.procedure
@@ -35,9 +35,9 @@ export function createBusinessProcedures(
             Sun: daySchema,
           }),
           images: z.array(
-            z.object({ isPrimary: z.boolean(), imageID: z.string() })
+            z.object({ isPrimary: z.boolean(), imageID: z.string() }),
           ),
-        })
+        }),
       )
       .mutation(async ({ input }) => {
         const { userId, hours, images, ...data } = input;
@@ -45,7 +45,7 @@ export function createBusinessProcedures(
           data,
           userId,
           hours,
-          images
+          images,
         );
       }),
 
@@ -75,12 +75,12 @@ export function createBusinessProcedures(
               .array(z.object({ isPrimary: z.boolean(), imageID: z.string() }))
               .optional(),
           }),
-        })
+        }),
       )
       .mutation(async ({ input }) => {
         return await BusinessService.updateBusiness(
           input.businessId,
-          input.data
+          input.data,
         );
       }),
 
@@ -98,7 +98,7 @@ export function createBusinessProcedures(
           price: z.string().optional(), // Assuming price is passed as a string like "$10"
           features: z.array(z.string()).optional(),
           distances: z.array(z.string()).optional(),
-        })
+        }),
       )
       .query(async ({ input }) => {
         // The BusinessService.listBusinesses function needs to be updated
@@ -115,7 +115,7 @@ export function createBusinessProcedures(
           longitude: z.number(),
           distance: z.number().optional(),
           limit: z.number().optional(),
-        })
+        }),
       )
       // .output(z.array(businessSchema))
       .query(async ({ input }) => {
@@ -123,7 +123,7 @@ export function createBusinessProcedures(
           input.latitude,
           input.longitude,
           input.distance,
-          input.limit
+          input.limit,
         );
       }),
 
@@ -136,7 +136,7 @@ export function createBusinessProcedures(
           title: z.string().optional(),
           userID: z.string().optional(),
           isPrimary: z.boolean().optional(),
-        })
+        }),
       )
       // .output(businessImageSchema)
       .mutation(async ({ input }) => {
@@ -146,7 +146,7 @@ export function createBusinessProcedures(
           file,
           title,
           userID,
-          isPrimary
+          isPrimary,
         );
       }),
 
@@ -155,13 +155,13 @@ export function createBusinessProcedures(
         z.object({
           file: z.any(), // File upload handling may need to be adapted for your setup
           userID: z.string(),
-        })
+        }),
       )
       // .output(businessImageSchema)
       .mutation(async ({ input }) => {
         return await BusinessImagesService.uploadTempBusinessImage(
           input.file,
-          input.userID
+          input.userID,
         );
       }),
 
@@ -201,13 +201,13 @@ export function createBusinessProcedures(
             Sat: daySchema,
             Sun: daySchema,
           }),
-        })
+        }),
       )
       // .output(z.array(businessHoursSchema))
       .mutation(async ({ input }) => {
         return await BusinessHoursService.setBusinessHours(
           input.businessId,
-          input.hours
+          input.hours,
         );
       }),
 

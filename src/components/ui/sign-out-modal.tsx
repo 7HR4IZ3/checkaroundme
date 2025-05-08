@@ -13,7 +13,7 @@ export const SignOutModal: React.FC<SignOutModalProps> = ({
   onConfirm,
 }) => {
   if (!open) return null;
-  
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
@@ -28,7 +28,13 @@ export const SignOutModal: React.FC<SignOutModalProps> = ({
           aria-label="Close"
           className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition-colors"
         >
-          <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg
+            width="24"
+            height="24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <path d="M6 6l12 12M6 18L18 6" />
           </svg>
         </button>
@@ -55,10 +61,13 @@ export const SignOutModal: React.FC<SignOutModalProps> = ({
         </div>
 
         {/* Title */}
-        <h2 className="mb-2 text-2xl font-semibold text-center text-[#2B3674]">Sign out?</h2>
+        <h2 className="mb-2 text-2xl font-semibold text-center text-[#2B3674]">
+          Sign out?
+        </h2>
         {/* Subtitle */}
         <p className="mb-8 text-center">
-          Oh no! We are sad to see you leave.<br />
+          Oh no! We are sad to see you leave.
+          <br />
           Are you sure you want to sign out?
         </p>
 

@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     console.log("Cron job: Starting deletion of expired messages...");
     const { totalDeletedCount } = await MessageService.deleteExpiredMessages();
     console.log(
-      `Cron job: Successfully deleted ${totalDeletedCount} expired messages.`
+      `Cron job: Successfully deleted ${totalDeletedCount} expired messages.`,
     );
     return NextResponse.json({
       message: `Successfully deleted ${totalDeletedCount} expired messages.`,
@@ -29,7 +29,7 @@ export async function GET(request: Request) {
         error: "Failed to delete expired messages.",
         details: (error as Error).message,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

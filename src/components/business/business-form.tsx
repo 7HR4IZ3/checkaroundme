@@ -116,7 +116,7 @@ export default function BusinessForm({
 
   // State for new filterable attributes
   const [priceIndicator, setPriceIndicator] = useState<string | undefined>(
-    undefined
+    undefined,
   );
   const [onSiteParking, setOnSiteParking] = useState(false);
   const [garageParking, setGarageParking] = useState(false);
@@ -135,7 +135,7 @@ export default function BusinessForm({
   const { data: tempBusinessImages, isLoading: isLoadingTempImages } =
     trpc.getBusinessImages.useQuery(
       { businessId: user?.$id! },
-      { enabled: !businessId && !!user?.$id }
+      { enabled: !businessId && !!user?.$id },
     ); // Fetch temp images only in create mode
   const deleteBusinessImage = trpc.deleteBusinessImage.useMutation();
 
@@ -200,7 +200,7 @@ export default function BusinessForm({
   useEffect(() => {
     if (country) {
       const selectedCountry = Country.getAllCountries().find(
-        (c) => c.name === country
+        (c) => c.name === country,
       );
       if (selectedCountry) {
         setStates(State.getStatesOfCountry(selectedCountry.isoCode));
@@ -219,18 +219,18 @@ export default function BusinessForm({
   useEffect(() => {
     if (country && state) {
       const selectedCountry = Country.getAllCountries().find(
-        (c) => c.name === country
+        (c) => c.name === country,
       );
       if (selectedCountry) {
         const selectedState = State.getStatesOfCountry(
-          selectedCountry.isoCode
+          selectedCountry.isoCode,
         ).find((s) => s.name === state);
         if (selectedState) {
           setCities(
             City.getCitiesOfState(
               selectedCountry.isoCode,
-              selectedState.isoCode
-            )
+              selectedState.isoCode,
+            ),
           );
           setCity(""); // Clear selected city when state changes
         }
@@ -244,7 +244,7 @@ export default function BusinessForm({
   const updateBusinessHours = (
     day: string,
     type: "start" | "end" | "closed",
-    value: string | boolean
+    value: string | boolean,
   ) => {
     setAvailableHours((prev) => ({
       ...prev,
@@ -277,7 +277,7 @@ export default function BusinessForm({
   };
 
   const handleImageUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     setIsImageUploading(true);
 
@@ -326,7 +326,7 @@ export default function BusinessForm({
 
   const handleRemoveService = (serviceToRemove: string) => {
     setServicesOffered(
-      servicesOffered.filter((service) => service !== serviceToRemove)
+      servicesOffered.filter((service) => service !== serviceToRemove),
     );
   };
 
@@ -367,7 +367,7 @@ export default function BusinessForm({
 
     if (!isFormValid()) {
       console.error(
-        "Form is not valid. Please fill all required fields and agree to the terms."
+        "Form is not valid. Please fill all required fields and agree to the terms.",
       );
       if (!businessId && !agreedToTerms) {
         // Only set terms error in create mode
@@ -387,7 +387,7 @@ export default function BusinessForm({
       categories: businessCategory ? [businessCategory] : [],
       services: servicesOffered,
       paymentOptions: Object.keys(paymentOptions).filter(
-        (key) => paymentOptions[key]
+        (key) => paymentOptions[key],
       ),
       hours: availableHours,
       images: businessImages.map(({ isPrimary, $id }) => ({
@@ -603,7 +603,7 @@ export default function BusinessForm({
               setCountryError("");
 
               const country = countries.find(
-                (country) => country.name === value
+                (country) => country.name === value,
               );
               country && setPhoneCountryCode(country.phoneCode);
             }}

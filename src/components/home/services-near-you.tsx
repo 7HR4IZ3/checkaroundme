@@ -26,14 +26,14 @@ const ServicesNearYou = () => {
       latitude: cordinates.latitude as number,
       longitude: cordinates.longitude as number,
     },
-    { enabled: !!cordinates.latitude }
+    { enabled: !!cordinates.latitude },
   );
 
   if (geoError) {
     return (
       <div className="bg-gray-50 py-16">
-        <div className="container px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-8">
+        <div className="mdntainer px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto">
+          <h2 className="text-lg md:text-2xl font-semibold text-center text-gray-800 mb-8">
             Services Near You
           </h2>
           <div className="text-red-600">
@@ -47,8 +47,8 @@ const ServicesNearYou = () => {
   if (queryLoading || geoLoading) {
     return (
       <div className="bg-gray-50 py-16">
-        <div className="xl:container px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-8">
+        <div className="md:container px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto">
+          <h2 className="text-lg md:text-2xl font-semibold text-center text-gray-800 mb-8">
             Services Near You
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -64,8 +64,8 @@ const ServicesNearYou = () => {
   if (queryError) {
     return (
       <div className="bg-gray-50 py-16">
-        <div className="xl:container px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-8">
+        <div className="md:container px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto">
+          <h2 className="text-lg md:text-2xl font-semibold text-center text-gray-800 mb-8">
             Services Near You
           </h2>
           <div className="text-red-600">Failed to load services.</div>
@@ -76,8 +76,8 @@ const ServicesNearYou = () => {
 
   return (
     <div className="bg-gray-50 py-16">
-      <div className="xl:container px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-8">
+      <div className="md:container px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto">
+        <h2 className="text-lg md:text-2xl font-semibold text-center text-gray-800 mb-8">
           Services Near You
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-6">

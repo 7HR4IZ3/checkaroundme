@@ -8,7 +8,7 @@ export function createReviewProcedures(
     typeof import("@trpc/server").initTRPC.create<{
       transformer: typeof SuperJSON;
     }>
-  >
+  >,
 ) {
   return {
     createReview: t.procedure
@@ -21,7 +21,7 @@ export function createReviewProcedures(
           title: z.string().optional(),
           recommendation: z.string().optional(),
           parentReviewId: z.string().optional(), // Added for replies
-        })
+        }),
       )
       // .output(reviewSchema)
       .mutation(async ({ input }) => {
@@ -34,14 +34,14 @@ export function createReviewProcedures(
           businessId: z.string(),
           limit: z.number().optional(),
           offset: z.number().optional(),
-        })
+        }),
       )
       // .output(z.object({ reviews: z.array(reviewSchema), total: z.number() }))
       .query(async ({ input }) => {
         return await ReviewService.getBusinessReviews(
           input.businessId,
           input.limit,
-          input.offset
+          input.offset,
         );
       }),
 
@@ -51,7 +51,7 @@ export function createReviewProcedures(
           reviewId: z.string(),
           userId: z.string(),
           type: z.enum(["like", "dislike"]),
-        })
+        }),
       )
       // .output(z.object({ success: z.boolean() }))
       .mutation(async ({ input }) => {
@@ -59,7 +59,7 @@ export function createReviewProcedures(
         const result = await ReviewService.reactToReview(
           reviewId,
           userId,
-          type
+          type,
         );
         return result; // Return the result from the service
       }),
@@ -70,7 +70,7 @@ export function createReviewProcedures(
       .query(async ({ input }) => {
         const reaction = await ReviewService.getUserReaction(
           input.reviewId,
-          input.userId
+          input.userId,
         );
         return reaction; // Return the reaction object or null
       }),
@@ -89,7 +89,7 @@ export function createReviewProcedures(
           text: z.string().min(5, "Review text must be at least 5 characters"),
           rating: z.number().min(1).max(5), // Added rating for editing
           // Add other fields like title if needed for editing
-        })
+        }),
       )
       // .output(reviewSchema) // Or maybe just { success: boolean }
       .mutation(async ({ input }) => {

@@ -47,7 +47,7 @@ function ProfilePageInner() {
               <p className="text-sm text-muted-foreground">
                 Member since{" "}
                 {new Date(
-                  auth.user.$createdAt || Date.now()
+                  auth.user.$createdAt || Date.now(),
                 ).toLocaleDateString()}
               </p>
             </div>

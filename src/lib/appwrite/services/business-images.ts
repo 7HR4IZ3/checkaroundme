@@ -1,14 +1,14 @@
-import {
-  ID,
-  Query,
-  Storage,
-} from "node-appwrite";
+import { ID, Query, Storage } from "node-appwrite";
+
+import { BusinessImage } from "../../schema"; // Corrected schema import path
 
 import {
-  BusinessImage,
-} from "../../schema"; // Corrected schema import path
-
-import { databases, storage, DATABASE_ID, BUSINESS_IMAGES_COLLECTION_ID, BUSINESS_IMAGES_BUCKET_ID } from "../index"; // Assuming databases, storage and constants remain in index.ts
+  databases,
+  storage,
+  DATABASE_ID,
+  BUSINESS_IMAGES_COLLECTION_ID,
+  BUSINESS_IMAGES_BUCKET_ID,
+} from "../index"; // Assuming databases, storage and constants remain in index.ts
 import { getImageURl } from "../index"; // Assuming getImageURl remains in index.ts
 
 // Business Images Service
@@ -17,7 +17,7 @@ export const BusinessImagesService = {
   async uploadTempBusinessImage(
     files: File[],
     userID: string,
-    businessId?: string | null
+    businessId?: string | null,
   ): Promise<BusinessImage[]> {
     try {
       const images: BusinessImage[] = [];
@@ -26,7 +26,7 @@ export const BusinessImagesService = {
         const result = await storage.createFile(
           BUSINESS_IMAGES_BUCKET_ID,
           ID.unique(),
-          file
+          file,
         );
 
         const image = await databases.createDocument(
@@ -40,7 +40,7 @@ export const BusinessImagesService = {
             isPrimary: false,
             createdAt: new Date().toISOString(),
             uploadedBy: userID,
-          }
+          },
         );
 
         images.push(image as unknown as BusinessImage);
@@ -59,7 +59,7 @@ export const BusinessImagesService = {
     file: File,
     title?: string,
     userID?: string,
-    isPrimary: boolean = false
+    isPrimary: boolean = false,
   ): Promise<BusinessImage> {
     try {
       // If this is primary, update any existing primary images
@@ -70,7 +70,7 @@ export const BusinessImagesService = {
           [
             Query.equal("businessId", businessId),
             Query.equal("isPrimary", true),
-          ]
+          ],
         );
 
         for (const doc of existingPrimary.documents) {
@@ -78,7 +78,7 @@ export const BusinessImagesService = {
             DATABASE_ID,
             BUSINESS_IMAGES_COLLECTION_ID,
             doc.$id,
-            { isPrimary: false }
+            { isPrimary: false },
           );
         }
       }
@@ -97,7 +97,7 @@ export const BusinessImagesService = {
           imageUrl: getImageURl(imageID),
           createdAt: new Date().toISOString(),
           uploadedBy: userID || null,
-        }
+        },
       );
 
       // Upload file to storage
@@ -112,7 +112,7 @@ export const BusinessImagesService = {
 
   async uploadTempImagesToBusiness(
     businessId: string,
-    images: { isPrimary: boolean; imageID: string }[]
+    images: { isPrimary: boolean; imageID: string }[],
   ): Promise<void> {
     let hasPrimaryimage = false;
     for (const [index, image] of images.reverse().entries()) {
@@ -127,7 +127,7 @@ export const BusinessImagesService = {
         {
           businessId,
           isPrimary: hasPrimaryimage,
-        }
+        },
       );
     }
   },
@@ -138,7 +138,7 @@ export const BusinessImagesService = {
       const result = await databases.listDocuments(
         DATABASE_ID,
         BUSINESS_IMAGES_COLLECTION_ID,
-        [Query.equal("businessId", businessId), Query.equal("isPrimary", true)]
+        [Query.equal("businessId", businessId), Query.equal("isPrimary", true)],
       );
 
       if (result.documents.length < 1) {
@@ -157,7 +157,7 @@ export const BusinessImagesService = {
       const result = await databases.listDocuments(
         DATABASE_ID,
         BUSINESS_IMAGES_COLLECTION_ID,
-        [Query.equal("businessId", businessId)]
+        [Query.equal("businessId", businessId)],
       );
 
       return result.documents as unknown as BusinessImage[];
@@ -174,7 +174,7 @@ export const BusinessImagesService = {
       await databases.deleteDocument(
         DATABASE_ID,
         BUSINESS_IMAGES_COLLECTION_ID,
-        imageId
+        imageId,
       );
     } catch (error) {
       console.error("Delete business image error:", error);

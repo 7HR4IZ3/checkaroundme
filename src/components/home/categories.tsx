@@ -25,9 +25,11 @@ export default async function Categories() {
   const categories = await trpc.getAllCategories();
 
   return (
-    <div className="bg-white py-12">
+    <div className="bg-white py-8 md:py-16">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-2xl font-semibold text-center mb-8">Categories</h2>
+        <h2 className="text-lg md:text-2xl font-semibold text-center mb-8">
+          Categories
+        </h2>
         <Carousel
           opts={{
             align: "start",
@@ -41,14 +43,17 @@ export default async function Categories() {
                 key={category.$id || index}
                 className="pl-2 md:pl-4 basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6"
               >
-                <Link href={`/listings?categories=${category.name}`} className="flex flex-col items-center text-center cursor-pointer group">
-                  <div className="w-[10rem] h-[10rem] rounded-full p-1 bg-gradient-to-br from-[#F3B53F] via-[#FF4D00] to-[#AE06C9] transition duration-200">
+                <Link
+                  href={`/listings?categories=${category.name}`}
+                  className="flex flex-col items-center text-center cursor-pointer group"
+                >
+                  <div className="w-[25vw] h-[25vw] md:w-[10rem] md:h-[10rem] rounded-full p-1 bg-gradient-to-br from-[#F3B53F] via-[#FF4D00] to-[#AE06C9] transition duration-200">
                     <div className="w-full h-full rounded-full overflow-hidden">
                       <Image
                         src={category.imageUrl || "/images/cat-placeholder.png"}
                         alt={category.name}
-                        width={50}
-                        height={50}
+                        width={200}
+                        height={200}
                         objectFit="cover"
                         className="w-full h-full"
                       />

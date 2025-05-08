@@ -127,8 +127,8 @@ export function VerificationRequestItem({
           {mutation.isPending && mutation.variables?.newStatus === "rejected"
             ? "Rejecting..."
             : showNotes
-            ? "Confirm Reject"
-            : "Reject"}
+              ? "Confirm Reject"
+              : "Reject"}
         </Button>
         <Button
           onClick={handleApprove}

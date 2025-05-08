@@ -1,7 +1,12 @@
-import React from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { FaPaperPlane, FaFacebookF, FaTwitter, FaInstagram } from 'react-icons/fa';
+import React from "react";
+import Link from "next/link";
+import Image from "next/image";
+import {
+  FaPaperPlane,
+  FaFacebookF,
+  FaTwitter,
+  FaInstagram,
+} from "react-icons/fa";
 
 const Footer = () => {
   return (
@@ -18,7 +23,10 @@ const Footer = () => {
                 placeholder="Enter your email"
                 className="bg-transparent px-3 py-2 text-sm flex-grow focus:outline-none text-white placeholder-gray-500"
               />
-              <button type="submit" className="text-gray-400 px-3 hover:text-white">
+              <button
+                type="submit"
+                className="text-gray-400 px-3 hover:text-white"
+              >
                 <FaPaperPlane />
               </button>
             </form>
@@ -41,8 +49,22 @@ const Footer = () => {
               </p>
             </address> */}
             <ul className="space-y-2 text-sm">
-              <li><Link href="/about-us" className="hover:text-white hover:underline">About Us</Link></li>
-              <li><Link href="/contact-us" className="hover:text-white hover:underline">Contact Us</Link></li>
+              <li>
+                <Link
+                  href="/about-us"
+                  className="hover:text-white hover:underline"
+                >
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/contact-us"
+                  className="hover:text-white hover:underline"
+                >
+                  Contact Us
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -57,16 +79,34 @@ const Footer = () => {
 
           {/* Quick Link */}
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Quick Link</h3>
+            <h3 className="text-lg font-semibold text-white mb-4">
+              Quick Link
+            </h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/privacy-policy" className="hover:text-white hover:underline">Privacy Policy</Link></li>
-              <li><Link href="/terms-of-service" className="hover:text-white hover:underline">Terms Of Service</Link></li>
+              <li>
+                <Link
+                  href="/privacy-policy"
+                  className="hover:text-white hover:underline"
+                >
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/terms-of-service"
+                  className="hover:text-white hover:underline"
+                >
+                  Terms Of Service
+                </Link>
+              </li>
             </ul>
           </div>
 
           {/* Invite a User */}
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Invite a User</h3>
+            <h3 className="text-lg font-semibold text-white mb-4">
+              Invite a User
+            </h3>
             {/* Replace with actual QR code image */}
             <div className="mb-4 bg-white p-1 inline-block rounded">
               <Image
@@ -77,9 +117,27 @@ const Footer = () => {
               />
             </div>
             <div className="flex space-x-4">
-              <a href="https://facebook.com/checkaroundme" aria-label="Facebook" className="text-gray-400 hover:text-white"><FaFacebookF size={18} /></a>
-              <a href="https://x.com/checkaroundme" aria-label="Twitter" className="text-gray-400 hover:text-white"><FaTwitter size={18} /></a>
-              <a href="https://instagram.com/checkaroundme" aria-label="Instagram" className="text-gray-400 hover:text-white"><FaInstagram size={18} /></a>
+              <a
+                href="https://facebook.com/checkaroundme"
+                aria-label="Facebook"
+                className="text-gray-400 hover:text-white"
+              >
+                <FaFacebookF size={18} />
+              </a>
+              <a
+                href="https://x.com/checkaroundme"
+                aria-label="Twitter"
+                className="text-gray-400 hover:text-white"
+              >
+                <FaTwitter size={18} />
+              </a>
+              <a
+                href="https://instagram.com/checkaroundme"
+                aria-label="Instagram"
+                className="text-gray-400 hover:text-white"
+              >
+                <FaInstagram size={18} />
+              </a>
             </div>
           </div>
         </div>

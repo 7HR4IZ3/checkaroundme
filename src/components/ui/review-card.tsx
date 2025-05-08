@@ -79,7 +79,7 @@ export const ReviewCard = ({
 
   // State to track user's current reaction
   const [userReaction, setUserReaction] = useState<"like" | "dislike" | null>(
-    null
+    null,
   );
   // State to track local like/dislike counts
   const [localLikes, setLocalLikes] = useState(review.likes);
@@ -91,7 +91,7 @@ export const ReviewCard = ({
       { reviewId: review.$id, userId: currentUser?.$id! },
       {
         enabled: isAuthenticated && !!currentUser?.$id, // Only fetch if authenticated and user ID is available
-      }
+      },
     );
 
   const reactMutation = trpc.reactToReview.useMutation({
@@ -111,7 +111,7 @@ export const ReviewCard = ({
   });
 
   useEffect(() => {
-    console.log(userReactionData)
+    console.log(userReactionData);
     setUserReaction(userReactionData?.type || null);
   }, [isUserReactionLoading]);
 
@@ -276,7 +276,9 @@ export const ReviewCard = ({
       </CardContent>
       {/* Render replies recursively */}
       {replies && replies.length > 0 && (
-        <div className="ml-8 mt-4 space-y-4"> {/* Add left margin for indentation */}
+        <div className="ml-8 mt-4 space-y-4">
+          {" "}
+          {/* Add left margin for indentation */}
           {replies.map((reply) => (
             <ReviewCard
               key={reply.$id}

@@ -174,7 +174,7 @@ export default function BusinessPage() {
   const [editReviewText, setEditReviewText] = useState(""); // State for edit modal textarea
   const [editReviewRating, setEditReviewRating] = useState(0); // State for edit modal rating
   const [replyText, setReplyText] = useState(""); // State for reply modal textarea
- 
+
   // tRPC mutations
   const editReviewMutation = trpc.updateReview.useMutation({
     onSuccess: () => {
@@ -223,8 +223,8 @@ export default function BusinessPage() {
     typeof params.businessId === "string"
       ? params.businessId
       : Array.isArray(params.businessId)
-      ? params.businessId[0]
-      : "";
+        ? params.businessId[0]
+        : "";
 
   // tRPC queries
   const {
@@ -238,7 +238,7 @@ export default function BusinessPage() {
     error: imagesError,
   } = trpc.getBusinessImages.useQuery(
     { businessId },
-    { enabled: !!businessId }
+    { enabled: !!businessId },
   );
   const {
     data: hours,
@@ -261,7 +261,7 @@ export default function BusinessPage() {
       setEditReviewRating(reviewToEdit.rating); // Set initial rating when modal opens
     }
   }, [isEditModalOpen, reviewToEdit]);
- 
+
   // Effect to clear reply text when modal closes
   useEffect(() => {
     if (!isReplyModalOpen) {
@@ -380,7 +380,7 @@ export default function BusinessPage() {
       rating: editReviewRating, // Include the updated rating
     });
   };
- 
+
   const handleSendReply = async () => {
     if (!reviewToReply || replyText.trim() === "" || !user || !businessId)
       return;
@@ -484,7 +484,7 @@ export default function BusinessPage() {
                 <span>
                   {(() => {
                     const today = openingHours.find(
-                      (h) => h.day === currentDay
+                      (h) => h.day === currentDay,
                     );
                     return today ? today.hours : "";
                   })()}
@@ -631,7 +631,7 @@ export default function BusinessPage() {
                           .map((opt) =>
                             opt
                               .replace(/_/g, " ")
-                              .replace(/\b\w/g, (l) => l.toUpperCase())
+                              .replace(/\b\w/g, (l) => l.toUpperCase()),
                           )
                           .join(", ")}
                       </span>
@@ -715,9 +715,9 @@ export default function BusinessPage() {
                             item.hours === "Closed"
                               ? "text-red-600"
                               : item.day === currentDay &&
-                                item.hours !== "Closed"
-                              ? "text-green-600"
-                              : ""
+                                  item.hours !== "Closed"
+                                ? "text-green-600"
+                                : ""
                           }
                         >
                           {item.hours}
@@ -916,7 +916,7 @@ export default function BusinessPage() {
                 disabled={currentImageIndex === imageUrls.length - 1}
                 onClick={() =>
                   setCurrentImageIndex((prev) =>
-                    Math.min(imageUrls.length - 1, prev + 1)
+                    Math.min(imageUrls.length - 1, prev + 1),
                   )
                 }
               >

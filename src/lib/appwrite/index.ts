@@ -79,7 +79,7 @@ export const UserService = {
         {
           ...data,
           updatedAt: new Date().toISOString(),
-        }
+        },
       );
 
       return updatedUser as unknown as User;
@@ -141,7 +141,7 @@ export const ReviewService = {
           dislikes: 0,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        }
+        },
       );
 
       // Update business average rating and review count
@@ -158,7 +158,7 @@ export const ReviewService = {
   async getBusinessReviews(
     businessId: string,
     limit: number = 10,
-    offset: number = 0
+    offset: number = 0,
   ): Promise<{ reviews: Review[]; total: number }> {
     try {
       // Get paginated results
@@ -171,7 +171,7 @@ export const ReviewService = {
           Query.orderDesc("createdAt"),
           Query.limit(limit),
           Query.offset(offset),
-        ]
+        ],
       );
 
       return {
@@ -188,7 +188,7 @@ export const ReviewService = {
   async reactToReview(
     reviewId: string,
     userId: string,
-    type: "like" | "dislike"
+    type: "like" | "dislike",
   ): Promise<{
     likes: number;
     dislikes: number;
@@ -199,7 +199,7 @@ export const ReviewService = {
       const existingReaction = await databases.listDocuments(
         DATABASE_ID,
         REVIEW_REACTIONS_COLLECTION_ID,
-        [Query.equal("reviewId", reviewId), Query.equal("userId", userId)]
+        [Query.equal("reviewId", reviewId), Query.equal("userId", userId)],
       );
 
       let currentLikes = 0;
@@ -210,7 +210,7 @@ export const ReviewService = {
       const review = (await databases.getDocument(
         DATABASE_ID,
         REVIEWS_COLLECTION_ID,
-        reviewId
+        reviewId,
       )) as unknown as Review;
       currentLikes = review.likes;
       currentDislikes = review.dislikes;
@@ -225,7 +225,7 @@ export const ReviewService = {
           await databases.deleteDocument(
             DATABASE_ID,
             REVIEW_REACTIONS_COLLECTION_ID,
-            reaction.$id
+            reaction.$id,
           );
           if (oldType === "like") {
             currentLikes--;
@@ -239,7 +239,7 @@ export const ReviewService = {
             DATABASE_ID,
             REVIEW_REACTIONS_COLLECTION_ID,
             reaction.$id,
-            { type }
+            { type },
           );
           if (oldType === "like") {
             currentLikes--;
@@ -261,7 +261,7 @@ export const ReviewService = {
             userId,
             type,
             createdAt: new Date().toISOString(),
-          }
+          },
         );
         if (type === "like") {
           currentLikes++;
@@ -279,7 +279,7 @@ export const ReviewService = {
         {
           likes: currentLikes,
           dislikes: currentDislikes,
-        }
+        },
       );
 
       return {
@@ -296,7 +296,7 @@ export const ReviewService = {
   // Get a user's reaction for a specific review
   async getUserReaction(
     reviewId: string,
-    userId: string
+    userId: string,
   ): Promise<ReviewReaction | null> {
     try {
       const result = await databases.listDocuments(
@@ -306,7 +306,7 @@ export const ReviewService = {
           Query.equal("reviewId", reviewId),
           Query.equal("userId", userId),
           Query.limit(1), // We only expect one reaction per user per review
-        ]
+        ],
       );
       return result.documents.length > 0
         ? (result.documents[0] as unknown as ReviewReaction)
@@ -320,7 +320,7 @@ export const ReviewService = {
   // Update an existing review (e.g., edit text)
   async updateReview(
     reviewId: string,
-    data: Partial<Pick<Review, "text" | "rating" | "title">> // Allow updating text, rating, title for now
+    data: Partial<Pick<Review, "text" | "rating" | "title">>, // Allow updating text, rating, title for now
   ): Promise<Review> {
     try {
       const updatedReview = await databases.updateDocument(
@@ -330,7 +330,7 @@ export const ReviewService = {
         {
           ...data, // Spread the fields to update (e.g., { text: "new text" })
           updatedAt: new Date().toISOString(),
-        }
+        },
       );
 
       // Optionally, re-calculate business rating if rating was updated
@@ -348,7 +348,7 @@ export const ReviewService = {
       await databases.deleteDocument(
         DATABASE_ID,
         REVIEWS_COLLECTION_ID,
-        reviewId
+        reviewId,
       );
       // TODO: Update business rating and review count after deleting a review
     } catch (error) {
@@ -366,7 +366,7 @@ export const ReviewService = {
         [
           Query.equal("parentReviewId", parentReviewId),
           Query.orderAsc("createdAt"), // Show replies chronologically
-        ]
+        ],
       );
       return result.documents as unknown as Review[];
     } catch (error) {
@@ -382,7 +382,7 @@ async function updateBusinessRating(businessId: string): Promise<void> {
     const reviews = await databases.listDocuments(
       DATABASE_ID,
       REVIEWS_COLLECTION_ID,
-      [Query.equal("businessId", businessId)]
+      [Query.equal("businessId", businessId)],
     );
 
     const total = reviews.total;
@@ -402,7 +402,7 @@ async function updateBusinessRating(businessId: string): Promise<void> {
         rating: avgRating,
         reviewCount: total,
         updatedAt: new Date().toISOString(),
-      }
+      },
     );
   } catch (error) {
     console.error("Update business rating error:", error);
@@ -414,13 +414,13 @@ async function updateBusinessRating(businessId: string): Promise<void> {
 async function updateReviewReactionCounts(
   reviewId: string,
   oldType: "like" | "dislike",
-  newType: "like" | "dislike"
+  newType: "like" | "dislike",
 ): Promise<void> {
   try {
     const review = (await databases.getDocument(
       DATABASE_ID,
       REVIEWS_COLLECTION_ID,
-      reviewId
+      reviewId,
     )) as unknown as Review;
 
     const updatedCounts = {
@@ -438,7 +438,7 @@ async function updateReviewReactionCounts(
       DATABASE_ID,
       REVIEWS_COLLECTION_ID,
       reviewId,
-      updatedCounts
+      updatedCounts,
     );
   } catch (error) {
     console.error("Update review reaction counts error:", error);
@@ -453,7 +453,7 @@ export const CategoryService = {
     name: string,
     description?: string,
     imageUrl?: string,
-    parentId?: string
+    parentId?: string,
   ): Promise<Category> {
     try {
       const newCategory = await databases.createDocument(
@@ -465,7 +465,7 @@ export const CategoryService = {
           description: description || "",
           imageUrl: imageUrl || "",
           parentId: parentId || null,
-        }
+        },
       );
 
       return newCategory as unknown as Category;
@@ -480,7 +480,7 @@ export const CategoryService = {
     try {
       const result = await databases.listDocuments(
         DATABASE_ID,
-        CATEGORIES_COLLECTION_ID
+        CATEGORIES_COLLECTION_ID,
       );
 
       return result.documents as unknown as Category[];
@@ -496,7 +496,7 @@ export const CategoryService = {
       const category = await databases.getDocument(
         DATABASE_ID,
         CATEGORIES_COLLECTION_ID,
-        categoryId
+        categoryId,
       );
 
       return category as unknown as Category;
@@ -514,7 +514,7 @@ export const MessageService = {
     conversationId: string,
     senderId: string,
     text?: string,
-    image?: File
+    image?: File,
   ): Promise<Message> {
     try {
       let imageUrl = null;
@@ -526,7 +526,7 @@ export const MessageService = {
         const fileResult = await storage.createFile(
           MESSAGE_IMAGES_BUCKET_ID,
           ID.unique(),
-          image
+          image,
         );
 
         imageUrl = storage
@@ -554,7 +554,7 @@ export const MessageService = {
           isRead: false,
           createdAt: createdAt.toISOString(),
           expiresAt: expiresAt.toISOString(), // Add expiresAt timestamp
-        }
+        },
       );
 
       // Update conversation with last message ID
@@ -565,7 +565,7 @@ export const MessageService = {
         {
           lastMessageId: newMessage.$id,
           updatedAt: new Date().toISOString(),
-        }
+        },
       );
 
       return newMessage as unknown as Message;
@@ -579,7 +579,7 @@ export const MessageService = {
   async getConversationMessages(
     conversationId: string,
     limit: number = 30,
-    offset: number = 0
+    offset: number = 0,
   ): Promise<Message[]> {
     try {
       const result = await databases.listDocuments(
@@ -590,7 +590,7 @@ export const MessageService = {
           Query.orderAsc("createdAt"), // Most recent first
           Query.limit(limit),
           Query.offset(offset),
-        ]
+        ],
       );
 
       return result.documents as unknown as Message[];
@@ -603,7 +603,7 @@ export const MessageService = {
   // Mark messages as read
   async markMessagesAsRead(
     conversationId: string,
-    userId: string
+    userId: string,
   ): Promise<void> {
     try {
       const unreadMessages = await databases.listDocuments(
@@ -613,7 +613,7 @@ export const MessageService = {
           Query.equal("conversationId", conversationId),
           Query.equal("isRead", false),
           Query.notEqual("senderId", userId), // Only mark messages from other users
-        ]
+        ],
       );
 
       for (const message of unreadMessages.documents) {
@@ -621,7 +621,7 @@ export const MessageService = {
           DATABASE_ID,
           MESSAGES_COLLECTION_ID,
           message.$id,
-          { isRead: true }
+          { isRead: true },
         );
       }
     } catch (error) {
@@ -647,7 +647,7 @@ export const MessageService = {
             Query.lessThanEqual("expiresAt", now),
             Query.limit(batchSize),
             Query.offset(offset),
-          ]
+          ],
         );
 
         if (expiredMessagesBatch.documents.length === 0) {
@@ -662,20 +662,20 @@ export const MessageService = {
               // Log individual deletion errors but don't let one failure stop the batch
               console.error(
                 `Error deleting message ${message.$id}:`,
-                deleteError
+                deleteError,
               );
               return null; // Indicate failure for this specific promise
-            })
+            }),
         );
 
         const results = await Promise.all(deletePromises);
         const successfulDeletionsInBatch = results.filter(
-          (r) => r !== null
+          (r) => r !== null,
         ).length;
         totalDeletedCount += successfulDeletionsInBatch;
 
         console.log(
-          `Processed batch: ${successfulDeletionsInBatch} messages deleted.`
+          `Processed batch: ${successfulDeletionsInBatch} messages deleted.`,
         );
 
         // Appwrite's listDocuments total refers to the total matching documents in the DB,
@@ -690,7 +690,7 @@ export const MessageService = {
       }
 
       console.log(
-        `Successfully deleted a total of ${totalDeletedCount} expired messages.`
+        `Successfully deleted a total of ${totalDeletedCount} expired messages.`,
       );
       return { totalDeletedCount };
     } catch (error) {
@@ -713,7 +713,7 @@ export const ConversationService = {
       // Check if conversation already exists
       const conversations = await databases.listDocuments(
         DATABASE_ID,
-        CONVERSATIONS_COLLECTION_ID
+        CONVERSATIONS_COLLECTION_ID,
       );
 
       // Client-side filtering for participants match
@@ -737,7 +737,7 @@ export const ConversationService = {
           participants: sortedUserIds,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        }
+        },
       );
 
       return newConversation as unknown as Conversation;
@@ -760,7 +760,7 @@ export const ConversationService = {
         await databases.listDocuments(
           DATABASE_ID,
           CONVERSATIONS_COLLECTION_ID,
-          [Query.contains("participants", userId)]
+          [Query.contains("participants", userId)],
         )
       ).documents as unknown as Conversation[];
 
@@ -777,13 +777,13 @@ export const ConversationService = {
             const lastMessage = await databases.getDocument(
               DATABASE_ID,
               MESSAGES_COLLECTION_ID,
-              conv.lastMessageId
+              conv.lastMessageId,
             );
             lastMessages[conv.$id] = lastMessage as unknown as Message;
           } catch (e) {
             console.error(
               `Error fetching last message for conversation ${conv.$id}:`,
-              e
+              e,
             );
           }
         }
@@ -796,14 +796,14 @@ export const ConversationService = {
             Query.equal("conversationId", conv.$id),
             Query.equal("isRead", false),
             Query.notEqual("senderId", userId),
-          ]
+          ],
         );
 
         unreadCounts[conv.$id] = unreadQuery.total;
 
         // Get other participants' info
         const otherParticipantIds = conv.participants.filter(
-          (id) => id !== userId
+          (id) => id !== userId,
         );
         const otherParticipants: Models.User<Models.Preferences>[] = [];
 

@@ -97,7 +97,8 @@ const AboutUsPage = () => {
             <Card className="flex flex-col">
               <CardHeader>
                 <CardTitle className="text-2xl font-semibold text-center flex items-center justify-center">
-                  <MousePointer className="mr-2 h-6 w-6" /> User-Friendly Platform
+                  <MousePointer className="mr-2 h-6 w-6" /> User-Friendly
+                  Platform
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex-grow">
@@ -124,13 +125,15 @@ const AboutUsPage = () => {
             <Card className="flex flex-col">
               <CardHeader>
                 <CardTitle className="text-2xl font-semibold text-center flex items-center justify-center">
-                  <HeartHandshake className="mr-2 h-6 w-6" /> Supportive Community
+                  <HeartHandshake className="mr-2 h-6 w-6" /> Supportive
+                  Community
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex-grow">
                 <p className="leading-relaxed text-center">
-                  We foster a supportive environment where workers can grow their
-                  careers, connect with peers, and access valuable resources.
+                  We foster a supportive environment where workers can grow
+                  their careers, connect with peers, and access valuable
+                  resources.
                 </p>
               </CardContent>
             </Card>
@@ -192,7 +195,7 @@ const AboutUsPage = () => {
             community and be part of the future of service.
           </p>
           <div className="flex justify-center mt-8">
-            <Button size="lg" onClick={() => router.push('/auth')}>
+            <Button size="lg" onClick={() => router.push("/auth")}>
               Get Started
             </Button>
           </div>
@@ -210,7 +213,8 @@ const AboutUsPage = () => {
             {faqs.map((faq, index) => (
               <div key={index} className="border-b pb-4">
                 <h3 className="text-lg font-semibold mb-2 flex items-center">
-                  <HelpCircle className="mr-2 h-5 w-5 text-primary" /> {faq.question}
+                  <HelpCircle className="mr-2 h-5 w-5 text-primary" />{" "}
+                  {faq.question}
                 </h3>
                 <p className="text-muted-foreground text-base">{faq.answer}</p>
               </div>

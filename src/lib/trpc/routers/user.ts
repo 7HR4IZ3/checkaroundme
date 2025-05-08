@@ -9,7 +9,7 @@ export function createUserProcedures(
     typeof import("@trpc/server").initTRPC.create<{
       transformer: typeof SuperJSON;
     }>
-  >
+  >,
 ) {
   return {
     getUserById: t.procedure
@@ -23,7 +23,7 @@ export function createUserProcedures(
         z.object({
           userId: z.string(),
           data: updateUserSchema,
-        })
+        }),
       )
       .mutation(async ({ input }) => {
         return await UserService.updateUser(input.userId, input.data);
@@ -34,7 +34,7 @@ export function createUserProcedures(
         z.object({
           file: z.any(), // File upload handling may need to be adapted for your setup
           userId: z.string(),
-        })
+        }),
       )
       .mutation(async ({ input }) => {
         return await UserService.uploadAvatar(input.file, input.userId);

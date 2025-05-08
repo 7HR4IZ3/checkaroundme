@@ -103,7 +103,8 @@ export default function Conversation({
             >
               <Phone className="h-5 w-5" />
               <Link className="sr-only" href={`tel:${activeChatUser.phone}`}>
-                Call {activeChatUser?.name || "this user"} ({activeChatUser.phone})
+                Call {activeChatUser?.name || "this user"} (
+                {activeChatUser.phone})
               </Link>
             </Button>
           </div>

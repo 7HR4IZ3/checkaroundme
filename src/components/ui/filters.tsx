@@ -50,7 +50,7 @@ export function FiltersPanel({
 }: FiltersPanelProps) {
   // State for selected filters, initialized from props
   const [selectedPrice, setSelectedPrice] = useState<string | undefined>(
-    initialFilters.price
+    initialFilters.price,
   ); // Store the value like "$", "$$", etc.
 
   // Using an object to store checkbox states is often easier to manage
@@ -77,7 +77,7 @@ export function FiltersPanel({
   // Handlers for updating state
   const handleFeatureChange = (
     featureId: string,
-    checked: boolean | "indeterminate"
+    checked: boolean | "indeterminate",
   ) => {
     if (typeof checked === "boolean") {
       setSelectedFeatures((prev) => ({ ...prev, [featureId]: checked }));
@@ -86,7 +86,7 @@ export function FiltersPanel({
 
   const handleDistanceChange = (
     distanceId: string,
-    checked: boolean | "indeterminate"
+    checked: boolean | "indeterminate",
   ) => {
     if (typeof checked === "boolean") {
       setSelectedDistances((prev) => ({ ...prev, [distanceId]: checked }));
@@ -117,10 +117,10 @@ export function FiltersPanel({
     const filtersToApply: Filters = {
       price: selectedPrice,
       features: Object.keys(selectedFeatures).filter(
-        (key) => selectedFeatures[key]
+        (key) => selectedFeatures[key],
       ), // Get array of selected feature IDs
       distances: Object.keys(selectedDistances).filter(
-        (key) => selectedDistances[key]
+        (key) => selectedDistances[key],
       ), // Get array of selected distance IDs
     };
     onApplyFilters(filtersToApply);

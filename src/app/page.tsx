@@ -4,7 +4,6 @@ import ServicesNearYou from "@/components/home/services-near-you";
 import PopularServices from "@/components/home/popular-services";
 
 export default function HomePage() {
-
   return (
     <>
       <Hero />

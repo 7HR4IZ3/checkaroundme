@@ -8,7 +8,7 @@ export function createCategoryProcedures(
     typeof import("@trpc/server").initTRPC.create<{
       transformer: typeof SuperJSON;
     }>
-  >
+  >,
 ) {
   return {
     createCategory: t.procedure
@@ -18,7 +18,7 @@ export function createCategoryProcedures(
           description: z.string().optional(),
           imageUrl: z.string().url().optional(),
           parentId: z.string().uuid().optional(),
-        })
+        }),
       )
       // .output(categorySchema)
       .mutation(async ({ input }) => {
@@ -27,7 +27,7 @@ export function createCategoryProcedures(
           name,
           description,
           imageUrl,
-          parentId
+          parentId,
         );
       }),
 

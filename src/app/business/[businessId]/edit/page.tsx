@@ -23,8 +23,8 @@ export default function BusinessEditForm() {
     typeof params.businessId === "string"
       ? params.businessId
       : Array.isArray(params.businessId)
-      ? params.businessId[0]
-      : "";
+        ? params.businessId[0]
+        : "";
 
   if (!isAuthenticated) {
     router.push("/auth");
