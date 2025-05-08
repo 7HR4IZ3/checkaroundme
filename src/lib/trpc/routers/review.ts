@@ -1,14 +1,12 @@
 import { z } from "zod";
 import { ReviewService } from "../../appwrite"; // Import Review type if needed
 import { reviewSchema, Review } from "../../schema";
-import type SuperJSON from "superjson";
+
+import type { AppTRPC } from "../router";
 
 export function createReviewProcedures(
-  t: ReturnType<
-    typeof import("@trpc/server").initTRPC.create<{
-      transformer: typeof SuperJSON;
-    }>
-  >,
+  t: AppTRPC,
+  protectedProcedure: typeof t.procedure,
 ) {
   return {
     createReview: t.procedure

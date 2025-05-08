@@ -13,7 +13,14 @@ export function cn(...inputs: ClassValue[]) {
  */
 export function calculateExpiryDate(
   startDate: Date,
-  interval: "hourly" | "daily" | "weekly" | "monthly" | "quarterly" | "biannually" | "annually"
+  interval:
+    | "hourly"
+    | "daily"
+    | "weekly"
+    | "monthly"
+    | "quarterly"
+    | "biannually"
+    | "annually",
 ): Date {
   const expiryDate = new Date(startDate);
 
@@ -41,7 +48,9 @@ export function calculateExpiryDate(
       break;
     default:
       // Default to monthly if interval is unknown, or throw an error
-      console.warn(`Unknown subscription interval: ${interval}. Defaulting to monthly.`);
+      console.warn(
+        `Unknown subscription interval: ${interval}. Defaulting to monthly.`,
+      );
       expiryDate.setMonth(expiryDate.getMonth() + 1);
       break;
   }

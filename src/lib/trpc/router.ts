@@ -1,4 +1,5 @@
-import { initTRPC } from "@trpc/server";
+import { initTRPC, TRPCError } from "@trpc/server";
+import { headers } from "next/headers";
 import superjson from "superjson";
 
 import { createAuthProcedures } from "./routers/auth";
@@ -14,27 +15,101 @@ import { createVerificationProcedures } from "./routers/verification";
 import { createPaystackProcedures } from "./routers/paystack";
 import { cache } from "react";
 
+// Server-side secret key (should be in .env and NOT prefixed with NEXT_PUBLIC_)
+const SERVER_TRPC_SECRET_KEY = process.env.SERVER_TRPC_SECRET_KEY;
+
 export const createTRPCContext = cache(async () => {
   /**
    * @see: https://trpc.io/docs/server/context
+   * This context is now parameterless and uses `next/headers`.
+   * It's suitable for App Router (RSC, Route Handlers, Server Actions).
    */
-  return {};
+  const headerStore = await headers();
+  const clientSecretKeyHeader = headerStore.get("x-trpc-secret-key");
+
+  let clientSecretKey: string | undefined;
+  if (Array.isArray(clientSecretKeyHeader)) {
+    // This case should ideally not happen with `headerStore.get()`
+    console.warn(
+      "x-trpc-secret-key header was an array (unexpected for next/headers.get), using first element if possible.",
+    );
+    clientSecretKey = clientSecretKeyHeader[0];
+  } else {
+    // headerStore.get() returns string | null
+    clientSecretKey = clientSecretKeyHeader ?? undefined;
+  }
+
+  return {
+    // `req` object from CreateNextContextOptions is no longer part of this context.
+    // If procedures relied on `req` for things other than 'x-trpc-secret-key',
+    // they might need adjustment or a different context approach for those specific needs.
+    clientSecretKey,
+  };
 });
 
-const t = initTRPC.create({
+const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
 });
 
+/**
+ * The type of the main tRPC instance, including the specific context.
+ * This will be used to correctly type the `t` parameter in sub-router creation functions.
+ */
+export type AppTRPC = typeof t;
+
+/**
+ * Middleware to check for the secret key.
+ */
+const enforceSecretKey = t.middleware(({ ctx, next }) => {
+  if (!SERVER_TRPC_SECRET_KEY) {
+    console.error(
+      "SERVER_TRPC_SECRET_KEY is not set on the server. Ensure it is in your .env file.",
+    );
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Server configuration error.",
+    });
+  }
+  // Assuming ctx.clientSecretKey is populated by createTRPCContext
+  // The `await ctx` is needed because createTRPCContext is async due to `cache()`
+  // ctx in middleware is the resolved context value
+  const resolvedCtx = ctx;
+
+  if (resolvedCtx.clientSecretKey !== SERVER_TRPC_SECRET_KEY) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Invalid or missing secret key.",
+    });
+  }
+  return next({
+    ctx: {
+      ...resolvedCtx,
+      // clientSecretKey is confirmed to be the server secret key
+    },
+  });
+});
+
+/**
+ * Public procedure
+ */
+export const publicProcedure = t.procedure;
+
+/**
+ * Protected procedure that requires JWT authentication.
+ * Routes using this procedure will require a valid Bearer token in the Authorization header.
+ */
+export const protectedProcedureWithSecret = t.procedure.use(enforceSecretKey);
+
 export const appRouter = t.router({
-  ...createAuthProcedures(t),
-  ...createUserProcedures(t),
-  ...createReviewProcedures(t),
-  ...createMessageProcedures(t),
-  ...createBusinessProcedures(t),
-  ...createCategoryProcedures(t),
-  ...createConversationProcedures(t),
-  ...createLocationProcedures(t),
-  ...createVerificationProcedures(t),
+  ...createAuthProcedures(t, protectedProcedureWithSecret),
+  ...createUserProcedures(t, protectedProcedureWithSecret),
+  ...createReviewProcedures(t, protectedProcedureWithSecret),
+  ...createMessageProcedures(t, protectedProcedureWithSecret),
+  ...createBusinessProcedures(t, protectedProcedureWithSecret),
+  ...createCategoryProcedures(t, protectedProcedureWithSecret),
+  ...createConversationProcedures(t, protectedProcedureWithSecret),
+  ...createLocationProcedures(t, protectedProcedureWithSecret),
+  ...createVerificationProcedures(t, protectedProcedureWithSecret),
 
   // Add Flutterwave procedures.
   // NOTE: The second argument to createFlutterwaveProcedures is a placeholder
@@ -59,8 +134,8 @@ export const appRouter = t.router({
   // Given the current structure of `createFlutterwaveProcedures`, it expects `protectedProcedure`.
   // Let's assume `t.procedure` is passed for now, and you'll adjust auth within the router or by passing a real `protectedProcedure`.
 
-  // ...createFlutterwaveProcedures(t, t.procedure), // Adjust `t.procedure` if you have a separate `protectedProcedure`
-  ...createPaystackProcedures(t, t.procedure), // Added Paystack procedures (adjust protectedProcedure if needed)
+  // ...createFlutterwaveProcedures(t, protectedProcedureWithSecret),
+  ...createPaystackProcedures(t, protectedProcedureWithSecret),
 });
 
 // Export type definition of API

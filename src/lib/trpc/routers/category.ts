@@ -1,14 +1,12 @@
 import { z } from "zod";
 import { CategoryService } from "../../appwrite";
 import { categorySchema } from "../../schema";
-import type SuperJSON from "superjson";
+
+import type { AppTRPC } from "../router";
 
 export function createCategoryProcedures(
-  t: ReturnType<
-    typeof import("@trpc/server").initTRPC.create<{
-      transformer: typeof SuperJSON;
-    }>
-  >,
+  t: AppTRPC,
+  protectedProcedure: typeof t.procedure,
 ) {
   return {
     createCategory: t.procedure

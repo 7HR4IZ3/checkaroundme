@@ -63,15 +63,13 @@ const MapPlaceholder: React.FC<MapPlaceholderProps> = ({ businesses }) => {
         </Marker>
 
         {businesses &&
-          businesses.map(
-            (business) =>
-              business.coordinates && (
+          businesses.map((business) => {
+            if (business.coordinates) {
+              const coordinates = JSON.parse(business.coordinates);
+              return (
                 <Marker
                   key={business.$id}
-                  position={[
-                    business.coordinates.latitude,
-                    business.coordinates.longitude,
-                  ]}
+                  position={[coordinates.latitude, coordinates.longitude]}
                   eventHandlers={{
                     click: () => {
                       router.push(`/business/${business.$id}`);
@@ -80,8 +78,9 @@ const MapPlaceholder: React.FC<MapPlaceholderProps> = ({ businesses }) => {
                 >
                   <Popup>{business.name}</Popup>
                 </Marker>
-              ),
-          )}
+              );
+            }
+          })}
       </MapContainer>
     </div>
   );

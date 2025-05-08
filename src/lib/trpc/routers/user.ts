@@ -2,14 +2,11 @@ import { z } from "zod";
 import { UserService } from "../../appwrite";
 import { updateUserSchema } from "../../schema";
 
-import type SuperJSON from "superjson";
+import type { AppTRPC } from "../router";
 
 export function createUserProcedures(
-  t: ReturnType<
-    typeof import("@trpc/server").initTRPC.create<{
-      transformer: typeof SuperJSON;
-    }>
-  >,
+  t: AppTRPC,
+  protectedProcedure: typeof t.procedure,
 ) {
   return {
     getUserById: t.procedure

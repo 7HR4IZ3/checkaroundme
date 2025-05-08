@@ -12,7 +12,7 @@ import {
   createRefund as fwCreateRefund,
 } from "@/lib/flutterwave"; // Assuming flutterwave.ts is in @/lib
 
-import type SuperJSON from "superjson"; // For tRPC instance type
+import type { AppTRPC } from "../router";
 import { TRPCError } from "@trpc/server";
 
 // Define Zod schemas for input validation
@@ -44,10 +44,12 @@ const verifyTransactionInputSchema = z.object({
   transactionId: z.union([z.string(), z.number()]),
 });
 
-const getAllPaymentPlansInputSchema = z.object({
-  // Define if there are any specific query params you want to allow
-  // e.g., status: z.enum(["active", "cancelled"]).optional(),
-}).optional();
+const getAllPaymentPlansInputSchema = z
+  .object({
+    // Define if there are any specific query params you want to allow
+    // e.g., status: z.enum(["active", "cancelled"]).optional(),
+  })
+  .optional();
 
 const createPaymentPlanInputSchema = z.object({
   amount: z.number().positive(),
@@ -69,11 +71,13 @@ const getPaymentPlanInputSchema = z.object({
   planId: z.number().positive(),
 });
 
-const getAllSubscriptionsInputSchema = z.object({
-  email: z.string().email().optional(),
-  plan_id: z.number().positive().optional(),
-  status: z.enum(["active", "cancelled", "completed"]).optional(), // Flutterwave uses 'cancelled'
-}).optional();
+const getAllSubscriptionsInputSchema = z
+  .object({
+    email: z.string().email().optional(),
+    plan_id: z.number().positive().optional(),
+    status: z.enum(["active", "cancelled", "completed"]).optional(), // Flutterwave uses 'cancelled'
+  })
+  .optional();
 
 const getSubscriptionInputSchema = z.object({
   subscriptionId: z.number().positive(),
@@ -92,24 +96,16 @@ const createRefundInputSchema = z.object({
   amount: z.number().positive().optional(),
 });
 
-
 // This function creates the procedures, similar to your message.ts
 export function createFlutterwaveProcedures(
-  t: ReturnType<
-    typeof import("@trpc/server").initTRPC.create<{
-      transformer: typeof SuperJSON;
-      // Include your context type if you have one defined for tRPC
-      // meta: { /* ... */ };
-      // context: Context;
-    }>
-  >,
+  t: AppTRPC,
   // You might need to pass protectedProcedure if it's defined separately
   // or if `t` already includes it. Assuming `t.procedure` can be chained with `.use(isAuthed)`
   // For simplicity, let's assume `t.procedure` is the base and we'll need a way to make it protected.
   // If your `protectedProcedure` is `t.procedure.use(middleware)`, that's fine.
   // If it's a separate export, you'd pass it in.
   // Let's assume a simple `protectedProcedure` for now.
-  protectedProcedure: typeof t.procedure // This is a placeholder, adjust to your actual protectedProcedure
+  protectedProcedure: typeof t.procedure, // This is a placeholder, adjust to your actual protectedProcedure
 ) {
   return {
     getAllPaymentPlans: t.procedure // Publicly accessible to list plans
@@ -117,7 +113,10 @@ export function createFlutterwaveProcedures(
       .query(async ({ input }) => {
         const response = await fwGetAllPaymentPlans(input);
         if (response.status === "error" || !response.data) {
-          throw new Error(response.message || "Failed to fetch payment plans from Flutterwave.");
+          throw new Error(
+            response.message ||
+              "Failed to fetch payment plans from Flutterwave.",
+          );
         }
         // Assuming response.data is an array of plans
         return response.data as any[]; // Cast as any[] for now, define a Plan type later
@@ -125,7 +124,8 @@ export function createFlutterwaveProcedures(
 
     initiatePayment: protectedProcedure // Payment initiation should be protected
       .input(initiatePaymentInputSchema)
-      .mutation(async ({ input, ctx }) => { // Assuming ctx has user info
+      .mutation(async ({ input, ctx }) => {
+        // Assuming ctx has user info
         // const user = (ctx as any).user; // Example: Get user from context
         // if (!user || !user.id || !user.email) {
         //   throw new TRPCError({ code: 'UNAUTHORIZED', message: 'User not authenticated.' });
@@ -136,11 +136,13 @@ export function createFlutterwaveProcedures(
           // tx_ref should be unique for each transaction attempt.
           // It's good practice to generate this on the server.
           // tx_ref: `CKM-SUB-${Date.now()}-${user.id}-${input.payment_plan}`,
-          tx_ref: `CKM-SUB-${Date.now()}-${input.customer.email.split('@')[0]}-${input.payment_plan}`, // Simplified tx_ref
+          tx_ref: `CKM-SUB-${Date.now()}-${input.customer.email.split("@")[0]}-${input.payment_plan}`, // Simplified tx_ref
         };
         const response = await fwInitiatePayment(paymentDetails);
         if (response.status === "error" || !response.data?.link) {
-          throw new Error(response.message || "Failed to initiate payment with Flutterwave.");
+          throw new Error(
+            response.message || "Failed to initiate payment with Flutterwave.",
+          );
         }
         return response.data; // Should contain the payment link
       }),
@@ -150,7 +152,10 @@ export function createFlutterwaveProcedures(
       .query(async ({ input }) => {
         const response = await fwVerifyTransaction(input.transactionId);
         if (response.status === "error" || !response.data) {
-          throw new Error(response.message || "Failed to verify transaction with Flutterwave.");
+          throw new Error(
+            response.message ||
+              "Failed to verify transaction with Flutterwave.",
+          );
         }
         // Here, response.data should conform to VerifyTransactionData
         return response.data;
@@ -163,7 +168,9 @@ export function createFlutterwaveProcedures(
         if (response.status === "error" || !response.data) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: response.message || "Failed to create payment plan with Flutterwave.",
+            message:
+              response.message ||
+              "Failed to create payment plan with Flutterwave.",
           });
         }
         return response.data;

@@ -27,7 +27,12 @@ const ServicesNearYou = () => {
       longitude: cordinates.longitude as number,
       // distanceKm is optional and will use the default in the backend if not provided
     },
-    { enabled: !!cordinates.latitude && cordinates.latitude !== null && cordinates.longitude !== null },
+    {
+      enabled:
+        !!cordinates.latitude &&
+        cordinates.latitude !== null &&
+        cordinates.longitude !== null,
+    },
   );
 
   if (geoError) {

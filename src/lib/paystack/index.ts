@@ -4,7 +4,7 @@ const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 
 if (!PAYSTACK_SECRET_KEY) {
   console.error(
-    "Paystack secret key not found in environment variables. Paystack functionality will be disabled."
+    "Paystack secret key not found in environment variables. Paystack functionality will be disabled.",
   );
   // Depending on the app's needs, you might throw an error here.
 }
@@ -67,13 +67,13 @@ export const initializeTransaction = async (details: {
   } catch (error: any) {
     console.error(
       "Error initializing Paystack transaction:",
-      error?.response?.data || error.message
+      error?.response?.data || error.message,
     );
     // Rethrow or return a structured error
     throw new Error(
       error?.response?.data?.message ||
         error.message ||
-        "Failed to initialize Paystack transaction."
+        "Failed to initialize Paystack transaction.",
     );
   }
 };
@@ -93,12 +93,12 @@ export const verifyTransaction = async (reference: string) => {
   } catch (error: any) {
     console.error(
       `Error verifying Paystack transaction ${reference}:`,
-      error?.response?.data || error.message
+      error?.response?.data || error.message,
     );
     throw new Error(
       error?.response?.data?.message ||
         error.message ||
-        "Failed to verify Paystack transaction."
+        "Failed to verify Paystack transaction.",
     );
   }
 };
@@ -133,12 +133,12 @@ export const createPlan = async (details: {
   } catch (error: any) {
     console.error(
       "Error creating Paystack plan:",
-      error?.response?.data || error.message
+      error?.response?.data || error.message,
     );
     throw new Error(
       error?.response?.data?.message ||
         error.message ||
-        "Failed to create Paystack plan."
+        "Failed to create Paystack plan.",
     );
   }
 };
@@ -163,12 +163,12 @@ export const listPlans = async (params?: {
   } catch (error: any) {
     console.error(
       "Error listing Paystack plans:",
-      error?.response?.data || error.message
+      error?.response?.data || error.message,
     );
     throw new Error(
       error?.response?.data?.message ||
         error.message ||
-        "Failed to list Paystack plans."
+        "Failed to list Paystack plans.",
     );
   }
 };
@@ -195,12 +195,12 @@ export const createSubscription = async (details: {
   } catch (error: any) {
     console.error(
       "Error creating Paystack subscription:",
-      error?.response?.data || error.message
+      error?.response?.data || error.message,
     );
     throw new Error(
       error?.response?.data?.message ||
         error.message ||
-        "Failed to create Paystack subscription."
+        "Failed to create Paystack subscription.",
     );
   }
 };
@@ -224,12 +224,12 @@ export const listSubscriptions = async (params?: {
   } catch (error: any) {
     console.error(
       "Error listing Paystack subscriptions:",
-      error?.response?.data || error.message
+      error?.response?.data || error.message,
     );
     throw new Error(
       error?.response?.data?.message ||
         error.message ||
-        "Failed to list Paystack subscriptions."
+        "Failed to list Paystack subscriptions.",
     );
   }
 };
@@ -251,12 +251,12 @@ export const disableSubscription = async (details: {
   } catch (error: any) {
     console.error(
       "Error disabling Paystack subscription:",
-      error?.response?.data || error.message
+      error?.response?.data || error.message,
     );
     throw new Error(
       error?.response?.data?.message ||
         error.message ||
-        "Failed to disable Paystack subscription."
+        "Failed to disable Paystack subscription.",
     );
   }
 };
@@ -278,12 +278,12 @@ export const enableSubscription = async (details: {
   } catch (error: any) {
     console.error(
       "Error enabling Paystack subscription:",
-      error?.response?.data || error.message
+      error?.response?.data || error.message,
     );
     throw new Error(
       error?.response?.data?.message ||
         error.message ||
-        "Failed to enable Paystack subscription."
+        "Failed to enable Paystack subscription.",
     );
   }
 };

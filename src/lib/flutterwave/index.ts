@@ -3,7 +3,7 @@ const FLUTTERWAVE_API_BASE_URL = "https://api.flutterwave.com/v3";
 
 if (!FLUTTERWAVE_SECRET_KEY) {
   console.error(
-    "Flutterwave secret key not found in environment variables. Payment functionality will be severely limited or disabled."
+    "Flutterwave secret key not found in environment variables. Payment functionality will be severely limited or disabled.",
   );
   // Depending on the app's needs, you might throw an error here or allow it to run with limited functionality.
 }
@@ -27,7 +27,7 @@ type FlutterwaveResponse<T> =
 async function fetchFlutterwaveAPI<T>(
   endpoint: string,
   method: "GET" | "POST" | "PUT" = "GET",
-  payload?: Record<string, any>
+  payload?: Record<string, any>,
 ): Promise<FlutterwaveResponse<T>> {
   if (!FLUTTERWAVE_SECRET_KEY) {
     return {
@@ -53,7 +53,7 @@ async function fetchFlutterwaveAPI<T>(
   let url = `${FLUTTERWAVE_API_BASE_URL}/${endpoint}`;
   if (payload && method === "GET") {
     const queryParams = new URLSearchParams(
-      payload as Record<string, string>
+      payload as Record<string, string>,
     ).toString();
     if (queryParams) {
       url += `?${queryParams}`;
@@ -68,7 +68,7 @@ async function fetchFlutterwaveAPI<T>(
       // Log more details for server-side debugging
       console.error(
         `Flutterwave API Error (${response.status}) for ${method} ${url}:`,
-        responseData
+        responseData,
       );
       return {
         status: "error",
@@ -82,7 +82,7 @@ async function fetchFlutterwaveAPI<T>(
   } catch (error: any) {
     console.error(
       `Flutterwave API Request Exception for ${method} ${url}:`,
-      error
+      error,
     );
     return {
       status: "error",
@@ -121,7 +121,6 @@ export interface VerifyTransactionData {
   // Add other fields as per Flutterwave's verify transaction response
 }
 
-
 /**
  * Creates a new payment plan on Flutterwave.
  */
@@ -148,7 +147,7 @@ export const createPaymentPlan = async (planDetails: {
  * Fetches all payment plans from Flutterwave.
  */
 export const getAllPaymentPlans = async (
-  params?: Record<string, string | number>
+  params?: Record<string, string | number>,
 ) => {
   return fetchFlutterwaveAPI("payment-plans", "GET", params);
 };
@@ -182,7 +181,11 @@ export const initiatePayment = async (paymentDetails: {
   };
   payment_plan?: number; // For recurring payments
 }) => {
-  return fetchFlutterwaveAPI<InitiatePaymentData>("payments", "POST", paymentDetails);
+  return fetchFlutterwaveAPI<InitiatePaymentData>(
+    "payments",
+    "POST",
+    paymentDetails,
+  );
 };
 
 /**
@@ -190,14 +193,17 @@ export const initiatePayment = async (paymentDetails: {
  */
 export const verifyTransaction = async (transactionId: string | number) => {
   // The transactionId here is the numeric ID from Flutterwave.
-  return fetchFlutterwaveAPI<VerifyTransactionData>(`transactions/${transactionId}/verify`, "GET");
+  return fetchFlutterwaveAPI<VerifyTransactionData>(
+    `transactions/${transactionId}/verify`,
+    "GET",
+  );
 };
 
 /**
  * Fetches all subscriptions from Flutterwave.
  */
 export const getAllSubscriptions = async (
-  params?: Record<string, string | number>
+  params?: Record<string, string | number>,
 ) => {
   return fetchFlutterwaveAPI("subscriptions", "GET", params);
 };
@@ -242,7 +248,7 @@ export const createRefund = async (refundDetails: {
   return fetchFlutterwaveAPI(
     `transactions/${refundDetails.id}/refund`,
     "POST",
-    payload
+    payload,
   );
 };
 

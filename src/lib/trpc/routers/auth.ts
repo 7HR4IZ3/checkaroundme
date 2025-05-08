@@ -3,12 +3,11 @@ import { AuthService } from "../../appwrite/services/auth";
 import SuperJSON from "superjson";
 import { TRPCError } from "@trpc/server";
 
+import type { AppTRPC } from "../router"; // Import the AppTRPC type
+
 export function createAuthProcedures(
-  t: ReturnType<
-    typeof import("@trpc/server").initTRPC.create<{
-      transformer: typeof SuperJSON;
-    }>
-  >,
+  t: AppTRPC,
+  protectedProcedure: typeof t.procedure,
 ) {
   async function verifyCaptcha(
     token: string,
@@ -47,7 +46,7 @@ export function createAuthProcedures(
   }
 
   return {
-    register: t.procedure
+    register: protectedProcedure
       .input(
         z.object({
           email: z.string().email(),
@@ -82,7 +81,7 @@ export function createAuthProcedures(
         }
       }),
 
-    login: t.procedure
+    login: protectedProcedure
       .input(
         z.object({
           email: z.string().email(),
@@ -103,7 +102,7 @@ export function createAuthProcedures(
         return await AuthService.login(input.email, input.password);
       }),
 
-    loginWithGoogle: t.procedure
+    loginWithGoogle: protectedProcedure
       .input(
         z.object({
           redirectUrl: z.string().url(),
@@ -123,7 +122,7 @@ export function createAuthProcedures(
         return await AuthService.loginWithGoogle(input.redirectUrl);
       }),
 
-    requestPasswordReset: t.procedure
+    requestPasswordReset: protectedProcedure
       .input(
         z.object({
           email: z.string().email(),
@@ -171,7 +170,7 @@ export function createAuthProcedures(
       return await AuthService.logout();
     }),
 
-    resetPassword: t.procedure
+    resetPassword: protectedProcedure
       .input(
         z.object({
           userId: z.string(),

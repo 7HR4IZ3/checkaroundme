@@ -11,10 +11,10 @@ import {
   enableSubscription as psEnableSubscription,
 } from "@/lib/paystack"; // Assuming paystack/index.ts is in @/lib
 import { updateUserSubscriptionStatus as appwriteUpdateUserSubscription } from "@/lib/appwrite/services/user"; // Import Appwrite service function
-
-import type SuperJSON from "superjson"; // For tRPC instance type
-import type { IPlan } from "paystack-sdk/dist/plan";
 import { calculateExpiryDate } from "@/lib/utils";
+
+import type { IPlan } from "paystack-sdk/dist/plan";
+import type { AppTRPC } from "../router";
 
 // --- Zod Schemas for Paystack Inputs ---
 
@@ -28,7 +28,7 @@ const initializeTransactionInputSchema = z.object({
   metadata: z.record(z.any()).optional(),
   channels: z
     .array(
-      z.enum(["card", "bank", "ussd", "qr", "mobile_money", "bank_transfer"])
+      z.enum(["card", "bank", "ussd", "qr", "mobile_money", "bank_transfer"]),
     )
     .optional(),
 });
@@ -106,13 +106,8 @@ const updateUserSubscriptionInputSchema = z.object({
 // --- tRPC Procedure Creation Function ---
 
 export function createPaystackProcedures(
-  t: ReturnType<
-    typeof import("@trpc/server").initTRPC.create<{
-      transformer: typeof SuperJSON;
-      // context: Context; // Add your context type if needed
-    }>
-  >,
-  protectedProcedure: typeof t.procedure // Pass your actual protected procedure
+  t: AppTRPC,
+  protectedProcedure: typeof t.procedure, // Pass your actual protected procedure
 ) {
   return {
     // --- Transactions ---
@@ -124,7 +119,7 @@ export function createPaystackProcedures(
           if (!response.status) {
             // Paystack uses { status: true/false }
             throw new Error(
-              response.message || "Failed to initialize Paystack transaction."
+              response.message || "Failed to initialize Paystack transaction.",
             );
           }
           return response.data; // Contains authorization_url, access_code, reference
@@ -152,7 +147,7 @@ export function createPaystackProcedures(
           ) {
             throw new Error(
               verifyResponse.message ||
-                `Transaction verification failed or status was not 'success': ${verifyResponse.data?.status}`
+                `Transaction verification failed or status was not 'success': ${verifyResponse.data?.status}`,
             );
           }
           const transactionData = verifyResponse.data;
@@ -175,15 +170,16 @@ export function createPaystackProcedures(
               transactionData,
             });
             throw new Error(
-              "Verification successful, but missing required details to create subscription."
+              "Verification successful, but missing required details to create subscription.",
             );
           }
 
           // 3. Create the subscription on Paystack
           const createSubResponse = await psCreateSubscription({
-            customer: customerEmail, plan: planCode,
+            customer: customerEmail,
+            plan: planCode,
             authorization: authorizationCode,
-            start_date: new Date() // Optional: Start immediately
+            start_date: new Date(), // Optional: Start immediately
           });
 
           if (
@@ -195,11 +191,11 @@ export function createPaystackProcedures(
             // Paystack might return an error message indicating this.
             console.error(
               "Paystack subscription creation failed:",
-              createSubResponse
+              createSubResponse,
             );
             throw new Error(
               createSubResponse.message ||
-                "Failed to create Paystack subscription after successful payment."
+                "Failed to create Paystack subscription after successful payment.",
             );
           }
           // @ts-ignore
@@ -215,10 +211,10 @@ export function createPaystackProcedures(
 
           if (!interval) {
             console.error(
-              "Plan interval missing from metadata. Cannot calculate expiry."
+              "Plan interval missing from metadata. Cannot calculate expiry.",
             );
             throw new Error(
-              "Subscription created, but failed to update user profile: Missing plan interval."
+              "Subscription created, but failed to update user profile: Missing plan interval.",
             );
           }
           // Ensure interval is one of the allowed enum values
@@ -255,7 +251,7 @@ export function createPaystackProcedures(
         } catch (error: any) {
           console.error(
             "Error in verifyTransactionAndCreateSubscription:",
-            error
+            error,
           );
           // Rethrow as TRPCError
           throw new TRPCError({
@@ -276,7 +272,7 @@ export function createPaystackProcedures(
           const response = await psCreatePlan(input);
           if (!response.status) {
             throw new Error(
-              response.message || "Failed to create Paystack plan."
+              response.message || "Failed to create Paystack plan.",
             );
           }
           return response.data; // Contains plan details like plan_code
@@ -296,7 +292,7 @@ export function createPaystackProcedures(
           const response = await psListPlans(input as any); // Cast needed if input type mismatch with SDK
           if (!response.status) {
             throw new Error(
-              response.message || "Failed to list Paystack plans."
+              response.message || "Failed to list Paystack plans.",
             );
           }
           return response.data as unknown as IPlan[]; // Array of plans
@@ -317,7 +313,7 @@ export function createPaystackProcedures(
           const response = await psCreateSubscription(input);
           if (!response.status) {
             throw new Error(
-              response.message || "Failed to create Paystack subscription."
+              response.message || "Failed to create Paystack subscription.",
             );
           }
           // @ts-ignore
@@ -338,7 +334,7 @@ export function createPaystackProcedures(
           const response = await psListSubscriptions(input);
           if (!response.status) {
             throw new Error(
-              response.message || "Failed to list Paystack subscriptions."
+              response.message || "Failed to list Paystack subscriptions.",
             );
           }
           // @ts-ignore
@@ -359,7 +355,7 @@ export function createPaystackProcedures(
           const response = await psDisableSubscription(input);
           if (!response.status) {
             throw new Error(
-              response.message || "Failed to disable Paystack subscription."
+              response.message || "Failed to disable Paystack subscription.",
             );
           }
           return { success: true, message: response.message };
@@ -379,7 +375,7 @@ export function createPaystackProcedures(
           const response = await psEnableSubscription(input);
           if (!response.status) {
             throw new Error(
-              response.message || "Failed to enable Paystack subscription."
+              response.message || "Failed to enable Paystack subscription.",
             );
           }
           return { success: true, message: response.message };

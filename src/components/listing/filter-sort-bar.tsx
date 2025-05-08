@@ -179,16 +179,14 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-48">
-            {SORT_OPTIONS.map(
-              (option: { value: string; label: string }) => (
-                <DropdownMenuItem
-                  key={option.value}
-                  onClick={() => handlePriceSortClick(option.value)}
-                >
-                  {option.label}
-                </DropdownMenuItem>
-              ),
-            )}
+            {SORT_OPTIONS.map((option: { value: string; label: string }) => (
+              <DropdownMenuItem
+                key={option.value}
+                onClick={() => handlePriceSortClick(option.value)}
+              >
+                {option.label}
+              </DropdownMenuItem>
+            ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

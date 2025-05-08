@@ -1,4 +1,4 @@
-declare module 'flutterwave-node-v3' {
+declare module "flutterwave-node-v3" {
   // Define the shape of the Flutterwave class and its methods here.
   // This is a basic example; you might need to expand it based on the methods you use.
   class Flutterwave {
@@ -8,7 +8,12 @@ declare module 'flutterwave-node-v3' {
       create: (payload: any) => Promise<any>;
       get_all: (payload?: any) => Promise<any>;
       get_plan: (id: number) => Promise<any>;
-      update: (payload: { id: number; name?: string; amount?: number; status?: string }) => Promise<any>;
+      update: (payload: {
+        id: number;
+        name?: string;
+        amount?: number;
+        status?: string;
+      }) => Promise<any>;
       cancel: (payload: { id: number }) => Promise<any>;
     };
     Transaction: {

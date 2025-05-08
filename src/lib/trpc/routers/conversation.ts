@@ -2,14 +2,11 @@ import { z } from "zod";
 import { ConversationService } from "../../appwrite";
 import { conversationSchema, messageSchema, userSchema } from "../../schema";
 
-import type SuperJSON from "superjson";
+import type { AppTRPC } from "../router";
 
 export function createConversationProcedures(
-  t: ReturnType<
-    typeof import("@trpc/server").initTRPC.create<{
-      transformer: typeof SuperJSON;
-    }>
-  >,
+  t: AppTRPC,
+  protectedProcedure: typeof t.procedure,
 ) {
   return {
     getOrCreateConversation: t.procedure

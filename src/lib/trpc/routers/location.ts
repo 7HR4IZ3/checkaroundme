@@ -1,12 +1,9 @@
 import ipdata from "ipdata";
-import type SuperJSON from "superjson";
+import type { AppTRPC } from "../router";
 
 export function createLocationProcedures(
-  t: ReturnType<
-    typeof import("@trpc/server").initTRPC.create<{
-      transformer: typeof SuperJSON;
-    }>
-  >,
+  t: AppTRPC,
+  protectedProcedure: typeof t.procedure,
 ) {
   // Replace 'YOUR_IPDATA_API_KEY' with your actual API key, preferably from an environment variable
   const ipdataClient = new ipdata(

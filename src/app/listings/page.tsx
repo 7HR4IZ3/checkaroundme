@@ -77,70 +77,104 @@ export default function Home() {
     else params.delete("categories");
 
     // Query and Location
-    if (queryParam) params.set("query", queryParam); else params.delete("query");
-    if (locationParam) params.set("location", locationParam); else params.delete("location");
+    if (queryParam) params.set("query", queryParam);
+    else params.delete("query");
+    if (locationParam) params.set("location", locationParam);
+    else params.delete("location");
 
     // FiltersPanel filters
-    if (initialFiltersPanelFilters.price) params.set("price", initialFiltersPanelFilters.price); else params.delete("price");
-    if (initialFiltersPanelFilters.features.length > 0) params.set("features", initialFiltersPanelFilters.features.join(",")); else params.delete("features");
+    if (initialFiltersPanelFilters.price)
+      params.set("price", initialFiltersPanelFilters.price);
+    else params.delete("price");
+    if (initialFiltersPanelFilters.features.length > 0)
+      params.set("features", initialFiltersPanelFilters.features.join(","));
+    else params.delete("features");
 
     // FilterSortBar filters
-    if (otherFilterBarCategories.length > 0) params.set("other_filters", otherFilterBarCategories.join(",")); else params.delete("other_filters");
-    if (openNow) params.set("open_now", "true"); else params.delete("open_now");
-    if (selectedDistance) params.set("max_distance", selectedDistance); else params.delete("max_distance");
-    if (sortBy) params.set("sort_by", sortBy); else params.delete("sort_by");
+    if (otherFilterBarCategories.length > 0)
+      params.set("other_filters", otherFilterBarCategories.join(","));
+    else params.delete("other_filters");
+    if (openNow) params.set("open_now", "true");
+    else params.delete("open_now");
+    if (selectedDistance) params.set("max_distance", selectedDistance);
+    else params.delete("max_distance");
+    if (sortBy) params.set("sort_by", sortBy);
+    else params.delete("sort_by");
 
     // Pagination
     params.set("limit", limit.toString());
     params.set("offset", offset.toString());
 
     // Only push if params actually changed to avoid loops, though router.replace is safer
-    if (params.toString() !== new URLSearchParams(searchParams.toString()).toString()) {
-       router.replace(`?${params.toString()}`, { scroll: false });
+    if (
+      params.toString() !==
+      new URLSearchParams(searchParams.toString()).toString()
+    ) {
+      router.replace(`?${params.toString()}`, { scroll: false });
     }
   }, [
-    selectedCategory, queryParam, locationParam, initialFiltersPanelFilters,
-    otherFilterBarCategories, openNow, selectedDistance, sortBy,
-    limit, offset, router, searchParams
+    selectedCategory,
+    queryParam,
+    locationParam,
+    initialFiltersPanelFilters,
+    otherFilterBarCategories,
+    openNow,
+    selectedDistance,
+    sortBy,
+    limit,
+    offset,
+    router,
+    searchParams,
   ]);
 
+  const updateUrlAndResetOffset = useCallback(
+    (newParams: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
+      Object.entries(newParams).forEach(([key, value]) => {
+        if (value === null) {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+      });
+      params.set("offset", "0"); // Reset to first page
+      router.replace(`?${params.toString()}`);
+    },
+    [router, searchParams],
+  );
 
-  const updateUrlAndResetOffset = useCallback((newParams: Record<string, string | null>) => {
-    const params = new URLSearchParams(searchParams.toString());
-    Object.entries(newParams).forEach(([key, value]) => {
-      if (value === null) {
-        params.delete(key);
-      } else {
-        params.set(key, value);
-      }
-    });
-    params.set("offset", "0"); // Reset to first page
-    router.replace(`?${params.toString()}`);
-  }, [router, searchParams]);
-
-
-  const onChangeCategory = useCallback((category: string | null) => {
-    updateUrlAndResetOffset({ categories: category });
-  }, [updateUrlAndResetOffset]);
+  const onChangeCategory = useCallback(
+    (category: string | null) => {
+      updateUrlAndResetOffset({ categories: category });
+    },
+    [updateUrlAndResetOffset],
+  );
 
   const onOpenFiltersPanel = useCallback(() => setFiltersPanelOpen(true), []);
   const onCloseFiltersPanel = useCallback(() => setFiltersPanelOpen(false), []);
 
-  const onApplyFilters = useCallback((filters: Filters) => {
+  const onApplyFilters = useCallback(
+    (filters: Filters) => {
       const newParams: Record<string, string | null> = {};
       newParams.price = filters.price ?? null;
-      newParams.features = filters.features.length > 0 ? filters.features.join(",") : null;
+      newParams.features =
+        filters.features.length > 0 ? filters.features.join(",") : null;
       // distances from panel is deprecated
       updateUrlAndResetOffset(newParams);
       onCloseFiltersPanel();
-    }, [updateUrlAndResetOffset, onCloseFiltersPanel]);
+    },
+    [updateUrlAndResetOffset, onCloseFiltersPanel],
+  );
 
-  const onChangeOtherFilterBarCategories = useCallback((categories: string[]) => {
-    setOtherFilterBarCategories(categories); // State update will trigger useEffect
-  }, []);
+  const onChangeOtherFilterBarCategories = useCallback(
+    (categories: string[]) => {
+      setOtherFilterBarCategories(categories); // State update will trigger useEffect
+    },
+    [],
+  );
 
   const onToggleOpenNow = useCallback(() => {
-    setOpenNow(prev => !prev); // State update will trigger useEffect
+    setOpenNow((prev) => !prev); // State update will trigger useEffect
   }, []);
 
   const onChangeDistance = useCallback((distance: string | null) => {
@@ -151,13 +185,16 @@ export default function Home() {
     setSortBy(sortValue); // State update will trigger useEffect
   }, []);
 
-  const onPageChange = useCallback((page: number) => {
+  const onPageChange = useCallback(
+    (page: number) => {
       const params = new URLSearchParams(searchParams.toString());
       const newPage = Math.max(1, page);
       params.set("offset", ((newPage - 1) * limit).toString());
       // limit is already in useEffect dependency, so no need to set it here again
       router.replace(`?${params.toString()}`);
-    }, [router, searchParams, limit]);
+    },
+    [router, searchParams, limit],
+  );
 
   const combinedCategoriesForQuery = useMemo(() => {
     const mainCat = selectedCategory ? [selectedCategory] : [];
@@ -177,24 +214,25 @@ export default function Home() {
     return { sortField: sortBy, sortDirection: "desc" }; // Default desc for rating, distance
   }, [sortBy]);
 
-  const { data: list, isLoading: queryIsLoading } = trpc.listBusinesses.useQuery(
-    {
-      categories: combinedCategoriesForQuery,
-      query: queryParam,
-      location: locationParam,
-      limit,
-      offset,
-      price: initialFiltersPanelFilters.price,
-      features: initialFiltersPanelFilters.features,
-      openNow: openNow,
-      userLatitude: userLatitude === null ? undefined : userLatitude,
-      userLongitude: userLongitude === null ? undefined : userLongitude,
-      maxDistanceKm: maxDistanceKm,
-      sortBy: sortField,
-      sortDirection: sortDirection as "asc" | "desc",
-    },
-    { enabled: !geoLoading }, // Only enable query once geolocation is resolved (or errored)
-  );
+  const { data: list, isLoading: queryIsLoading } =
+    trpc.listBusinesses.useQuery(
+      {
+        categories: combinedCategoriesForQuery,
+        query: queryParam,
+        location: locationParam,
+        limit,
+        offset,
+        price: initialFiltersPanelFilters.price,
+        features: initialFiltersPanelFilters.features,
+        openNow: openNow,
+        userLatitude: userLatitude === null ? undefined : userLatitude,
+        userLongitude: userLongitude === null ? undefined : userLongitude,
+        maxDistanceKm: maxDistanceKm,
+        sortBy: sortField,
+        sortDirection: sortDirection as "asc" | "desc",
+      },
+      { enabled: !geoLoading }, // Only enable query once geolocation is resolved (or errored)
+    );
 
   const isLoading = queryIsLoading || geoLoading;
 
@@ -206,9 +244,12 @@ export default function Home() {
     return Array.from(uniqueLocations);
   }, [list?.businesses]);
 
-  const onChangeLocation = useCallback((newLocation: string | null) => {
-    updateUrlAndResetOffset({ location: newLocation });
-  }, [updateUrlAndResetOffset]);
+  const onChangeLocation = useCallback(
+    (newLocation: string | null) => {
+      updateUrlAndResetOffset({ location: newLocation });
+    },
+    [updateUrlAndResetOffset],
+  );
 
   const currentPage = Math.floor(offset / limit) + 1;
   const totalPages = useMemo(() => {
@@ -257,7 +298,10 @@ export default function Home() {
                 </div>
               ) : (
                 list.businesses.map((business, index) => (
-                  <ListingCard key={business.$id || index} business={business} />
+                  <ListingCard
+                    key={business.$id || index}
+                    business={business}
+                  />
                 ))
               )}
             </div>

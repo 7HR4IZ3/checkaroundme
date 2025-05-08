@@ -11,17 +11,14 @@ import {
   daySchema,
 } from "../../schema";
 
-import type SuperJSON from "superjson";
+import type { AppTRPC } from "../router";
 
 export function createBusinessProcedures(
-  t: ReturnType<
-    typeof import("@trpc/server").initTRPC.create<{
-      transformer: typeof SuperJSON;
-    }>
-  >,
+  t: AppTRPC,
+  protectedProcedure: typeof t.procedure,
 ) {
   return {
-    createBusiness: t.procedure
+    createBusiness: protectedProcedure
       .input(
         createBusinessSchema.extend({
           userId: z.string(),
@@ -55,7 +52,7 @@ export function createBusinessProcedures(
         return await BusinessService.getBusinessById(input.businessId);
       }),
 
-    updateBusiness: t.procedure
+    updateBusiness: protectedProcedure
       .input(
         z.object({
           businessId: z.string(),
@@ -157,7 +154,7 @@ export function createBusinessProcedures(
       }),
 
     // --- Business Images ---
-    uploadBusinessImage: t.procedure
+    uploadBusinessImage: protectedProcedure
       .input(
         z.object({
           businessId: z.string(),
@@ -179,7 +176,7 @@ export function createBusinessProcedures(
         );
       }),
 
-    uploadTempBusinessImage: t.procedure
+    uploadTempBusinessImage: protectedProcedure
       .input(
         z.object({
           file: z.any(), // File upload handling may need to be adapted for your setup

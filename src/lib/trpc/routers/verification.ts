@@ -1,10 +1,11 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import SuperJSON from "superjson"; // Assuming superjson is used based on other routers
 import { VerificationService } from "@/lib/appwrite/services/verification";
 import { AuthService } from "@/lib/appwrite/services/auth";
-import { businessSchema, verificationDocumentSchema } from "@/lib/schema"; // Import the schemas
-import { Models } from "node-appwrite"; // Import Models for type safety
+import { businessSchema, verificationDocumentSchema } from "@/lib/schema";
+import { Models } from "node-appwrite";
+
+import type { AppTRPC } from "../router";
 
 // Placeholder for admin check logic
 // In a real application, this would involve checking user roles, teams, etc.
@@ -55,16 +56,10 @@ const updateVerificationStatusOutputSchema = z.object({
   success: z.boolean(),
 });
 
-// Define the tRPC instance type based on other routers
-type TRPCInstance = ReturnType<
-  typeof import("@trpc/server").initTRPC.create<{
-    transformer: typeof SuperJSON;
-    innerContext: { user?: Models.User<Models.Preferences>; profile?: any };
-    meta: {};
-  }>
->;
-
-export function createVerificationProcedures(t: TRPCInstance) {
+export function createVerificationProcedures(
+  t: AppTRPC,
+  seretProtectedProcedure: typeof t.procedure,
+) {
   // Middleware to check if user is authenticated
   const isAuthed = t.middleware(async ({ next }) => {
     const authResult = await AuthService.getCurrentUser();
@@ -73,7 +68,6 @@ export function createVerificationProcedures(t: TRPCInstance) {
     }
     return next({
       ctx: {
-        // Pass user info to the procedure context
         user: authResult.user,
         profile: authResult.profile,
       },
