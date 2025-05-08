@@ -15,47 +15,36 @@ import { trpc } from "@/lib/trpc/client";
 // Removed direct import of flutterwave functions
 import { useAuth } from "@/lib/hooks/useClientAuth"; // For fetching user data
 import { toast } from "sonner"; // For displaying errors
-
-// Plan interface - Ensure this matches the data structure returned by your tRPC procedure
-interface Plan {
-  id: number;
-  name: string;
-  amount: number;
-  interval: string;
-  currency: string;
-  description?: string;
-  status?: string; // Flutterwave plans have a status
-  plan_token?: string; // Flutterwave plan token
-  // Add any other relevant fields from the Flutterwave Plan object
-}
+import { IPlan } from "paystack-sdk/dist/plan";
+import { interval } from "date-fns";
 
 export default function OnboardingSubscriptionPage() {
   const router = useRouter();
-  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<IPlan | null>(null);
   // Removed local loading/error states managed by tRPC hooks
   // const [isLoadingPlans, setIsLoadingPlans] = useState(true);
   // const [isSubscribing, setIsSubscribing] = useState(false);
   // const [error, setError] = useState<string | null>(null);
   const { user } = useAuth(); // Get user data from auth context
 
-  // Fetch plans using tRPC query
+  // Fetch plans using Paystack tRPC query
   const {
     data: plansData,
     isLoading: isLoadingPlans,
     error: plansError,
-  } = trpc.getAllPaymentPlans.useQuery(undefined, {
-    // Pass input if needed
-    refetchOnWindowFocus: false, // Optional: prevent refetching on window focus
-    staleTime: 1000 * 60 * 5, // Optional: Cache plans for 5 minutes
+  } = trpc.listPlans.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 5,
   });
 
-  // Use tRPC mutation for initiating payment
-  const initiatePaymentMutation = trpc.initiatePayment.useMutation({
+  // Use tRPC mutation for Paystack transaction initialization
+  const initializeTransactionMutation = trpc.initializeTransaction.useMutation({
+    // Using initializeTransaction
     onSuccess: (data) => {
-      if (data?.link) {
-        router.push(data.link); // Redirect to Flutterwave payment page
+      // Paystack returns authorization_url, access_code, reference
+      if (data?.authorization_url) {
+        router.push(data.authorization_url); // Redirect to Paystack payment page
       } else {
-        // This case should ideally be handled by the mutation throwing an error
         toast.error("Payment Initiation Failed", {
           description: "Could not get payment link.",
         });
@@ -69,10 +58,14 @@ export default function OnboardingSubscriptionPage() {
     },
   });
 
-  // Derived state for plans from query data
-  const plans: Plan[] = (plansData || []) as Plan[];
+  // Map Paystack plan data (adjust mapping based on actual API response structure)
+  const plans =
+    plansData?.map((p: any) => ({
+      ...p,
+      description: p.description || `Billed ${p.interval}`,
+    })) || [];
 
-  const handleSelectPlan = (plan: Plan) => {
+  const handleSelectPlan = (plan: IPlan) => {
     setSelectedPlan(plan);
   };
 
@@ -91,31 +84,31 @@ export default function OnboardingSubscriptionPage() {
       return;
     }
 
-    // Prepare input for the tRPC mutation
+    // Prepare input for the Paystack tRPC mutation
     const mutationInput = {
-      payment_plan: selectedPlan.id,
-      amount: selectedPlan.amount,
-      currency: selectedPlan.currency,
-      customer: {
-        email: user.email,
-        name: user.name || "Valued Customer",
-        // phonenumber: user.phone, // Add if available and needed
-      },
-      redirect_url: `${window.location.origin}/auth/payment-status`,
-      meta: {
-        userId: user.$id, // Assuming Appwrite user ID is $id
+      email: user.email,
+      amount: selectedPlan.amount, // Amount in Kobo
+      currency: selectedPlan.currency, // Optional, defaults to your Paystack account currency
+      plan: selectedPlan.plan_code, // Use Paystack plan_code
+      callback_url: `${window.location.origin}/auth/payment-status`, // Paystack uses callback_url
+      metadata: {
+        userId: user.$id,
         planId: selectedPlan.id,
+        planCode: selectedPlan.plan_code,
+        interval: selectedPlan.interval,
+        custom_fields: [
+          {
+            display_name: "User Name",
+            variable_name: "user_name",
+            value: user.name || "N/A",
+          },
+        ],
       },
-      customizations: {
-        title: "Checkaroundme Subscription",
-        description: `Payment for ${selectedPlan.name}`,
-        logo: `${window.location.origin}/images/logo.png`,
-      },
-      // tx_ref is now generated server-side in the tRPC procedure
+      // reference: `CKM-SUB-${Date.now()}-${user.$id}-${selectedPlan.plan_code}` // Optional: Generate ref here or let Paystack/tRPC handle it
     };
 
-    // Call the mutation
-    initiatePaymentMutation.mutate(mutationInput);
+    // Call the Paystack mutation
+    initializeTransactionMutation.mutate(mutationInput);
   };
 
   // Use tRPC loading state
@@ -150,10 +143,9 @@ export default function OnboardingSubscriptionPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Display mutation error if any */}
-          {initiatePaymentMutation.error && (
+          {initializeTransactionMutation.error && (
             <p className="text-red-500 text-center">
-              {initiatePaymentMutation.error.message}
+              {initializeTransactionMutation.error.message}
             </p>
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -194,10 +186,10 @@ export default function OnboardingSubscriptionPage() {
         <CardFooter className="flex flex-col items-center space-y-4">
           <Button
             onClick={handleSubscribe}
-            disabled={!selectedPlan || initiatePaymentMutation.isPending} 
+            disabled={!selectedPlan || initializeTransactionMutation.isPending}
             className="w-full max-w-xs"
           >
-            {initiatePaymentMutation.isPending
+            {initializeTransactionMutation.isPending
               ? "Processing..."
               : `Subscribe to ${selectedPlan?.name || "Selected Plan"}`}
           </Button>

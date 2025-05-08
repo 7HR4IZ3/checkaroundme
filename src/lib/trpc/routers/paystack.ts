@@ -9,10 +9,12 @@ import {
   listSubscriptions as psListSubscriptions,
   disableSubscription as psDisableSubscription,
   enableSubscription as psEnableSubscription,
-  // Import other necessary functions from your paystack lib if needed
 } from "@/lib/paystack"; // Assuming paystack/index.ts is in @/lib
+import { updateUserSubscriptionStatus as appwriteUpdateUserSubscription } from "@/lib/appwrite/services/user"; // Import Appwrite service function
 
 import type SuperJSON from "superjson"; // For tRPC instance type
+import type { IPlan } from "paystack-sdk/dist/plan";
+import { calculateExpiryDate } from "@/lib/utils";
 
 // --- Zod Schemas for Paystack Inputs ---
 
@@ -82,6 +84,25 @@ const manageSubscriptionInputSchema = z.object({
   token: z.string(), // Email token
 });
 
+// Schema for the new mutation input
+const updateUserSubscriptionInputSchema = z.object({
+  userId: z.string(),
+  planCode: z.string(),
+  interval: z.enum([
+    // Make sure this matches plan intervals
+    "hourly",
+    "daily",
+    "weekly",
+    "monthly",
+    "quarterly",
+    "biannually",
+    "annually",
+  ]),
+  paystackCustomerId: z.string().optional(),
+  paystackSubscriptionCode: z.string().optional().nullable(), // Make optional and nullable
+  // Add other fields needed from the verified transaction or context
+});
+
 // --- tRPC Procedure Creation Function ---
 
 export function createPaystackProcedures(
@@ -117,24 +138,131 @@ export function createPaystackProcedures(
         }
       }),
 
-    verifyTransaction: t.procedure // Often public for callback handling
+    verifyTransactionAndCreateSubscription: protectedProcedure // Make protected as it modifies user data
       .input(verifyTransactionInputSchema)
-      .query(async ({ input }) => {
-        // Changed to query
+      .mutation(async ({ input, ctx }) => {
+        // Changed to mutation as it has side effects
         try {
-          const response = await psVerifyTransaction(input.reference);
-          if (!response.status) {
+          // 1. Verify the transaction
+          const verifyResponse = await psVerifyTransaction(input.reference);
+          if (
+            !verifyResponse.status ||
+            !verifyResponse.data ||
+            verifyResponse.data.status !== "success"
+          ) {
             throw new Error(
-              response.message || "Failed to verify Paystack transaction."
+              verifyResponse.message ||
+                `Transaction verification failed or status was not 'success': ${verifyResponse.data?.status}`
             );
           }
-          return response.data; // Contains transaction details
-        } catch (error: any) {
-          // Handle specific Paystack errors if needed (e.g., transaction not found)
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR", // Or NOT_FOUND based on error
+          const transactionData = verifyResponse.data;
+
+          // 2. Extract necessary details for subscription creation
+          const customerEmail = transactionData.customer?.email;
+          const planCode =
+            // @ts-ignore
+            transactionData.plan || (transactionData.metadata as any)?.planCode; // Get plan code from transaction or metadata
+          const authorizationCode =
+            transactionData.authorization?.authorization_code;
+          const userId = (transactionData.metadata as any)?.userId; // Get userId from metadata
+
+          if (!customerEmail || !planCode || !authorizationCode || !userId) {
+            console.error("Missing data for subscription creation:", {
+              customerEmail,
+              planCode,
+              authorizationCode,
+              userId,
+              transactionData,
+            });
+            throw new Error(
+              "Verification successful, but missing required details to create subscription."
+            );
+          }
+
+          // 3. Create the subscription on Paystack
+          const createSubResponse = await psCreateSubscription({
+            customer: customerEmail, plan: planCode,
+            authorization: authorizationCode,
+            start_date: new Date() // Optional: Start immediately
+          });
+
+          if (
+            !createSubResponse.status ||
+            // @ts-ignore
+            !createSubResponse.data?.subscription_code
+          ) {
+            // Handle cases where subscription might already exist for this authorization/plan?
+            // Paystack might return an error message indicating this.
+            console.error(
+              "Paystack subscription creation failed:",
+              createSubResponse
+            );
+            throw new Error(
+              createSubResponse.message ||
+                "Failed to create Paystack subscription after successful payment."
+            );
+          }
+          // @ts-ignore
+          const subscriptionData = createSubResponse.data;
+
+          // 4. Update Appwrite User Document
+          // We need the plan interval to calculate expiry. Fetch plan details if not in metadata.
+          // For now, assume interval IS in metadata or fetch it. Let's assume metadata for simplicity.
+          const interval = (transactionData.metadata as any)?.interval;
+          const paystackCustomerId =
+            transactionData.customer?.customer_code ||
+            String(transactionData.customer?.id || "");
+
+          if (!interval) {
+            console.error(
+              "Plan interval missing from metadata. Cannot calculate expiry."
+            );
+            throw new Error(
+              "Subscription created, but failed to update user profile: Missing plan interval."
+            );
+          }
+          // Ensure interval is one of the allowed enum values
+          const validIntervals = [
+            "hourly",
+            "daily",
+            "weekly",
+            "monthly",
+            "quarterly",
+            "biannually",
+            "annually",
+          ];
+          if (!validIntervals.includes(interval)) {
+            throw new Error(`Invalid plan interval received: ${interval}`);
+          }
+
+          const expiryDate = calculateExpiryDate(new Date(), interval);
+          await appwriteUpdateUserSubscription(userId, {
+            subscriptionStatus: "active",
+            planCode: planCode,
+            subscriptionExpiry: expiryDate,
+            paystackCustomerId: paystackCustomerId,
+            paystackSubscriptionCode: subscriptionData.subscription_code,
+          });
+
+          // 5. Return success status and maybe subscription details
+          return {
+            success: true,
             message:
-              error.message || "Paystack transaction verification failed.",
+              "Transaction verified, subscription created, and user profile updated.",
+            subscriptionCode: subscriptionData.subscription_code,
+            transactionStatus: transactionData.status,
+          };
+        } catch (error: any) {
+          console.error(
+            "Error in verifyTransactionAndCreateSubscription:",
+            error
+          );
+          // Rethrow as TRPCError
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message:
+              error.message ||
+              "Failed to verify payment and create subscription.",
             cause: error,
           });
         }
@@ -171,7 +299,7 @@ export function createPaystackProcedures(
               response.message || "Failed to list Paystack plans."
             );
           }
-          return response.data; // Array of plans
+          return response.data as unknown as IPlan[]; // Array of plans
         } catch (error: any) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
@@ -263,5 +391,7 @@ export function createPaystackProcedures(
           });
         }
       }),
+
+    // Removed separate updateUserSubscription procedure as logic is now in verifyTransactionAndCreateSubscription
   };
 }

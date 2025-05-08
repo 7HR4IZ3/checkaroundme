@@ -10,7 +10,7 @@ import { createMessageProcedures } from "./routers/message";
 import { createConversationProcedures } from "./routers/conversation";
 import { createLocationProcedures } from "./routers/location";
 import { createVerificationProcedures } from "./routers/verification";
-import { createFlutterwaveProcedures } from "./routers/flutterwave";
+// import { createFlutterwaveProcedures } from "./routers/flutterwave";
 import { createPaystackProcedures } from "./routers/paystack";
 import { cache } from "react";
 
@@ -35,6 +35,7 @@ export const appRouter = t.router({
   ...createConversationProcedures(t),
   ...createLocationProcedures(t),
   ...createVerificationProcedures(t),
+
   // Add Flutterwave procedures.
   // NOTE: The second argument to createFlutterwaveProcedures is a placeholder
   // for your actual `protectedProcedure`. If your protectedProcedure is simply
@@ -57,7 +58,8 @@ export const appRouter = t.router({
   // then pass both to `createFlutterwaveProcedures`.
   // Given the current structure of `createFlutterwaveProcedures`, it expects `protectedProcedure`.
   // Let's assume `t.procedure` is passed for now, and you'll adjust auth within the router or by passing a real `protectedProcedure`.
-  ...createFlutterwaveProcedures(t, t.procedure), // Uncommented Flutterwave procedures
+
+  // ...createFlutterwaveProcedures(t, t.procedure), // Adjust `t.procedure` if you have a separate `protectedProcedure`
   ...createPaystackProcedures(t, t.procedure), // Added Paystack procedures (adjust protectedProcedure if needed)
 });
 

@@ -849,4 +849,4 @@ export function getImageURl(imageID: string) {
 }
 
 // Export client for direct use in components when needed
-export { client, databases, storage, avatars };
+export { client, databases, storage, avatars, users };

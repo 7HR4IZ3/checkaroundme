@@ -51,12 +51,7 @@ export const businessSchema = z.object({
   country: z.string().default("Nigeria"),
   postalCode: z.string().optional(),
   paymentOptions: z.array(z.string()).optional(), // e.g., ["cash", "bank_transfers"] - Can be used for filtering
-  coordinates: z
-    .object({
-      latitude: z.number(),
-      longitude: z.number(),
-    })
-    .optional(),
+  coordinates: z.string().optional(),
   phone: z.string().optional(),
   email: z.string().email().optional(),
   website: z.string().url().optional(),
