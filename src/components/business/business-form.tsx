@@ -116,7 +116,7 @@ export default function BusinessForm({
 
   // State for new filterable attributes
   const [priceIndicator, setPriceIndicator] = useState<string | undefined>(
-    undefined,
+    undefined
   );
   const [onSiteParking, setOnSiteParking] = useState(false);
   const [garageParking, setGarageParking] = useState(false);
@@ -135,7 +135,7 @@ export default function BusinessForm({
   const { data: tempBusinessImages, isLoading: isLoadingTempImages } =
     trpc.getBusinessImages.useQuery(
       { businessId: user?.$id! },
-      { enabled: !businessId && !!user?.$id },
+      { enabled: !businessId && !!user?.$id }
     ); // Fetch temp images only in create mode
   const deleteBusinessImage = trpc.deleteBusinessImage.useMutation();
 
@@ -200,7 +200,7 @@ export default function BusinessForm({
   useEffect(() => {
     if (country) {
       const selectedCountry = Country.getAllCountries().find(
-        (c) => c.name === country,
+        (c) => c.name === country
       );
       if (selectedCountry) {
         setStates(State.getStatesOfCountry(selectedCountry.isoCode));
@@ -219,18 +219,18 @@ export default function BusinessForm({
   useEffect(() => {
     if (country && state) {
       const selectedCountry = Country.getAllCountries().find(
-        (c) => c.name === country,
+        (c) => c.name === country
       );
       if (selectedCountry) {
         const selectedState = State.getStatesOfCountry(
-          selectedCountry.isoCode,
+          selectedCountry.isoCode
         ).find((s) => s.name === state);
         if (selectedState) {
           setCities(
             City.getCitiesOfState(
               selectedCountry.isoCode,
-              selectedState.isoCode,
-            ),
+              selectedState.isoCode
+            )
           );
           setCity(""); // Clear selected city when state changes
         }
@@ -244,7 +244,7 @@ export default function BusinessForm({
   const updateBusinessHours = (
     day: string,
     type: "start" | "end" | "closed",
-    value: string | boolean,
+    value: string | boolean
   ) => {
     setAvailableHours((prev) => ({
       ...prev,
@@ -277,7 +277,7 @@ export default function BusinessForm({
   };
 
   const handleImageUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
     setIsImageUploading(true);
 
@@ -326,7 +326,7 @@ export default function BusinessForm({
 
   const handleRemoveService = (serviceToRemove: string) => {
     setServicesOffered(
-      servicesOffered.filter((service) => service !== serviceToRemove),
+      servicesOffered.filter((service) => service !== serviceToRemove)
     );
   };
 
@@ -367,7 +367,7 @@ export default function BusinessForm({
 
     if (!isFormValid()) {
       console.error(
-        "Form is not valid. Please fill all required fields and agree to the terms.",
+        "Form is not valid. Please fill all required fields and agree to the terms."
       );
       if (!businessId && !agreedToTerms) {
         // Only set terms error in create mode
@@ -387,7 +387,7 @@ export default function BusinessForm({
       categories: businessCategory ? [businessCategory] : [],
       services: servicesOffered,
       paymentOptions: Object.keys(paymentOptions).filter(
-        (key) => paymentOptions[key],
+        (key) => paymentOptions[key]
       ),
       hours: availableHours,
       images: businessImages.map(({ isPrimary, $id }) => ({
@@ -444,7 +444,7 @@ export default function BusinessForm({
             </Button>
           )}
           <Button
-            className="rounded-4xl bg-[#2E57A9]"
+            className="rounded-4xl bg-primary"
             onClick={handleSubmit}
             disabled={isSubmitting || !isFormValid()}
           >
@@ -603,7 +603,7 @@ export default function BusinessForm({
               setCountryError("");
 
               const country = countries.find(
-                (country) => country.name === value,
+                (country) => country.name === value
               );
               country && setPhoneCountryCode(country.phoneCode);
             }}
@@ -696,19 +696,20 @@ export default function BusinessForm({
             <Select
               value={phoneCountryCode}
               onValueChange={(country) => {
-                setPhoneCountryCode(countries.find(c => c.name === country)?.phonecode)
+                setPhoneCountryCode(
+                  countries.find((c) => c.name === country)?.phonecode
+                );
               }}
             >
               <SelectTrigger id="phoneCountryCode" className="w-24">
                 <SelectValue placeholder="Code" />
               </SelectTrigger>
               <SelectContent>
-                {countries.map(country => country.name)
+                {countries
+                  .map((country) => country.name)
                   .sort()
                   .map((country) => (
-                    <SelectItem value={country}>
-                      {country}
-                    </SelectItem>
+                    <SelectItem value={country}>{country}</SelectItem>
                   ))}
               </SelectContent>
             </Select>
@@ -798,7 +799,7 @@ export default function BusinessForm({
           <Button
             onClick={handleAddService}
             type="button"
-            className="bg-[#2E57A9]"
+            className="bg-primary"
           >
             Add Service
           </Button>
@@ -809,7 +810,7 @@ export default function BusinessForm({
             <Badge
               key={service}
               variant="secondary"
-              className="py-1 px-2 text-sm text-white bg-[#2E57A9]"
+              className="py-1 px-2 text-sm text-white bg-primary"
             >
               {service}
               <button
@@ -834,7 +835,7 @@ export default function BusinessForm({
           <div className="flex items-center space-x-2">
             <Checkbox
               id="cashPayment"
-              className="data-[state=checked]:bg-[#2E57A9]"
+              className="data-[state=checked]:bg-primary"
               checked={paymentOptions.cash}
               onCheckedChange={(ev) =>
                 handleSetPaymentOption("cash", ev.valueOf() as boolean)
@@ -845,7 +846,7 @@ export default function BusinessForm({
           <div className="flex items-center space-x-2">
             <Checkbox
               id="transfer"
-              className="data-[state=checked]:bg-[#2E57A9]"
+              className="data-[state=checked]:bg-primary"
               checked={paymentOptions.transfer}
               onCheckedChange={(ev) =>
                 handleSetPaymentOption("transfer", ev.valueOf() as boolean)
@@ -888,7 +889,7 @@ export default function BusinessForm({
           <div className="flex items-center space-x-2">
             <Checkbox
               id="onSiteParking"
-              className="data-[state=checked]:bg-[#2E57A9]"
+              className="data-[state=checked]:bg-primary"
               checked={onSiteParking}
               onCheckedChange={(checked) =>
                 setOnSiteParking(checked as boolean)
@@ -899,7 +900,7 @@ export default function BusinessForm({
           <div className="flex items-center space-x-2">
             <Checkbox
               id="garageParking"
-              className="data-[state=checked]:bg-[#2E57A9]"
+              className="data-[state=checked]:bg-primary"
               checked={garageParking}
               onCheckedChange={(checked) =>
                 setGarageParking(checked as boolean)
@@ -910,7 +911,7 @@ export default function BusinessForm({
           <div className="flex items-center space-x-2">
             <Checkbox
               id="wifi"
-              className="data-[state=checked]:bg-[#2E57A9]"
+              className="data-[state=checked]:bg-primary"
               checked={wifi}
               onCheckedChange={(checked) => setWifi(checked as boolean)}
             />
@@ -954,7 +955,7 @@ export default function BusinessForm({
               <span className="flex items-center gap-3">
                 <Label htmlFor={day + "-closed"}>Closed</Label>
                 <Checkbox
-                  className="h-5 w-5 data-[state=checked]:bg-[#2E57A9]"
+                  className="h-5 w-5 data-[state=checked]:bg-primary"
                   id={day + "-closed"}
                   name={day + "-closed"}
                   checked={availableHours[day].closed}
@@ -975,7 +976,7 @@ export default function BusinessForm({
             id="terms"
             checked={agreedToTerms}
             onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
-            className="data-[state=checked]:bg-[#2E57A9]"
+            className="data-[state=checked]:bg-primary"
             required
           />
           <Label

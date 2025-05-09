@@ -159,7 +159,7 @@ export default function ReviewForm() {
 
       <Button
         // disabled logic removed, assuming button is always enabled or handled elsewhere
-        className="w-1/4 rounded-full h-[4em] bg-[#2E57A9]"
+        className="w-1/4 rounded-full h-[4em] bg-primary"
         disabled={loading || !rating}
         onClick={handlePostReview}
       >

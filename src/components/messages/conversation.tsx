@@ -155,7 +155,7 @@ export default function Conversation({
                     <div
                       className={`max-w-[70%] rounded-lg px-4 py-2  ${
                         senderIsMe
-                          ? "bg-[#2E57A9] text-primary-foreground"
+                          ? "bg-primary text-primary-foreground"
                           : "bg-muted text-foreground"
                       }`}
                     >
@@ -182,9 +182,7 @@ export default function Conversation({
                           {/* File details card */}
                           <div
                             className={`flex items-center gap-2 p-2 rounded-md ${
-                              senderIsMe
-                                ? "bg-[#2E57A9]/80"
-                                : "bg-background/80"
+                              senderIsMe ? "bg-primary/80" : "bg-background/80"
                             }`}
                           >
                             <File

@@ -38,7 +38,7 @@ const Header = () => {
 
   const { data: businesses, isLoading } = trpc.getBusinessesByUserId.useQuery(
     { userId: auth.user?.$id || "" },
-    { enabled: auth.isAuthenticated && !!auth.user?.$id },
+    { enabled: auth.isAuthenticated && !!auth.user?.$id }
   );
 
   // Handler to perform search
@@ -99,7 +99,7 @@ const Header = () => {
             <Button
               size="icon"
               variant="default"
-              className="rounded-full bg-[#2E57A9] hidden md:flex"
+              className="rounded-full bg-primary hidden md:flex"
               onClick={handleSearch}
               aria-label="Search"
             >

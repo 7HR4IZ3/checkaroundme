@@ -50,7 +50,7 @@ export function FiltersPanel({
 }: FiltersPanelProps) {
   // State for selected filters, initialized from props
   const [selectedPrice, setSelectedPrice] = useState<string | undefined>(
-    initialFilters.price,
+    initialFilters.price
   ); // Store the value like "$", "$$", etc.
 
   // Using an object to store checkbox states is often easier to manage
@@ -77,7 +77,7 @@ export function FiltersPanel({
   // Handlers for updating state
   const handleFeatureChange = (
     featureId: string,
-    checked: boolean | "indeterminate",
+    checked: boolean | "indeterminate"
   ) => {
     if (typeof checked === "boolean") {
       setSelectedFeatures((prev) => ({ ...prev, [featureId]: checked }));
@@ -86,7 +86,7 @@ export function FiltersPanel({
 
   const handleDistanceChange = (
     distanceId: string,
-    checked: boolean | "indeterminate",
+    checked: boolean | "indeterminate"
   ) => {
     if (typeof checked === "boolean") {
       setSelectedDistances((prev) => ({ ...prev, [distanceId]: checked }));
@@ -117,10 +117,10 @@ export function FiltersPanel({
     const filtersToApply: Filters = {
       price: selectedPrice,
       features: Object.keys(selectedFeatures).filter(
-        (key) => selectedFeatures[key],
+        (key) => selectedFeatures[key]
       ), // Get array of selected feature IDs
       distances: Object.keys(selectedDistances).filter(
-        (key) => selectedDistances[key],
+        (key) => selectedDistances[key]
       ), // Get array of selected distance IDs
     };
     onApplyFilters(filtersToApply);
@@ -150,7 +150,7 @@ export function FiltersPanel({
               key={price}
               value={price}
               aria-label={`Price range ${price}`}
-              className="flex-1 rounded-none data-[state=on]:bg-[#2E57A9] data-[state=on]:text-primary-foreground border-r last:border-r-0 flex-grow" // Style selected state & borders
+              className="flex-1 rounded-none data-[state=on]:bg-primary data-[state=on]:text-primary-foreground border-r last:border-r-0 flex-grow" // Style selected state & borders
             >
               {price}
             </ToggleGroupItem>
@@ -169,7 +169,7 @@ export function FiltersPanel({
                 onCheckedChange={(checked) =>
                   handleFeatureChange(feature.id, checked)
                 }
-                className="data-[state=checked]:bg-[#2E57A9]"
+                className="data-[state=checked]:bg-primary"
               />
               <Label
                 htmlFor={`feature-${feature.id}`}
@@ -193,7 +193,7 @@ export function FiltersPanel({
                 onCheckedChange={(checked) =>
                   handleDistanceChange(distance.id, checked)
                 }
-                className="data-[state=checked]:bg-[#2E57A9]"
+                className="data-[state=checked]:bg-primary"
               />
               <Label
                 htmlFor={`distance-${distance.id}`}
@@ -215,7 +215,7 @@ export function FiltersPanel({
           Reset
         </Button>
         <Button
-          className="flex-1 bg-[#2E57A9]" // Default primary button
+          className="flex-1 bg-primary" // Default primary button
           onClick={handleConfirm}
         >
           Apply

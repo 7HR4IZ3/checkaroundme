@@ -40,6 +40,12 @@ const DISTANCE_OPTIONS = [
   { label: "Within 5 km", value: "5km" },
   { label: "Within 10 km", value: "10km" },
   { label: "Within 25 km", value: "25km" },
+  { label: "Within 50 km", value: "50km" },
+  { label: "Within 100 km", value: "100km" },
+  { label: "Within 200 km", value: "200km" },
+  { label: "Within 300 km", value: "300km" },
+  { label: "Within 400 km", value: "400km" },
+  { label: "Within 500 km", value: "500km" },
 ];
 
 const SORT_OPTIONS = [

@@ -49,7 +49,7 @@ const Hero: React.FC<HeroProps> = ({ title, subtitles, button }) => {
           </span>
         ))}
         <Button
-          className="bg-[#2E57A9] hover:bg-blue-700 h-10 md:h-12 w-35 text-white font-semibold rounded-full flex items-center justify-center"
+          className="bg-primary hover:bg-blue-700 h-10 md:h-12 w-35 text-white font-semibold rounded-full flex items-center justify-center"
           onClick={button.onclick}
         >
           <span className="text-xs">{button.text}</span>

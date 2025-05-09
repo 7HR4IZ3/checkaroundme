@@ -499,7 +499,7 @@ export default function BusinessPage() {
                 {isAuthenticated && (
                   <Button
                     variant="outline"
-                    className="bg-[#2E57A9] text-white"
+                    className="bg-primary text-white"
                     onClick={() => setIsWriteReviewModalOpen(true)}
                   >
                     <Star className="mr-2 h-4 w-4" /> Write a review

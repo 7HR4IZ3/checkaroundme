@@ -73,8 +73,8 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
   // }, [business]);
 
   return (
-    <div className="container bg-white rounded-lg shadow-xs overflow-hidden flex flex-row p-2 relative h-[21vh] md:h-auto">
-      <div className="w-1/2 md:w-40 relative">
+    <div className="container bg-white rounded-lg shadow-xs overflow-hidden flex flex-row p-2 relative md:h-auto gap-2">
+      <div className="w-1/2 md:w-[20vw] relative">
         {isLoading || !image ? (
           <Skeleton />
         ) : (
@@ -136,9 +136,9 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
             </button> */}
           </p>
         </div>
-        <div className="flex flex-row sm:items-center justify-end align-end mt-auto gap-8">
+        <div className="flex flex-row sm:items-center justify-end align-end mt-2 gap-8">
           {business.phone && (
-            <Button>
+            <Button className="text-xs" variant="ghost" size="icon">
               <Link href={`tel:${business.phone}`}>
                 <PhoneCallIcon />
               </Link>
@@ -147,7 +147,7 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
           {!hideButton && auth.isAuthenticated && (
             <Button
               size="sm"
-              className="bg-[#2E57A9]"
+              className="bg-primary text-xs"
               onClick={() =>
                 redirect(`/messages?recipient=${business.ownerId}`)
               }
