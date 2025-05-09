@@ -1,4 +1,3 @@
-// src/app/auth/forgot-password/page.tsx
 "use client";
 
 import { Suspense, useState } from "react";
@@ -13,7 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator"; // Keep separator if needed for layout
 
 import { useAuth } from "@/lib/hooks/useClientAuth";
 import { redirect, useRouter } from "next/navigation";
@@ -131,8 +129,6 @@ function ForgotPasswordForm() {
             <p className="text-red-500 text-sm mt-1">{captchaError}</p>
           )}
         </div>
-
-        {/* Removed Password field, Terms checkbox, Google Sign in, Separator */}
 
         <Button
           type="submit"

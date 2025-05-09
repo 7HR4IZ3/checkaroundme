@@ -8,8 +8,8 @@ export default function HomePage() {
     <>
       <Hero />
       <Categories />
-      <PopularServices />
       <ServicesNearYou />
+      <PopularServices />
       {/* Add other sections as needed */}
     </>
   );

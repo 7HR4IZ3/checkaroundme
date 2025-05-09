@@ -13,6 +13,7 @@ import { trpc } from "@/lib/trpc/client";
 import { Skeleton } from "../ui/skeleton";
 import { useAuth } from "@/lib/hooks/useClientAuth";
 import { redirect } from "next/navigation";
+import { PhoneCallIcon } from "lucide-react";
 
 const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
   business,
@@ -135,8 +136,15 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
             </button> */}
           </p>
         </div>
-        {!hideButton && auth.isAuthenticated && (
-          <div className="flex flex-row sm:items-center justify-end align-end mt-auto">
+        <div className="flex flex-row sm:items-center justify-end align-end mt-auto gap-8">
+          {business.phone && (
+            <Button>
+              <Link href={`tel:${business.phone}`}>
+                <PhoneCallIcon />
+              </Link>
+            </Button>
+          )}
+          {!hideButton && auth.isAuthenticated && (
             <Button
               size="sm"
               className="bg-[#2E57A9]"
@@ -146,8 +154,8 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
             >
               <FaCommentDots /> Write a message
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

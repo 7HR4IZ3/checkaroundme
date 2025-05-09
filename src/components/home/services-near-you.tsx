@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
 import useGeolocation from "@/lib/hooks/useGeolocation"; // Import custom hook
 import { trpc } from "@/lib/trpc/client";
 import ListingCard from "../listing/listing-card";
 import ListingCardSkeleton from "../listing/listing-card-skeleton"; // Import the new skeleton component
 import { Business } from "@/lib/schema";
+import MapPlaceholder from "../map/placeholder";
 
 const ServicesNearYou = () => {
   const {
@@ -86,6 +86,9 @@ const ServicesNearYou = () => {
         <h2 className="text-lg md:text-2xl font-semibold text-center text-gray-800 mb-8">
           Services Near You
         </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <MapPlaceholder businesses={businesses} />
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-6">
           {businesses?.map((business: Business) => (
             <ListingCard

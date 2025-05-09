@@ -22,7 +22,7 @@ import { useAuth } from "@/lib/hooks/useClientAuth";
 import { redirect, useRouter, useSearchParams } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"; // Corrected import path
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 function LoginForm({ onToggle }: { onToggle: () => void }) {
   const router = useRouter();
@@ -34,7 +34,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
   const [captchaError, setCaptchaError] = useState("");
 
   const [captchaToken, setCaptchaToken] = useState("");
-  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(true);
 
   const login = trpc.login.useMutation();
   const googleLogin = trpc.loginWithGoogle.useMutation();
@@ -156,7 +156,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
           )}
         </div>
 
-        <div className="flex items-center space-x-2 pt-2">
+        {/* <div className="flex items-center space-x-2 pt-2">
           <Checkbox
             id="terms"
             checked={termsAccepted}
@@ -187,7 +187,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
               </Link>
             </span>
           </Label>
-        </div>
+        </div> */}
 
         <div className="p-3 mt-4 flex flex-col items-center justify-center">
           <GoogleReCaptchaCheckbox onChange={setCaptchaToken} />
@@ -201,7 +201,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
           className="w-full mt-6 h-11"
           disabled={
             !termsAccepted ||
-            !captchaToken ||
+            // !captchaToken ||
             login.isPending ||
             googleLogin.isPending
           }
@@ -247,7 +247,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
         onClick={handleGoogleSignIn}
         disabled={
           !termsAccepted ||
-          !captchaToken ||
+          // !captchaToken ||
           login.isPending ||
           googleLogin.isPending
         }
@@ -519,7 +519,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
           className="w-full mt-6 h-11"
           disabled={
             !termsAccepted ||
-            !captchaToken ||
+            // !captchaToken ||
             login.isPending ||
             googleLogin.isPending ||
             register.isPending
@@ -566,7 +566,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
         onClick={handleGoogleSignIn}
         disabled={
           !termsAccepted ||
-          !captchaToken ||
+          // !captchaToken ||
           login.isPending ||
           googleLogin.isPending ||
           register.isPending

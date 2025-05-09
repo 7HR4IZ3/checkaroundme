@@ -1,10 +1,11 @@
 "use client";
 
-import useGeolocation from "@/lib/hooks/useGeolocation"; // Import custom hook
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import React from "react";
-import L from "leaflet";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import L from "leaflet";
+
+import useGeolocation from "@/lib/hooks/useGeolocation"; // Import custom hook
 import { Business } from "@/lib/schema";
 
 import "leaflet/dist/leaflet.css";
@@ -20,8 +21,7 @@ interface MapPlaceholderProps {
 }
 
 const MapPlaceholder: React.FC<MapPlaceholderProps> = ({ businesses }) => {
-  const { latitude, longitude, error, loading } = useGeolocation(); // Add loading state
-  const router = useRouter();
+  const { latitude, longitude, error, loading } = useGeolocation();
 
   if (error) {
     return (
@@ -72,11 +72,15 @@ const MapPlaceholder: React.FC<MapPlaceholderProps> = ({ businesses }) => {
                   position={[coordinates.latitude, coordinates.longitude]}
                   eventHandlers={{
                     click: () => {
-                      router.push(`/business/${business.$id}`);
+                      // router.push(`/business/${business.$id}`);
                     },
                   }}
                 >
-                  <Popup>{business.name}</Popup>
+                  <Popup>
+                    <Link href={`/business/${business.$id}`}>
+                      {business.name}
+                    </Link>
+                  </Popup>
                 </Marker>
               );
             }

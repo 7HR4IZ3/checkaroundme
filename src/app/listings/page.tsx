@@ -43,7 +43,7 @@ export default function Home() {
       features: featuresParam ? featuresParam.split(",") : [],
       distances: [], // Deprecated, handled by selectedDistance
     }),
-    [priceParam, featuresParam],
+    [priceParam, featuresParam]
   );
 
   // State for FilterSortBar specific filters
@@ -51,13 +51,13 @@ export default function Home() {
     string[]
   >(searchParams.get("other_filters")?.split(",") || []);
   const [openNow, setOpenNow] = useState<boolean>(
-    searchParams.get("open_now") === "true",
+    searchParams.get("open_now") === "true"
   );
   const [selectedDistance, setSelectedDistance] = useState<string | null>(
-    searchParams.get("max_distance"),
+    searchParams.get("max_distance")
   ); // e.g., "5km", "10km"
   const [sortBy, setSortBy] = useState<string>(
-    searchParams.get("sort_by") || "rating",
+    searchParams.get("sort_by") || "rating"
   ); // e.g., "rating", "distance", "price_asc"
 
   // Pagination
@@ -140,14 +140,14 @@ export default function Home() {
       params.set("offset", "0"); // Reset to first page
       router.replace(`?${params.toString()}`);
     },
-    [router, searchParams],
+    [router, searchParams]
   );
 
   const onChangeCategory = useCallback(
     (category: string | null) => {
       updateUrlAndResetOffset({ categories: category });
     },
-    [updateUrlAndResetOffset],
+    [updateUrlAndResetOffset]
   );
 
   const onOpenFiltersPanel = useCallback(() => setFiltersPanelOpen(true), []);
@@ -163,14 +163,14 @@ export default function Home() {
       updateUrlAndResetOffset(newParams);
       onCloseFiltersPanel();
     },
-    [updateUrlAndResetOffset, onCloseFiltersPanel],
+    [updateUrlAndResetOffset, onCloseFiltersPanel]
   );
 
   const onChangeOtherFilterBarCategories = useCallback(
     (categories: string[]) => {
       setOtherFilterBarCategories(categories); // State update will trigger useEffect
     },
-    [],
+    []
   );
 
   const onToggleOpenNow = useCallback(() => {
@@ -193,7 +193,7 @@ export default function Home() {
       // limit is already in useEffect dependency, so no need to set it here again
       router.replace(`?${params.toString()}`);
     },
-    [router, searchParams, limit],
+    [router, searchParams, limit]
   );
 
   const combinedCategoriesForQuery = useMemo(() => {
@@ -231,7 +231,7 @@ export default function Home() {
         sortBy: sortField,
         sortDirection: sortDirection as "asc" | "desc",
       },
-      { enabled: !geoLoading }, // Only enable query once geolocation is resolved (or errored)
+      { enabled: !geoLoading } // Only enable query once geolocation is resolved (or errored)
     );
 
   const isLoading = queryIsLoading || geoLoading;
@@ -239,7 +239,7 @@ export default function Home() {
   const locations = useMemo(() => {
     if (!list?.businesses) return [];
     const uniqueLocations = new Set(
-      list.businesses.map((b) => `${b.city}, ${b.country}`),
+      list.businesses.map((b) => `${b.city}, ${b.country}`)
     );
     return Array.from(uniqueLocations);
   }, [list?.businesses]);
@@ -248,7 +248,7 @@ export default function Home() {
     (newLocation: string | null) => {
       updateUrlAndResetOffset({ location: newLocation });
     },
-    [updateUrlAndResetOffset],
+    [updateUrlAndResetOffset]
   );
 
   const currentPage = Math.floor(offset / limit) + 1;
@@ -263,56 +263,53 @@ export default function Home() {
         selectedCategory={selectedCategory}
         onChangeCategory={onChangeCategory}
       />
-      <div className="container flex flex-row mx-auto px-4 py-8 min-h-[70vh]">
-        <div className="flex flex-col md:flex-row flex-wrap gap-8">
-          <div className="w-auto flex flex-col gap-4">
-            <h1 className="text-lg md:text-2xl font-semibold text-gray-800">
-              {selectedCategory || "All Businesses"} near{" "}
-              {locationParam || "your current location"}
-            </h1>
-            <FilterSortBar
-              selectedCategories={otherFilterBarCategories}
-              onChangeCategories={onChangeOtherFilterBarCategories}
-              onOpenFiltersPanel={onOpenFiltersPanel}
-              locations={locations}
-              selectedLocation={locationParam}
-              onChangeLocation={onChangeLocation}
-              openNow={openNow}
-              onToggleOpenNow={onToggleOpenNow}
-              selectedDistance={selectedDistance}
-              onChangeDistance={onChangeDistance}
-              sortBy={sortBy}
-              onSortByChange={onSortByChange}
-            />
-            <div className="space-y-6">
-              {isLoading ? (
-                <Loading />
-              ) : geoError && !userLatitude ? (
-                <div className="text-center text-gray-500">
-                  Could not determine your location. Please enable location
-                  services or select a location manually.
-                </div>
-              ) : !list || list.businesses.length === 0 ? (
-                <div className="text-center text-gray-500">
-                  No businesses found matching your criteria.
-                </div>
-              ) : (
-                list.businesses.map((business, index) => (
-                  <ListingCard
-                    key={business.$id || index}
-                    business={business}
-                  />
-                ))
-              )}
-            </div>
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={onPageChange}
-            />
+      <div className="container flex flex-row mx-auto md:gap-8 px-4 py-8 min-h-[70vh]">
+        <div className="w-auto flex flex-col gap-4">
+          <h1 className="text-lg md:text-2xl font-semibold text-gray-800">
+            {selectedCategory || "All Businesses"} near{" "}
+            {locationParam || "your current location"}
+          </h1>
+          <FilterSortBar
+            selectedCategories={otherFilterBarCategories}
+            onChangeCategories={onChangeOtherFilterBarCategories}
+            onOpenFiltersPanel={onOpenFiltersPanel}
+            locations={locations}
+            selectedLocation={locationParam}
+            onChangeLocation={onChangeLocation}
+            openNow={openNow}
+            onToggleOpenNow={onToggleOpenNow}
+            selectedDistance={selectedDistance}
+            onChangeDistance={onChangeDistance}
+            sortBy={sortBy}
+            onSortByChange={onSortByChange}
+          />
+          <div className="space-y-6">
+            {isLoading ? (
+              <Loading />
+            ) : geoError && !userLatitude ? (
+              <div className="text-center text-gray-500">
+                Could not determine your location. Please enable location
+                services or select a location manually.
+              </div>
+            ) : !list || list.businesses.length === 0 ? (
+              <div className="text-center text-gray-500">
+                No businesses found matching your criteria.
+              </div>
+            ) : (
+              list.businesses.map((business, index) => (
+                <ListingCard key={business.$id || index} business={business} />
+              ))
+            )}
           </div>
-          <div className="">
-            <MapPlaceholder />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={onPageChange}
+          />
+        </div>
+        <div className="flex-col flex-grow hidden md:flex h-screen items-center justify-center">
+          <div className="h-[calc(80vh-80px)] w-full">
+            <MapPlaceholder businesses={list?.businesses || []} />
           </div>
         </div>
       </div>
