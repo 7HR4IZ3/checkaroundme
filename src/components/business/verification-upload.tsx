@@ -135,7 +135,7 @@ export function VerificationUpload({ businessId }: VerificationUploadProps) {
         onChange={handleFileChange}
         disabled={isLoading}
         // Basic styling for the file input button itself
-        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white dark:text-black-foreground hover:file:bg-primary/90 cursor-pointer"
       />
       {selectedFile && !isLoading && (
         <p className="text-sm text-muted-foreground">
@@ -153,8 +153,8 @@ export function VerificationUpload({ businessId }: VerificationUploadProps) {
             {isUploading
               ? "Uploading..."
               : mutation.isPending
-                ? "Submitting..."
-                : "Processing..."}
+              ? "Submitting..."
+              : "Processing..."}
           </>
         ) : (
           "Upload Document"

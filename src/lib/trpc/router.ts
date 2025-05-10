@@ -39,6 +39,8 @@ export const createTRPCContext = cache(async () => {
     clientSecretKey = clientSecretKeyHeader ?? undefined;
   }
 
+  console.log(clientSecretKey, SERVER_TRPC_SECRET_KEY);
+
   return {
     // `req` object from CreateNextContextOptions is no longer part of this context.
     // If procedures relied on `req` for things other than 'x-trpc-secret-key',

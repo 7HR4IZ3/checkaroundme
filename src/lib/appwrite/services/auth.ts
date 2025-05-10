@@ -181,6 +181,15 @@ export const AuthService = {
     try {
       // Appwrite's createRecovery sends an email with a link to the resetUrl
       // The link will contain a secret and userId as query parameters
+      const session = await cookies().then((cookies) =>
+        cookies.get("cham_appwrite_session"),
+      );
+
+      if (!session?.value) {
+        throw new Error("Unauthenticated user");
+      }
+
+      const { account } = await createSessionClient(session.value);
       await account.createRecovery(email, resetUrl);
       // Appwrite's createRecovery resolves with an empty object on success
       // We don't need to return anything specific here, just indicate success by not throwing
@@ -199,6 +208,15 @@ export const AuthService = {
   ): Promise<void> {
     try {
       // Appwrite's updateRecovery completes the password reset
+      const session = await cookies().then((cookies) =>
+        cookies.get("cham_appwrite_session"),
+      );
+
+      if (!session?.value) {
+        throw new Error("Unauthenticated user");
+      }
+
+      const { account } = await createSessionClient(session.value);
       await account.updateRecovery(userId, secret, password);
       // Appwrite's updateRecovery resolves with an empty object on success
       // We don't need to return anything specific here, just indicate success by not throwing
@@ -206,6 +224,31 @@ export const AuthService = {
       console.error("Appwrite password reset error:", error);
       // Re-throw the error so the tRPC procedure can handle it
       throw error;
+    }
+  },
+
+  // Change current user's password
+  async changePassword(
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    try {
+      // The `account` instance here should be for the currently authenticated user.
+      // Appwrite's `account.updatePassword` uses the active session.
+      const session = await cookies().then((cookies) =>
+        cookies.get("cham_appwrite_session"),
+      );
+
+      if (!session?.value) {
+        throw new Error("Unauthenticated user");
+      }
+
+      const { account } = await createSessionClient(session.value);
+      await account.updatePassword(newPassword, currentPassword);
+      // Resolves with an empty object on success or throws.
+    } catch (error) {
+      console.error("Appwrite change password error:", error);
+      throw error; // Re-throw to be handled by the tRPC procedure
     }
   },
 };

@@ -243,7 +243,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
 
       <Button
         variant="outline"
-        className="w-full h-11 bg-black text-white hover:bg-gray-800 hover:text-white"
+        className="w-full h-11 bg-black text-primary hover:bg-gray-800 hover:text-primary"
         onClick={handleGoogleSignIn}
         disabled={
           !termsAccepted ||
@@ -562,7 +562,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
 
       <Button
         variant="outline"
-        className="w-full h-11 bg-black text-white hover:bg-gray-800 hover:text-white"
+        className="w-full h-11 bg-black text-primary hover:bg-gray-800 hover:text-primary"
         onClick={handleGoogleSignIn}
         disabled={
           !termsAccepted ||

@@ -15,17 +15,19 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row justify-between gap-8 mb-12">
           {/* Subscribe */}
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Subscribe</h3>
+            <h3 className="text-lg font-semibold text-white dark:text-black mb-4">
+              Subscribe
+            </h3>
             <p className="text-sm mb-4">Subscribe to our newsletter</p>
             <form className="flex items-center border border-gray-600 rounded overflow-hidden">
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="bg-transparent px-3 py-2 text-sm flex-grow focus:outline-none text-white placeholder-gray-500"
+                className="bg-transparent px-3 py-2 text-sm flex-grow focus:outline-none text-white dark:text-black placeholder-gray-500"
               />
               <button
                 type="submit"
-                className="text-gray-400 px-3 hover:text-white"
+                className="text-gray-400 px-3 hover:text-white dark:text-black"
               >
                 <FaPaperPlane />
               </button>
@@ -34,16 +36,18 @@ const Footer = () => {
 
           {/* Support */}
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Support</h3>
+            <h3 className="text-lg font-semibold text-white dark:text-black mb-4">
+              Support
+            </h3>
             {/* <address className="text-sm not-italic space-y-2">
               <p>No 24D, Green Bay Estate, Lekki, Lagos State, Nigeria</p>
               <p>
-                <a href="mailto:support@checkaroundme.com" className="hover:text-white hover:underline">
+                <a href="mailto:support@checkaroundme.com" className="hover:text-white dark:text-black hover:underline">
                   support@checkaroundme.com
                 </a>
               </p>
               <p>
-                <a href="tel:+2349159558854" className="hover:text-white hover:underline">
+                <a href="tel:+2349159558854" className="hover:text-white dark:text-black hover:underline">
                   +234 915 955 8854
                 </a>
               </p>
@@ -52,7 +56,7 @@ const Footer = () => {
               <li>
                 <Link
                   href="/about-us"
-                  className="hover:text-white hover:underline"
+                  className="hover:text-white dark:text-black hover:underline"
                 >
                   About Us
                 </Link>
@@ -60,7 +64,7 @@ const Footer = () => {
               <li>
                 <Link
                   href="/contact-us"
-                  className="hover:text-white hover:underline"
+                  className="hover:text-white dark:text-black hover:underline"
                 >
                   Contact Us
                 </Link>
@@ -70,23 +74,23 @@ const Footer = () => {
 
           {/* Account */}
           {/* <div>
-            <h3 className="text-lg font-semibold text-white mb-4">Account</h3>
+            <h3 className="text-lg font-semibold text-white dark:text-black mb-4">Account</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/messages" className="hover:text-white hover:underline">My Messages</Link></li>
-              <li><Link href="/login" className="hover:text-white hover:underline">Login / Register</Link></li>
+              <li><Link href="/messages" className="hover:text-white dark:text-black hover:underline">My Messages</Link></li>
+              <li><Link href="/login" className="hover:text-white dark:text-black hover:underline">Login / Register</Link></li>
             </ul>
           </div> */}
 
           {/* Quick Link */}
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">
+            <h3 className="text-lg font-semibold text-white dark:text-black mb-4">
               Quick Link
             </h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
                   href="/privacy-policy"
-                  className="hover:text-white hover:underline"
+                  className="hover:text-white dark:text-black hover:underline"
                 >
                   Privacy Policy
                 </Link>
@@ -94,7 +98,7 @@ const Footer = () => {
               <li>
                 <Link
                   href="/terms-of-service"
-                  className="hover:text-white hover:underline"
+                  className="hover:text-white dark:text-black hover:underline"
                 >
                   Terms Of Service
                 </Link>
@@ -104,7 +108,7 @@ const Footer = () => {
 
           {/* Invite a User */}
           <div>
-            <h3 className="text-lg font-semibold text-white mb-4">
+            <h3 className="text-lg font-semibold text-white dark:text-black mb-4">
               Invite a User
             </h3>
             {/* Replace with actual QR code image */}
@@ -120,21 +124,21 @@ const Footer = () => {
               <a
                 href="https://facebook.com/checkaroundme"
                 aria-label="Facebook"
-                className="text-gray-400 hover:text-white"
+                className="text-gray-400 hover:text-white dark:text-black"
               >
                 <FaFacebookF size={18} />
               </a>
               <a
                 href="https://x.com/checkaroundme"
                 aria-label="Twitter"
-                className="text-gray-400 hover:text-white"
+                className="text-gray-400 hover:text-white dark:text-black"
               >
                 <FaTwitter size={18} />
               </a>
               <a
                 href="https://instagram.com/checkaroundme"
                 aria-label="Instagram"
-                className="text-gray-400 hover:text-white"
+                className="text-gray-400 hover:text-white dark:text-black"
               >
                 <FaInstagram size={18} />
               </a>

@@ -5,7 +5,13 @@ import Link from "next/link";
 import { trpc } from "@/lib/trpc/client";
 import { useAuth } from "@/lib/hooks/useClientAuth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import Loading from "@/components/ui/loading";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PlusCircle, Edit3, ExternalLink } from "lucide-react";
@@ -19,7 +25,7 @@ export function UserBusinesses() {
     error,
   } = trpc.getBusinessesByUserId.useQuery(
     { userId: auth.isAuthenticated ? auth.user.$id : "" },
-    { enabled: auth.isAuthenticated }
+    { enabled: auth.isAuthenticated },
   );
 
   if (!auth.isAuthenticated) {

@@ -186,6 +186,59 @@ export const verificationDocumentSchema = z.object({
   adminNotes: z.string().optional(), // Admin review comments
 });
 
+// User Settings Schema
+export const userSettingsSchema = z.object({
+  notifications: z
+    .object({
+      newMessagesEmail: z.boolean().default(true),
+      businessUpdatesEmail: z.boolean().default(true),
+      // Add other notification flags as needed
+    })
+    .default({ newMessagesEmail: true, businessUpdatesEmail: true }),
+  theme: z.enum(["light", "dark", "system"]).default("system"),
+});
+
+// Change Password Schema
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Current password cannot be empty"),
+    newPassword: z
+      .string()
+      .min(8, "New password must be at least 8 characters"),
+    confirmNewPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: "New passwords do not match",
+    path: ["confirmNewPassword"],
+  });
+
+// User Subscription Schema (for Appwrite User Prefs)
+export const userSubscriptionSchema = z.object({
+  status: z
+    .enum(["active", "inactive", "cancelled", "past_due", "none"])
+    .default("none"),
+  planId: z.string().optional(), // Your internal plan identifier
+  providerSubscriptionId: z.string().optional(), // Paystack/Flutterwave subscription ID
+  currentPeriodEnd: z.string().optional(), // ISO Date string
+  paystackCustomerId: z.string().optional(),
+  // any other relevant fields from updateUserSubscriptionStatus
+});
+
+// Payment Transaction Schema (for a new Appwrite Collection)
+export const paymentTransactionSchema = z.object({
+  $id: z.string().optional(), // Appwrite generated
+  userId: z.string(),
+  providerTransactionId: z.string(),
+  date: z.string(), // ISO Date string
+  amount: z.number(),
+  currency: z.string(),
+  description: z.string(),
+  status: z.enum(["succeeded", "failed", "pending", "refunded"]),
+  provider: z.enum(["paystack", "flutterwave"]),
+  invoiceUrl: z.string().url().optional(),
+  createdAt: z.string().optional(), // Appwrite generated
+  updatedAt: z.string().optional(), // Appwrite generated
+});
 // Type definitions to use throughout the application
 export type User = z.infer<typeof userSchema>;
 export type Business = z.infer<typeof businessSchema>;
@@ -199,3 +252,7 @@ export type Conversation = z.infer<typeof conversationSchema>;
 export type AuthSession = z.infer<typeof authSessionSchema>;
 export type DaySchema = z.infer<typeof daySchema>;
 export type VerificationDocument = z.infer<typeof verificationDocumentSchema>;
+export type UserSettings = z.infer<typeof userSettingsSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type UserSubscription = z.infer<typeof userSubscriptionSchema>;
+export type PaymentTransaction = z.infer<typeof paymentTransactionSchema>;

@@ -109,7 +109,10 @@ export default function PaymentStatusPage() {
           return (
             <>
               <p className="text-green-600">{displayMessage}</p>
-              <Button onClick={() => router.push("/business/create")} className="mt-4">
+              <Button
+                onClick={() => router.push("/business/create")}
+                className="mt-4"
+              >
                 Continue
               </Button>
             </>
@@ -122,7 +125,10 @@ export default function PaymentStatusPage() {
                 Your payment status is currently pending. Please check back
                 later or contact support.
               </p>
-              <Button onClick={() => router.push("/business/create")} className="mt-4">
+              <Button
+                onClick={() => router.push("/business/create")}
+                className="mt-4"
+              >
                 Go to Home
               </Button>
             </>

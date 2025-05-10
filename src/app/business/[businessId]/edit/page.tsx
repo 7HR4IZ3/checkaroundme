@@ -102,7 +102,7 @@ export default function BusinessEditForm() {
         isSubmitting={updateBusiness.isPending}
       />
 
-      <Card>
+      {/* <Card>
         <CardHeader>
           <CardTitle>Business Verification</CardTitle>
           <CardDescription>
@@ -112,7 +112,7 @@ export default function BusinessEditForm() {
         <CardContent>
           <VerificationUpload businessId={businessId} />
         </CardContent>
-      </Card>
+      </Card> */}
     </div>
   );
 }

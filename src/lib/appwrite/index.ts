@@ -10,6 +10,7 @@ import {
   Storage,
   Users,
   Role,
+  Account,
 } from "node-appwrite";
 import { cookies } from "next/headers";
 import {
@@ -20,8 +21,15 @@ import {
   Category,
   Message,
   Conversation,
+  UserSettings,
+  userSettingsSchema,
+  UserSubscription,
+  userSubscriptionSchema,
+  PaymentTransaction,
 } from "../schema";
 
+// Import AuthService to get the current authenticated user for verification
+import { AuthService } from "./services/auth";
 import { createAdminClient } from "./admin";
 import { createSessionClient } from "./session";
 import axios, { AxiosError } from "axios"; // Keep axios here as BusinessService still needs it
@@ -40,6 +48,7 @@ const users = new Users(client);
 const databases = new Databases(client);
 const storage = new Storage(client);
 const avatars = new Avatars(client);
+const account = new Account(client);
 
 // Database constants
 export const DATABASE_ID = process.env.APPWRITE_DATABASE_ID!;
@@ -53,6 +62,7 @@ export const CATEGORIES_COLLECTION_ID = "categories";
 export const MESSAGES_COLLECTION_ID = "messages";
 export const CONVERSATIONS_COLLECTION_ID = "conversations";
 export const AUTH_SESSIONS_COLLECTION_ID = "auth_sessions";
+export const PAYMENT_TRANSACTIONS_COLLECTION_ID = "payment_transactions";
 
 export const BUSINESS_IMAGES_BUCKET_ID = "67fc0ef9000e1bba4e5d";
 export const MESSAGE_IMAGES_BUCKET_ID = "67fc0ef9000e1bba4e5d";
@@ -73,6 +83,14 @@ export const UserService = {
 
   // Update user profile
   async updateUser(userId: string, data: Partial<User>): Promise<User> {
+    const currentUserData = await AuthService.getCurrentUser();
+    if (!currentUserData || currentUserData.user.$id !== userId) {
+      // It's good practice to throw a specific error type or use a custom error class
+      // For now, a generic error with a clear message.
+      const error = new Error("Unauthorized: You can only update your own profile.");
+      (error as any).code = 403; // Forbidden
+      throw error;
+    }
     try {
       const updatedUser = await databases.updateDocument(
         DATABASE_ID,
@@ -81,7 +99,7 @@ export const UserService = {
         {
           ...data,
           updatedAt: new Date().toISOString(),
-        },
+        }
       );
 
       return updatedUser as unknown as User;
@@ -93,18 +111,183 @@ export const UserService = {
 
   // Upload avatar
   async uploadAvatar(file: File, userId: string): Promise<string> {
+    const currentUserData = await AuthService.getCurrentUser();
+    if (!currentUserData || currentUserData.user.$id !== userId) {
+      const error = new Error("Unauthorized: You can only upload your own avatar.");
+      (error as any).code = 403; // Forbidden
+      throw error;
+    }
     try {
-      const result = await storage.createFile(AVATAR_IMAGES_BUCKET_ID, userId, file);
+      const result = await storage.createFile(
+        AVATAR_IMAGES_BUCKET_ID,
+        userId, // Using target userId as the file ID, implies overwriting previous avatar
+        file
+      );
       const fileUrl = storage.getFileView(AVATAR_IMAGES_BUCKET_ID, result.$id);
 
+      // Update the user document in the 'users' collection
       await databases.updateDocument(DATABASE_ID, USERS_COLLECTION_ID, userId, {
-        avatarUrl: fileUrl.toString(),
+        avatarUrl: fileUrl.toString(), // Ensure your user document schema has avatarUrl
         updatedAt: new Date().toISOString(),
       });
 
       return fileUrl.toString();
     } catch (error) {
       console.error("Upload avatar error:", error);
+      throw error;
+    }
+  },
+
+  // Get User Settings
+  async getUserSettings(userId: string): Promise<UserSettings> {
+    try {
+      const user = await users.get(userId);
+      // Ensure prefs exist and parse, otherwise return default
+      return userSettingsSchema.parse(user.prefs || {});
+    } catch (error) {
+      console.error(`Get user settings error for ${userId}:`, error);
+      // If user not found or other error, could return default or throw
+      // For now, let's assume if prefs are empty/missing, it's like default.
+      // Appwrite get() throws if user not found.
+      // If prefs specifically are the issue, parse({}) handles it.
+      if (error instanceof Error && (error as any).code === 404) {
+        // Appwrite specific error for not found
+        return userSettingsSchema.parse({}); // Return default if user prefs don't exist
+      }
+      throw error; // Re-throw other errors
+    }
+  },
+
+  // Update User Settings
+  async updateUserSettings(
+    userId: string,
+    data: UserSettings
+  ): Promise<Models.Preferences> {
+    const currentUserData = await AuthService.getCurrentUser();
+    if (!currentUserData || currentUserData.user.$id !== userId) {
+      const error = new Error("Unauthorized: You can only update your own settings.");
+      (error as any).code = 403; // Forbidden
+      throw error;
+    }
+    try {
+      const updatedPrefs = await users.updatePrefs(userId, data);
+      return updatedPrefs;
+    } catch (error) {
+      console.error(`Update user settings error for ${userId}:`, error);
+      throw error;
+    }
+  },
+
+  // Update User Subscription Status (integrated from services/user.ts)
+  async updateUserSubscriptionStatus(
+    userId: string,
+    subscriptionData: {
+      subscriptionStatus: "active" | "inactive" | "cancelled";
+      planCode: string;
+      subscriptionExpiry: Date;
+      paystackCustomerId?: string;
+      paystackSubscriptionCode?: string | null;
+    }
+  ): Promise<Models.Preferences> {
+    // This check assumes the update is initiated by the user themselves.
+    // If triggered by a webhook (server-to-server), this check would be different or omitted,
+    // relying on webhook secret verification instead.
+    const currentUserData = await AuthService.getCurrentUser();
+    if (!currentUserData || currentUserData.user.$id !== userId) {
+      const error = new Error("Unauthorized: You can only update your own subscription status.");
+      (error as any).code = 403; // Forbidden
+      throw error;
+    }
+    console.log(`Updating subscription for user ${userId}:`, subscriptionData);
+    try {
+      const dataToUpdate = {
+        ...subscriptionData,
+        subscriptionExpiry: subscriptionData.subscriptionExpiry.toISOString(),
+      };
+      const filteredData = Object.fromEntries(
+        Object.entries(dataToUpdate).filter(([_, v]) => v != null)
+      );
+      // Store under a specific key in prefs, e.g., 'subscription'
+      const prefsToUpdate = { subscription: filteredData };
+      const updatedUser = await users.updatePrefs(userId, prefsToUpdate);
+      console.log(`Successfully updated subscription prefs for user ${userId}`);
+      return updatedUser;
+    } catch (error: any) {
+      console.error(
+        `Failed to update subscription status for user ${userId}:`,
+        error
+      );
+      if (error.response) {
+        console.error("Appwrite error response:", error.response);
+      }
+      throw new Error(`Failed to update user subscription: ${error.message}`);
+    }
+  },
+
+  // Get User Subscription
+  async getUserSubscription(userId: string): Promise<UserSubscription> {
+    try {
+      const user = await users.get(userId);
+      // Assuming subscription data is stored under 'subscription' key in prefs
+      const subscriptionPrefs = (user.prefs as any)?.subscription || {};
+      return userSubscriptionSchema.parse(subscriptionPrefs);
+    } catch (error) {
+      console.error(`Get user subscription error for ${userId}:`, error);
+      if (error instanceof Error && (error as any).code === 404) {
+        return userSubscriptionSchema.parse({}); // Return default if user or prefs don't exist
+      }
+      throw error;
+    }
+  },
+
+  // Get Payment History
+  async getPaymentHistory(
+    userId: string,
+    limit: number = 10,
+    cursor?: string
+  ): Promise<{
+    transactions: PaymentTransaction[];
+    total: number;
+    nextCursor?: string;
+  }> {
+    try {
+      const queries = [
+        Query.equal("userId", userId),
+        Query.orderDesc("$createdAt"),
+        Query.limit(limit),
+      ];
+      if (cursor) {
+        queries.push(Query.cursorAfter(cursor));
+      }
+
+      const result = await databases.listDocuments(
+        DATABASE_ID,
+        PAYMENT_TRANSACTIONS_COLLECTION_ID,
+        queries
+      );
+
+      const transactions = result.documents as unknown as PaymentTransaction[];
+
+      // Determine if there's a next page for cursor-based pagination
+      // If we fetched 'limit' items and there are more than 'limit' items in this batch,
+      // the last item's ID can be the next cursor.
+      // Appwrite's listDocuments doesn't directly give a 'nextCursor', so we infer.
+      let nextCursor: string | undefined = undefined;
+      if (transactions.length === limit && result.total > transactions.length) {
+        // A simple way: if we got 'limit' items, there might be more.
+        // For robust cursor pagination, Appwrite typically expects you to use the ID of the last document fetched.
+        if (transactions.length > 0) {
+          nextCursor = transactions[transactions.length - 1].$id;
+        }
+      }
+
+      return {
+        transactions,
+        total: result.total,
+        nextCursor,
+      };
+    } catch (error) {
+      console.error(`Get payment history error for ${userId}:`, error);
       throw error;
     }
   },
@@ -142,7 +325,7 @@ export const ReviewService = {
           dislikes: 0,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        },
+        }
       );
 
       // Update business average rating and review count
@@ -159,7 +342,7 @@ export const ReviewService = {
   async getBusinessReviews(
     businessId: string,
     limit: number = 10,
-    offset: number = 0,
+    offset: number = 0
   ): Promise<{ reviews: Review[]; total: number }> {
     try {
       // Get paginated results
@@ -172,7 +355,7 @@ export const ReviewService = {
           Query.orderDesc("createdAt"),
           Query.limit(limit),
           Query.offset(offset),
-        ],
+        ]
       );
 
       return {
@@ -189,7 +372,7 @@ export const ReviewService = {
   async reactToReview(
     reviewId: string,
     userId: string,
-    type: "like" | "dislike",
+    type: "like" | "dislike"
   ): Promise<{
     likes: number;
     dislikes: number;
@@ -200,7 +383,7 @@ export const ReviewService = {
       const existingReaction = await databases.listDocuments(
         DATABASE_ID,
         REVIEW_REACTIONS_COLLECTION_ID,
-        [Query.equal("reviewId", reviewId), Query.equal("userId", userId)],
+        [Query.equal("reviewId", reviewId), Query.equal("userId", userId)]
       );
 
       let currentLikes = 0;
@@ -211,7 +394,7 @@ export const ReviewService = {
       const review = (await databases.getDocument(
         DATABASE_ID,
         REVIEWS_COLLECTION_ID,
-        reviewId,
+        reviewId
       )) as unknown as Review;
       currentLikes = review.likes;
       currentDislikes = review.dislikes;
@@ -226,7 +409,7 @@ export const ReviewService = {
           await databases.deleteDocument(
             DATABASE_ID,
             REVIEW_REACTIONS_COLLECTION_ID,
-            reaction.$id,
+            reaction.$id
           );
           if (oldType === "like") {
             currentLikes--;
@@ -240,7 +423,7 @@ export const ReviewService = {
             DATABASE_ID,
             REVIEW_REACTIONS_COLLECTION_ID,
             reaction.$id,
-            { type },
+            { type }
           );
           if (oldType === "like") {
             currentLikes--;
@@ -262,7 +445,7 @@ export const ReviewService = {
             userId,
             type,
             createdAt: new Date().toISOString(),
-          },
+          }
         );
         if (type === "like") {
           currentLikes++;
@@ -280,7 +463,7 @@ export const ReviewService = {
         {
           likes: currentLikes,
           dislikes: currentDislikes,
-        },
+        }
       );
 
       return {
@@ -297,7 +480,7 @@ export const ReviewService = {
   // Get a user's reaction for a specific review
   async getUserReaction(
     reviewId: string,
-    userId: string,
+    userId: string
   ): Promise<ReviewReaction | null> {
     try {
       const result = await databases.listDocuments(
@@ -307,7 +490,7 @@ export const ReviewService = {
           Query.equal("reviewId", reviewId),
           Query.equal("userId", userId),
           Query.limit(1), // We only expect one reaction per user per review
-        ],
+        ]
       );
       return result.documents.length > 0
         ? (result.documents[0] as unknown as ReviewReaction)
@@ -321,7 +504,7 @@ export const ReviewService = {
   // Update an existing review (e.g., edit text)
   async updateReview(
     reviewId: string,
-    data: Partial<Pick<Review, "text" | "rating" | "title">>, // Allow updating text, rating, title for now
+    data: Partial<Pick<Review, "text" | "rating" | "title">> // Allow updating text, rating, title for now
   ): Promise<Review> {
     try {
       const updatedReview = await databases.updateDocument(
@@ -331,7 +514,7 @@ export const ReviewService = {
         {
           ...data, // Spread the fields to update (e.g., { text: "new text" })
           updatedAt: new Date().toISOString(),
-        },
+        }
       );
 
       // Optionally, re-calculate business rating if rating was updated
@@ -349,7 +532,7 @@ export const ReviewService = {
       await databases.deleteDocument(
         DATABASE_ID,
         REVIEWS_COLLECTION_ID,
-        reviewId,
+        reviewId
       );
       // TODO: Update business rating and review count after deleting a review
     } catch (error) {
@@ -367,7 +550,7 @@ export const ReviewService = {
         [
           Query.equal("parentReviewId", parentReviewId),
           Query.orderAsc("createdAt"), // Show replies chronologically
-        ],
+        ]
       );
       return result.documents as unknown as Review[];
     } catch (error) {
@@ -383,7 +566,7 @@ async function updateBusinessRating(businessId: string): Promise<void> {
     const reviews = await databases.listDocuments(
       DATABASE_ID,
       REVIEWS_COLLECTION_ID,
-      [Query.equal("businessId", businessId)],
+      [Query.equal("businessId", businessId)]
     );
 
     const total = reviews.total;
@@ -403,7 +586,7 @@ async function updateBusinessRating(businessId: string): Promise<void> {
         rating: avgRating,
         reviewCount: total,
         updatedAt: new Date().toISOString(),
-      },
+      }
     );
   } catch (error) {
     console.error("Update business rating error:", error);
@@ -415,13 +598,13 @@ async function updateBusinessRating(businessId: string): Promise<void> {
 async function updateReviewReactionCounts(
   reviewId: string,
   oldType: "like" | "dislike",
-  newType: "like" | "dislike",
+  newType: "like" | "dislike"
 ): Promise<void> {
   try {
     const review = (await databases.getDocument(
       DATABASE_ID,
       REVIEWS_COLLECTION_ID,
-      reviewId,
+      reviewId
     )) as unknown as Review;
 
     const updatedCounts = {
@@ -439,7 +622,7 @@ async function updateReviewReactionCounts(
       DATABASE_ID,
       REVIEWS_COLLECTION_ID,
       reviewId,
-      updatedCounts,
+      updatedCounts
     );
   } catch (error) {
     console.error("Update review reaction counts error:", error);
@@ -454,7 +637,7 @@ export const CategoryService = {
     name: string,
     description?: string,
     imageUrl?: string,
-    parentId?: string,
+    parentId?: string
   ): Promise<Category> {
     try {
       const newCategory = await databases.createDocument(
@@ -466,7 +649,7 @@ export const CategoryService = {
           description: description || "",
           imageUrl: imageUrl || "",
           parentId: parentId || null,
-        },
+        }
       );
 
       return newCategory as unknown as Category;
@@ -481,7 +664,7 @@ export const CategoryService = {
     try {
       const result = await databases.listDocuments(
         DATABASE_ID,
-        CATEGORIES_COLLECTION_ID,
+        CATEGORIES_COLLECTION_ID
       );
 
       return result.documents as unknown as Category[];
@@ -497,7 +680,7 @@ export const CategoryService = {
       const category = await databases.getDocument(
         DATABASE_ID,
         CATEGORIES_COLLECTION_ID,
-        categoryId,
+        categoryId
       );
 
       return category as unknown as Category;
@@ -515,7 +698,7 @@ export const MessageService = {
     conversationId: string,
     senderId: string,
     text?: string,
-    image?: File,
+    image?: File
   ): Promise<Message> {
     try {
       let imageUrl = null;
@@ -527,7 +710,7 @@ export const MessageService = {
         const fileResult = await storage.createFile(
           MESSAGE_IMAGES_BUCKET_ID,
           ID.unique(),
-          image,
+          image
         );
 
         imageUrl = storage
@@ -555,7 +738,7 @@ export const MessageService = {
           isRead: false,
           createdAt: createdAt.toISOString(),
           expiresAt: expiresAt.toISOString(), // Add expiresAt timestamp
-        },
+        }
       );
 
       // Update conversation with last message ID
@@ -566,7 +749,7 @@ export const MessageService = {
         {
           lastMessageId: newMessage.$id,
           updatedAt: new Date().toISOString(),
-        },
+        }
       );
 
       return newMessage as unknown as Message;
@@ -580,7 +763,7 @@ export const MessageService = {
   async getConversationMessages(
     conversationId: string,
     limit: number = 30,
-    offset: number = 0,
+    offset: number = 0
   ): Promise<Message[]> {
     try {
       const result = await databases.listDocuments(
@@ -591,7 +774,7 @@ export const MessageService = {
           Query.orderAsc("createdAt"), // Most recent first
           Query.limit(limit),
           Query.offset(offset),
-        ],
+        ]
       );
 
       return result.documents as unknown as Message[];
@@ -604,7 +787,7 @@ export const MessageService = {
   // Mark messages as read
   async markMessagesAsRead(
     conversationId: string,
-    userId: string,
+    userId: string
   ): Promise<void> {
     try {
       const unreadMessages = await databases.listDocuments(
@@ -614,7 +797,7 @@ export const MessageService = {
           Query.equal("conversationId", conversationId),
           Query.equal("isRead", false),
           Query.notEqual("senderId", userId), // Only mark messages from other users
-        ],
+        ]
       );
 
       for (const message of unreadMessages.documents) {
@@ -622,7 +805,7 @@ export const MessageService = {
           DATABASE_ID,
           MESSAGES_COLLECTION_ID,
           message.$id,
-          { isRead: true },
+          { isRead: true }
         );
       }
     } catch (error) {
@@ -648,7 +831,7 @@ export const MessageService = {
             Query.lessThanEqual("expiresAt", now),
             Query.limit(batchSize),
             Query.offset(offset),
-          ],
+          ]
         );
 
         if (expiredMessagesBatch.documents.length === 0) {
@@ -663,20 +846,20 @@ export const MessageService = {
               // Log individual deletion errors but don't let one failure stop the batch
               console.error(
                 `Error deleting message ${message.$id}:`,
-                deleteError,
+                deleteError
               );
               return null; // Indicate failure for this specific promise
-            }),
+            })
         );
 
         const results = await Promise.all(deletePromises);
         const successfulDeletionsInBatch = results.filter(
-          (r) => r !== null,
+          (r) => r !== null
         ).length;
         totalDeletedCount += successfulDeletionsInBatch;
 
         console.log(
-          `Processed batch: ${successfulDeletionsInBatch} messages deleted.`,
+          `Processed batch: ${successfulDeletionsInBatch} messages deleted.`
         );
 
         // Appwrite's listDocuments total refers to the total matching documents in the DB,
@@ -691,7 +874,7 @@ export const MessageService = {
       }
 
       console.log(
-        `Successfully deleted a total of ${totalDeletedCount} expired messages.`,
+        `Successfully deleted a total of ${totalDeletedCount} expired messages.`
       );
       return { totalDeletedCount };
     } catch (error) {
@@ -714,7 +897,7 @@ export const ConversationService = {
       // Check if conversation already exists
       const conversations = await databases.listDocuments(
         DATABASE_ID,
-        CONVERSATIONS_COLLECTION_ID,
+        CONVERSATIONS_COLLECTION_ID
       );
 
       // Client-side filtering for participants match
@@ -738,7 +921,7 @@ export const ConversationService = {
           participants: sortedUserIds,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        },
+        }
       );
 
       return newConversation as unknown as Conversation;
@@ -761,7 +944,7 @@ export const ConversationService = {
         await databases.listDocuments(
           DATABASE_ID,
           CONVERSATIONS_COLLECTION_ID,
-          [Query.contains("participants", userId)],
+          [Query.contains("participants", userId)]
         )
       ).documents as unknown as Conversation[];
 
@@ -778,13 +961,13 @@ export const ConversationService = {
             const lastMessage = await databases.getDocument(
               DATABASE_ID,
               MESSAGES_COLLECTION_ID,
-              conv.lastMessageId,
+              conv.lastMessageId
             );
             lastMessages[conv.$id] = lastMessage as unknown as Message;
           } catch (e) {
             console.error(
               `Error fetching last message for conversation ${conv.$id}:`,
-              e,
+              e
             );
           }
         }
@@ -797,14 +980,14 @@ export const ConversationService = {
             Query.equal("conversationId", conv.$id),
             Query.equal("isRead", false),
             Query.notEqual("senderId", userId),
-          ],
+          ]
         );
 
         unreadCounts[conv.$id] = unreadQuery.total;
 
         // Get other participants' info
         const otherParticipantIds = conv.participants.filter(
-          (id) => id !== userId,
+          (id) => id !== userId
         );
         const otherParticipants: Models.User<Models.Preferences>[] = [];
 
@@ -850,4 +1033,4 @@ export function getImageURl(imageID: string) {
 }
 
 // Export client for direct use in components when needed
-export { client, databases, storage, avatars, users };
+export { client, databases, storage, avatars, users, account };

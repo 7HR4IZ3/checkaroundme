@@ -116,7 +116,7 @@ export default function BusinessForm({
 
   // State for new filterable attributes
   const [priceIndicator, setPriceIndicator] = useState<string | undefined>(
-    undefined
+    undefined,
   );
   const [onSiteParking, setOnSiteParking] = useState(false);
   const [garageParking, setGarageParking] = useState(false);
@@ -135,7 +135,7 @@ export default function BusinessForm({
   const { data: tempBusinessImages, isLoading: isLoadingTempImages } =
     trpc.getBusinessImages.useQuery(
       { businessId: user?.$id! },
-      { enabled: !businessId && !!user?.$id }
+      { enabled: !businessId && !!user?.$id },
     ); // Fetch temp images only in create mode
   const deleteBusinessImage = trpc.deleteBusinessImage.useMutation();
 
@@ -200,7 +200,7 @@ export default function BusinessForm({
   useEffect(() => {
     if (country) {
       const selectedCountry = Country.getAllCountries().find(
-        (c) => c.name === country
+        (c) => c.name === country,
       );
       if (selectedCountry) {
         setStates(State.getStatesOfCountry(selectedCountry.isoCode));
@@ -219,18 +219,18 @@ export default function BusinessForm({
   useEffect(() => {
     if (country && state) {
       const selectedCountry = Country.getAllCountries().find(
-        (c) => c.name === country
+        (c) => c.name === country,
       );
       if (selectedCountry) {
         const selectedState = State.getStatesOfCountry(
-          selectedCountry.isoCode
+          selectedCountry.isoCode,
         ).find((s) => s.name === state);
         if (selectedState) {
           setCities(
             City.getCitiesOfState(
               selectedCountry.isoCode,
-              selectedState.isoCode
-            )
+              selectedState.isoCode,
+            ),
           );
           setCity(""); // Clear selected city when state changes
         }
@@ -244,7 +244,7 @@ export default function BusinessForm({
   const updateBusinessHours = (
     day: string,
     type: "start" | "end" | "closed",
-    value: string | boolean
+    value: string | boolean,
   ) => {
     setAvailableHours((prev) => ({
       ...prev,
@@ -277,7 +277,7 @@ export default function BusinessForm({
   };
 
   const handleImageUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     setIsImageUploading(true);
 
@@ -326,7 +326,7 @@ export default function BusinessForm({
 
   const handleRemoveService = (serviceToRemove: string) => {
     setServicesOffered(
-      servicesOffered.filter((service) => service !== serviceToRemove)
+      servicesOffered.filter((service) => service !== serviceToRemove),
     );
   };
 
@@ -367,7 +367,7 @@ export default function BusinessForm({
 
     if (!isFormValid()) {
       console.error(
-        "Form is not valid. Please fill all required fields and agree to the terms."
+        "Form is not valid. Please fill all required fields and agree to the terms.",
       );
       if (!businessId && !agreedToTerms) {
         // Only set terms error in create mode
@@ -387,7 +387,7 @@ export default function BusinessForm({
       categories: businessCategory ? [businessCategory] : [],
       services: servicesOffered,
       paymentOptions: Object.keys(paymentOptions).filter(
-        (key) => paymentOptions[key]
+        (key) => paymentOptions[key],
       ),
       hours: availableHours,
       images: businessImages.map(({ isPrimary, $id }) => ({
@@ -408,7 +408,7 @@ export default function BusinessForm({
 
   return (
     <div className="container mx-auto py-8 px-4 md:px-8 lg:px-16 space-y-8">
-      <div className="flex justify-between items-start">
+      <div className="flex flex-col-reverse gap-4 md:flex-row justify-between items-start">
         {/* Business Name */}
         <div className="md:w-1/2">
           <Label htmlFor="businessName" className="font-semibold">
@@ -426,7 +426,7 @@ export default function BusinessForm({
               setBusinessNameError(""); // Clear error on change
             }}
             placeholder="Enter business name"
-            className={`mt-1 ${businessNameError ? "border-red-500" : ""}`}
+            className={`mt-1 w-[100%] ${businessNameError ? "border-red-500" : ""}`}
           />
           {businessNameError && (
             <p className="text-red-500 text-sm mt-1">{businessNameError}</p>
@@ -437,7 +437,7 @@ export default function BusinessForm({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {businessId && ( // Show disable button only in edit mode
             <Button variant="destructive" className="rounded-4xl">
               Disable Business
@@ -450,7 +450,7 @@ export default function BusinessForm({
           >
             {isSubmitting ? "Saving..." : submitButtonText}
           </Button>
-          {businessId && ( // Show more options only in edit mode
+          {businessId && (
             <Button variant="ghost" size="icon" className="h-8 w-8">
               <MoreVertical className="h-4 w-4" />
               <span className="sr-only">More options</span>
@@ -464,7 +464,7 @@ export default function BusinessForm({
                   <ShieldCheck className="mr-2 h-4 w-4" /> Verify Business
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
+              <DialogContent className="w-screen">
                 <DialogHeader>
                   <DialogTitle>Business Verification</DialogTitle>
                   <DialogDescription>
@@ -603,7 +603,7 @@ export default function BusinessForm({
               setCountryError("");
 
               const country = countries.find(
-                (country) => country.name === value
+                (country) => country.name === value,
               );
               country && setPhoneCountryCode(country.phoneCode);
             }}
@@ -611,7 +611,7 @@ export default function BusinessForm({
           >
             <SelectTrigger
               id="country"
-              className={`mt-2 ${countryError ? "border-red-500" : ""}`}
+              className={`mt-2 w-[100%] ${countryError ? "border-red-500" : ""}`}
             >
               <SelectValue placeholder="Select country" />
             </SelectTrigger>
@@ -642,7 +642,7 @@ export default function BusinessForm({
           >
             <SelectTrigger
               id="state"
-              className={`mt-2 ${cityError ? "border-red-500" : ""}`} // Use cityError for state as well for simplicity
+              className={`mt-2 w-[100%] ${cityError ? "border-red-500" : ""}`} // Use cityError for state as well for simplicity
             >
               <SelectValue placeholder="Select state" />
             </SelectTrigger>
@@ -670,7 +670,7 @@ export default function BusinessForm({
           >
             <SelectTrigger
               id="city"
-              className={`mt-2 ${cityError ? "border-red-500" : ""}`}
+              className={`mt-2 w-[100%] ${cityError ? "border-red-500" : ""}`}
             >
               <SelectValue placeholder="Select city" />
             </SelectTrigger>
@@ -697,7 +697,7 @@ export default function BusinessForm({
               value={phoneCountryCode}
               onValueChange={(country) => {
                 setPhoneCountryCode(
-                  countries.find((c) => c.name === country)?.phonecode
+                  countries.find((c) => c.name === country)?.phonecode,
                 );
               }}
             >
@@ -810,7 +810,7 @@ export default function BusinessForm({
             <Badge
               key={service}
               variant="secondary"
-              className="py-1 px-2 text-sm text-white bg-primary"
+              className="py-1 px-2 text-sm text-primary bg-primary"
             >
               {service}
               <button
@@ -818,7 +818,7 @@ export default function BusinessForm({
                 className="ml-1.5 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 aria-label={`Remove ${service}`}
               >
-                <X className="h-3 w-3 text-white hover:text-foreground" />
+                <X className="h-3 w-3 text-primary hover:text-foreground" />
               </button>
             </Badge>
           ))}
@@ -925,11 +925,11 @@ export default function BusinessForm({
         <Label className="font-semibold block mb-2">Available hours</Label>
         <div className="space-y-2 text-sm text-muted-foreground mt-2">
           {Object.entries(availableHours).map(([day, hours]) => (
-            <div key={day} className="flex items-center gap-8">
+            <div key={day} className="flex items-center gap-2 md:gap-8">
               <span className="w-1/5 font-medium text-card-foreground">
                 {day}
               </span>
-              <div className="flex flex-row">
+              <div className="flex flex-row flex-grow">
                 <Input
                   type="time"
                   className="border-0 border-bottom"

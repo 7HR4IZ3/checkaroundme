@@ -74,16 +74,15 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
 
   return (
     <div className="container bg-white rounded-lg shadow-xs overflow-hidden flex flex-row p-2 relative md:h-auto gap-2">
-      <div className="w-1/2 md:w-[20vw] relative">
+      <div className="w-1 md:w-[10vw] relative">
         {isLoading || !image ? (
           <Skeleton />
         ) : (
           <Image
             src={image.imageUrl}
             alt={business.name}
-            object-fit="contain"
             fill
-            className="rounded-xl bg-gray-200" // Background while loading
+            className="rounded-xl bg-gray-200 object-cover" // Background while loading
           />
         )}
       </div>

@@ -21,7 +21,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   // const signInMutation = trpc.login.useMutation();
   const signoutMutation = trpc.logout.useMutation();
 
-  // if (loadingCurrentUser) return <Loading />;
+  if (loadingCurrentUser) return <Loading />;
 
   // const login = async (
   //   method: "email" | "google",

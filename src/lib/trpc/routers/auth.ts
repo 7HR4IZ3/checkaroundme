@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { AuthService } from "../../appwrite/services/auth";
+import { changePasswordSchema } from "../../schema";
 import SuperJSON from "superjson";
 import { TRPCError } from "@trpc/server";
 
@@ -208,6 +209,28 @@ export function createAuthProcedures(
             success: false,
             message: error.message || "Failed to reset password.",
           };
+        }
+      }),
+
+    changePassword: protectedProcedure // User must be logged in to change their password
+      .input(changePasswordSchema)
+      .mutation(async ({ input, ctx }) => {
+        // No captcha needed here as user is authenticated
+        // The AuthService.changePassword method will need the current user's session
+        // or rely on Appwrite's Account service to use the active session.
+        try {
+          // AuthService.changePassword will call Appwrite's account.updatePassword
+          await AuthService.changePassword(
+            input.currentPassword,
+            input.newPassword,
+          );
+          return { success: true, message: "Password changed successfully." };
+        } catch (error: any) {
+          console.error("Change password error:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: error.message || "Failed to change password.",
+          });
         }
       }),
   };

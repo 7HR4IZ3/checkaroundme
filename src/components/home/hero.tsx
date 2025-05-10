@@ -19,7 +19,7 @@ const Hero: React.FC<HeroProps> = ({ title, subtitles, button }) => {
   button ??= { text: "EXPLORE", onclick: () => router.push("/listings") };
 
   return (
-    <div className="relative bg-gray-800 text-white overflow-hidden m-6 md:m-0 rounded-lg h-[30vh] md:h-[40vh]">
+    <div className="relative bg-gray-800 text-white overflow-hidden m-6 md:m-0 rounded-lg h-[40vh]">
       {/* Background Image */}
       <Image
         src="/images/hero-bg.jpg"
@@ -31,7 +31,7 @@ const Hero: React.FC<HeroProps> = ({ title, subtitles, button }) => {
       />
 
       {/* Content */}
-      <div className="relative flex flex-col z-10 container mx-4 px-4 sm:px-6 lg:px-8 py-8 md:py-32 lg:py-40 text-left z-10 gap-1 md:gap-4 mx-auto">
+      <div className="relative flex flex-col z-10 container px-4 sm:px-6 lg:px-8 py-8 md:py-32 lg:py-40 text-left z-10 gap-2 md:gap-4 h-[100%] flex justify-center mx-auto my-auto">
         <span className="text-xs md:text-sm text-muted text-bold">
           CHECKAROUNDME
         </span>
@@ -49,7 +49,7 @@ const Hero: React.FC<HeroProps> = ({ title, subtitles, button }) => {
           </span>
         ))}
         <Button
-          className="bg-primary hover:bg-blue-700 h-10 md:h-12 w-35 text-white font-semibold rounded-full flex items-center justify-center"
+          className="bg-primary hover:bg-blue-700 h-10 md:h-12 w-35 text-white dark:text-black font-semibold rounded-full flex items-center justify-center"
           onClick={button.onclick}
         >
           <span className="text-xs">{button.text}</span>
