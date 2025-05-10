@@ -15,10 +15,9 @@ import {
   userSettingsSchema,
   UserSettings,
   changePasswordSchema,
-  ChangePasswordInput, // Ensure this is imported if used directly as a type
+  ChangePasswordInput,
 } from "@/lib/schema";
 import { z } from "zod";
-// import { ProfileSubNav } from "@/components/profile/profile-sub-nav"; // No longer needed
 import { UserBusinesses } from "@/components/profile/user-businesses";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,6 +36,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -58,10 +58,21 @@ import {
   ShieldCheck,
   CreditCard,
   ListChecks,
-} from "lucide-react"; // Added ListChecks for consistency
+  Share2,
+  Copy,
+  Edit3,
+  LogOut,
+} from "lucide-react";
 
-// Section: View Profile
-function ViewProfileSection() {
+// Helper to format currency
+const formatCurrency = (amount: number, currencyCode = "NGN") =>
+  new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: currencyCode,
+  }).format(amount / 100);
+
+// Section: Profile Overview
+function ProfileOverviewSection() {
   const auth = useAuth();
   if (!auth.isAuthenticated || !auth.user) return <Loading />;
 
@@ -69,93 +80,73 @@ function ViewProfileSection() {
   const appwriteUser = auth.user;
 
   return (
-    <div className="py-6">
-      {" "}
-      {/* Changed from section to div for tab content */}
-      {/* Removed h2 title, as tab trigger serves this purpose */}
-      <div className="flex flex-col md:flex-row gap-8">
-        <div className="w-full md:w-1/3 space-y-6">
-          <div className="flex flex-col items-center">
-            <Avatar className="h-32 w-32 mb-4">
-              <AvatarImage
-                src={
-                  profileToDisplay?.avatarUrl ||
-                  appwriteUser.prefs?.avatarUrl ||
-                  ""
-                }
-                alt={profileToDisplay?.fullName || appwriteUser.name || "User"}
-              />
-              <AvatarFallback>
-                {(profileToDisplay?.fullName || appwriteUser.name)
-                  ?.charAt(0)
-                  ?.toUpperCase() || "U"}
-              </AvatarFallback>
-            </Avatar>
-            <h2 className="text-xl font-semibold">
+    <Card>
+      <CardHeader>
+        <CardTitle>Profile Overview</CardTitle>
+        <CardDescription>
+          A summary of your profile information.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="flex flex-col items-center sm:flex-row sm:items-start gap-6">
+          <Avatar className="h-24 w-24 sm:h-32 sm:w-32">
+            <AvatarImage
+              src={
+                profileToDisplay?.avatarUrl ||
+                appwriteUser.prefs?.avatarUrl ||
+                ""
+              }
+              alt={profileToDisplay?.fullName || appwriteUser.name || "User"}
+            />
+            <AvatarFallback>
+              {(profileToDisplay?.fullName || appwriteUser.name)
+                ?.charAt(0)
+                ?.toUpperCase() || "U"}
+            </AvatarFallback>
+          </Avatar>
+          <div className="text-center sm:text-left">
+            <h2 className="text-2xl font-semibold">
               {profileToDisplay?.fullName || appwriteUser.name || "User"}
             </h2>
             <p className="text-muted-foreground">{appwriteUser.email}</p>
-          </div>
-          <Separator />
-          <div className="space-y-2">
-            <h3 className="font-medium">Account Details</h3>
-            <p className="text-sm text-muted-foreground">
-              Member since{" "}
+            <p className="text-sm text-muted-foreground mt-1">
+              Member since:{" "}
               {new Date(
                 appwriteUser.$createdAt || Date.now()
               ).toLocaleDateString()}
             </p>
           </div>
         </div>
-        <div className="w-full md:w-2/3 space-y-6">
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Personal Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="view-name">Full Name</Label>
-                <Input
-                  id="view-name"
-                  value={profileToDisplay?.fullName || appwriteUser.name || ""}
-                  readOnly
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="view-email">Email</Label>
-                <Input
-                  id="view-email"
-                  value={appwriteUser.email || ""}
-                  readOnly
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="view-phone">Phone</Label>
-                <Input
-                  id="view-phone"
-                  value={profileToDisplay?.phone || appwriteUser.phone || ""}
-                  readOnly
-                  className="mt-1"
-                />
-              </div>
-            </div>
+        <Separator />
+        <div>
+          <h3 className="text-lg font-medium mb-2">Contact Information</h3>
+          <div className="space-y-2">
+            <p>
+              <span className="font-medium">Email:</span>{" "}
+              {appwriteUser.email || "Not set"}
+            </p>
+            <p>
+              <span className="font-medium">Phone:</span>{" "}
+              {profileToDisplay?.phone || appwriteUser.phone || "Not set"}
+            </p>
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
-// Section: Configure Details
-function ConfigureDetailsSection() {
+// Section: Edit Profile Details
+function EditProfileSection() {
   const auth = useAuth();
+  const utils = trpc.useUtils();
+
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false); // New state for loading
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const utils = trpc.useUtils();
 
   useEffect(() => {
     if (auth.isAuthenticated && auth.user && auth.profile) {
@@ -170,23 +161,24 @@ function ConfigureDetailsSection() {
   const updateUserMutation = trpc.updateUser.useMutation({
     onSuccess: () => {
       toast.success("Profile updated successfully!");
-      if (auth.isAuthenticated && auth.user)
+      if (auth.isAuthenticated && auth.user) {
         utils.getUserById.invalidate({ userId: auth.user.$id });
+      }
     },
     onError: (error) =>
       toast.error(`Failed to update profile: ${error.message}`),
   });
 
-  // Removed trpc.uploadAvatar.useMutation()
-
   const handleProfileSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!auth.isAuthenticated || !auth.user) return;
+
     const updateData: { fullName?: string; phone?: string } = {};
     if (name !== (auth.profile?.fullName || auth.user?.name))
       updateData.fullName = name;
     if (phone !== (auth.profile?.phone || auth.user?.phone))
       updateData.phone = phone;
+
     if (Object.keys(updateData).length === 0) {
       toast.info("No changes to save.");
       return;
@@ -205,7 +197,6 @@ function ConfigureDetailsSection() {
       toast.error("Invalid data.");
       return;
     }
-    // The tRPC procedure now gets userId from context, so we only pass the data
     updateUserMutation.mutate(updateData);
   };
 
@@ -213,11 +204,12 @@ function ConfigureDetailsSection() {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       if (!file.type.startsWith("image/")) {
-        toast.error("Invalid file type.");
+        toast.error("Invalid file type. Please select an image.");
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
-        toast.error("File too large (max 5MB).");
+        // 5MB limit
+        toast.error("File too large. Maximum size is 5MB.");
         return;
       }
       setAvatarFile(file);
@@ -227,7 +219,7 @@ function ConfigureDetailsSection() {
 
   const handleAvatarUpload = async () => {
     if (!avatarFile || !auth.isAuthenticated || !auth.user) {
-      toast.info("Select image first.");
+      toast.info("Please select an image file first.");
       return;
     }
     setIsUploadingAvatar(true);
@@ -240,17 +232,14 @@ function ConfigureDetailsSection() {
         method: "POST",
         body: formData,
       });
-
       const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error?.message || result.details || "Avatar upload failed");
-      }
+      if (!response.ok)
+        throw new Error(
+          result.error?.message || result.details || "Avatar upload failed"
+        );
 
       toast.success("Avatar updated successfully!");
-      if (result.avatarUrl) {
-        setAvatarPreview(result.avatarUrl);
-      }
+      if (result.avatarUrl) setAvatarPreview(result.avatarUrl);
       utils.getUserById.invalidate({ userId: auth.user.$id });
       setAvatarFile(null);
     } catch (error: any) {
@@ -260,113 +249,120 @@ function ConfigureDetailsSection() {
     }
   };
 
-  if (!auth.isAuthenticated || !auth.user) return null;
+  if (!auth.isAuthenticated || !auth.user) return <Loading />;
 
   return (
-    <div className="py-6">
-      <div className="flex flex-col md:flex-row gap-8">
-        <div className="w-full md:w-1/3 space-y-6">
-          <div className="flex flex-col items-center">
-            <Avatar className="h-32 w-32 mb-4 relative group">
-              <AvatarImage src={avatarPreview || ""} alt={name || "User"} />
-              <AvatarFallback>
-                {(name || auth.user.name)?.charAt(0)?.toUpperCase() || "U"}
-              </AvatarFallback>
-              <Button
-                variant="outline"
-                size="icon"
-                className="absolute bottom-1 right-1 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100"
-                onClick={() => fileInputRef.current?.click()}
-                aria-label="Edit avatar"
-              >
-                <Settings className="h-4 w-4" /> {/* Changed icon */}
-              </Button>
-            </Avatar>
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleAvatarChange}
-              accept="image/*"
-              className="hidden"
-            />
-            {avatarFile && (
-              <Button
-                onClick={handleAvatarUpload}
-                disabled={isUploadingAvatar}
-                size="sm"
-                className="mt-2"
-              >
-                {isUploadingAvatar
-                  ? "Uploading..."
-                  : "Upload Avatar"}
-              </Button>
-            )}
-          </div>
-        </div>
-        <div className="w-full md:w-2/3 space-y-6">
-          <form onSubmit={handleProfileSubmit} className="space-y-4">
-            <h3 className="text-lg font-medium mb-4">Personal Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="edit-name">Full Name</Label>
-                <Input
-                  id="edit-name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  disabled={updateUserMutation.isPending}
-                  autoComplete="name"
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-email">Email</Label>
-                <Input
-                  id="edit-email"
-                  value={auth.user.email || ""}
-                  readOnly
-                  disabled
-                  className="cursor-not-allowed bg-muted/50 mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-phone">Phone</Label>
-                <Input
-                  id="edit-phone"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="e.g., +1234567890"
-                  disabled={updateUserMutation.isPending}
-                  autoComplete="tel"
-                  className="mt-1"
-                />
-              </div>
-            </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Edit Profile</CardTitle>
+        <CardDescription>
+          Update your personal information and avatar.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="flex flex-col items-center space-y-4">
+          <Avatar className="h-32 w-32 relative group">
+            <AvatarImage src={avatarPreview || ""} alt={name || "User"} />
+            <AvatarFallback>
+              {(name || auth.user.name)?.charAt(0)?.toUpperCase() || "U"}
+            </AvatarFallback>
             <Button
-              type="submit"
-              disabled={
-                updateUserMutation.isPending ||
-                (name === (auth.profile?.fullName || auth.user?.name || "") &&
-                  phone === (auth.profile?.phone || auth.user?.phone || ""))
-              }
+              variant="outline"
+              size="icon"
+              className="absolute bottom-1 right-1 h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => fileInputRef.current?.click()}
+              aria-label="Change avatar"
             >
-              {updateUserMutation.isPending ? "Saving..." : "Save Changes"}
+              <Edit3 className="h-4 w-4" />
             </Button>
-          </form>
+          </Avatar>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleAvatarChange}
+            accept="image/*"
+            className="hidden"
+          />
+          {avatarFile && (
+            <Button
+              onClick={handleAvatarUpload}
+              disabled={isUploadingAvatar}
+              size="sm"
+            >
+              {isUploadingAvatar ? <Loading /> : null}
+              {isUploadingAvatar ? "Uploading..." : "Upload New Avatar"}
+            </Button>
+          )}
         </div>
-      </div>
-    </div>
+        <Separator />
+        <form onSubmit={handleProfileSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <Label htmlFor="edit-name">Full Name</Label>
+              <Input
+                id="edit-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                disabled={updateUserMutation.isPending}
+                autoComplete="name"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="edit-phone">Phone Number</Label>
+              <Input
+                id="edit-phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="e.g., +1234567890"
+                disabled={updateUserMutation.isPending}
+                autoComplete="tel"
+              />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="edit-email">Email Address</Label>
+            <Input
+              id="edit-email"
+              value={auth.user.email || ""}
+              readOnly
+              disabled
+              className="cursor-not-allowed bg-muted/50"
+            />
+            {/* <FormDescription>Email cannot be changed here.</FormDescription> */}
+          </div>
+          <Button
+            type="submit"
+            disabled={
+              updateUserMutation.isPending ||
+              (!avatarFile &&
+                name === (auth.profile?.fullName || auth.user?.name || "") &&
+                phone === (auth.profile?.phone || auth.user?.phone || ""))
+            }
+          >
+            {updateUserMutation.isPending ? <Loading /> : null}
+            {updateUserMutation.isPending ? "Saving..." : "Save Changes"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
 
 // Section: My Businesses
 function MyBusinessesSection() {
   const auth = useAuth();
-  if (!auth.isAuthenticated) return null;
+  if (!auth.isAuthenticated) return <Loading />;
   return (
-    <div className="py-6">
-      <UserBusinesses />
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>My Businesses</CardTitle>
+        <CardDescription>Manage your registered businesses.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <UserBusinesses />
+      </CardContent>
+    </Card>
   );
 }
 
@@ -374,6 +370,7 @@ function MyBusinessesSection() {
 function AppSettingsSection() {
   const auth = useAuth();
   const utils = trpc.useUtils();
+
   const {
     data: currentSettings,
     isLoading: isLoadingSettings,
@@ -381,133 +378,182 @@ function AppSettingsSection() {
   } = trpc.getUserSettings.useQuery(undefined, {
     enabled: !!auth.isAuthenticated,
   });
+
   const updateSettingsMutation = trpc.updateUserSettings.useMutation({
     onSuccess: () => {
-      toast.success("Settings updated!");
+      toast.success("Settings updated successfully!");
       utils.getUserSettings.invalidate();
     },
-    onError: (error) => toast.error(`Update failed: ${error.message}`),
+    onError: (error) =>
+      toast.error(`Failed to update settings: ${error.message}`),
   });
+
   const form = useForm({
     resolver: zodResolver(userSettingsSchema),
-    defaultValues: userSettingsSchema.parse({}),
+    defaultValues: currentSettings || userSettingsSchema.parse({}), // Ensure defaultValues are always valid
   });
-  useEffect(() => {
-    if (currentSettings) form.reset(currentSettings);
-  }, [currentSettings, form.reset]);
-  const onSubmitSettings = (data: UserSettings) =>
-    updateSettingsMutation.mutate(data);
 
-  if (!auth.isAuthenticated) return null;
+  useEffect(() => {
+    if (currentSettings) {
+      form.reset(currentSettings);
+    } else {
+      form.reset(userSettingsSchema.parse({})); // Reset to default schema if currentSettings is undefined
+    }
+  }, [currentSettings, form]);
+
+  const onSubmitSettings = (data: UserSettings) => {
+    updateSettingsMutation.mutate(data);
+  };
+
+  if (!auth.isAuthenticated) return <Loading />;
   if (isLoadingSettings)
     return (
-      <div className="py-6">
+      <div className="flex justify-center py-10 h-[20vh]">
         <Loading />
       </div>
     );
   if (settingsError)
     return (
-      <div className="py-6 text-red-500">Error: {settingsError.message}</div>
+      <p className="text-red-500">
+        Error loading settings: {settingsError.message}
+      </p>
     );
 
   return (
-    <div className="py-6">
-      <form
-        onSubmit={form.handleSubmit(onSubmitSettings)}
-        className="space-y-8 max-w-2xl"
-      >
-        <Card>
-          <CardHeader>
-            <CardTitle>Notification Preferences</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Controller
-              name="notifications.newMessagesEmail"
-              control={form.control}
-              render={({ field }) => (
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="newMsgEmail" className="flex flex-col sp-y-1">
-                    <span>New Messages by Email</span>
-                    <span className="font-normal text-sm text-muted-foreground">
-                      Notify for new messages.
-                    </span>
-                  </Label>
-                  <Switch
-                    id="newMsgEmail"
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    disabled={updateSettingsMutation.isPending}
-                  />
-                </div>
-              )}
-            />
-            <Controller
-              name="notifications.businessUpdatesEmail"
-              control={form.control}
-              render={({ field }) => (
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="bizUpdEmail" className="flex flex-col sp-y-1">
-                    <span>Business Updates by Email</span>
-                    <span className="font-normal text-sm text-muted-foreground">
-                      Notify for business updates.
-                    </span>
-                  </Label>
-                  <Switch
-                    id="bizUpdEmail"
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    disabled={updateSettingsMutation.isPending}
-                  />
-                </div>
-              )}
-            />
+    <Card>
+      <CardHeader>
+        <CardTitle>Application Settings</CardTitle>
+        <CardDescription>
+          Customize your application experience.
+        </CardDescription>
+      </CardHeader>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmitSettings)}>
+          <CardContent className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">
+                  Notification Preferences
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="notifications.newMessagesEmail"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">
+                          New Messages by Email
+                        </FormLabel>
+                        <FormDescription>
+                          Receive email notifications for new messages in your
+                          inbox.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          disabled={updateSettingsMutation.isPending}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="notifications.businessUpdatesEmail"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel className="text-base">
+                          Business Updates by Email
+                        </FormLabel>
+                        <FormDescription>
+                          Get notified about important updates related to your
+                          businesses.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          disabled={updateSettingsMutation.isPending}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Theme Settings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FormField
+                  control={form.control}
+                  name="theme"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel>Appearance</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+                          disabled={updateSettingsMutation.isPending}
+                        >
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="light" />
+                            </FormControl>
+                            <FormLabel className="font-normal">Light</FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="dark" />
+                            </FormControl>
+                            <FormLabel className="font-normal">Dark</FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-3 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="system" />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              System
+                            </FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
           </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Theme Settings</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Controller
-              name="theme"
-              control={form.control}
-              render={({ field }) => (
-                <RadioGroup
-                  value={field.value}
-                  onValueChange={field.onChange}
-                  className="space-y-1"
-                  disabled={updateSettingsMutation.isPending}
-                >
-                  <div className="flex items-center sp-x-2">
-                    <RadioGroupItem value="light" id="theme-light" />
-                    <Label htmlFor="theme-light">Light</Label>
-                  </div>
-                  <div className="flex items-center sp-x-2">
-                    <RadioGroupItem value="dark" id="theme-dark" />
-                    <Label htmlFor="theme-dark">Dark</Label>
-                  </div>
-                  <div className="flex items-center sp-x-2">
-                    <RadioGroupItem value="system" id="theme-system" />
-                    <Label htmlFor="theme-system">System</Label>
-                  </div>
-                </RadioGroup>
-              )}
-            />
-          </CardContent>
-        </Card>
-        <Button
-          type="submit"
-          disabled={!form.formState.isDirty || updateSettingsMutation.isPending}
-        >
-          {updateSettingsMutation.isPending ? "Saving..." : "Save Settings"}
-        </Button>
-      </form>
-    </div>
+          <CardFooter className="mt-2">
+            <Button
+              type="submit"
+              disabled={
+                !form.formState.isDirty || updateSettingsMutation.isPending
+              }
+            >
+              {updateSettingsMutation.isPending ? <Loading /> : null}
+              {updateSettingsMutation.isPending ? "Saving..." : "Save Settings"}
+            </Button>
+          </CardFooter>
+        </form>
+      </Form>
+    </Card>
   );
 }
 
-// Section: Password Management
-function PasswordManagementSection() {
+// Section: Security (Password Management)
+function SecuritySection() {
   const auth = useAuth();
   const form = useForm<ChangePasswordInput>({
     resolver: zodResolver(changePasswordSchema),
@@ -517,86 +563,200 @@ function PasswordManagementSection() {
       confirmNewPassword: "",
     },
   });
+
   const changePasswordMutation = trpc.changePassword.useMutation({
     onSuccess: (data) => {
       if (data.success) {
-        toast.success(data.message || "Password changed!");
+        toast.success(data.message || "Password changed successfully!");
         form.reset();
       } else {
-        toast.error(data.message || "Failed to change password.");
+        toast.error(
+          data.message ||
+            "Failed to change password. Please check your current password."
+        );
       }
     },
-    onError: (error) => toast.error(`Error: ${error.message}`),
+    onError: (error) =>
+      toast.error(`Error changing password: ${error.message}`),
   });
-  const onSubmitPassword = (data: ChangePasswordInput) =>
+
+  const onSubmitPassword = (data: ChangePasswordInput) => {
     changePasswordMutation.mutate(data);
-  if (!auth.isAuthenticated) return null;
+  };
+
+  if (!auth.isAuthenticated) return <Loading />;
 
   return (
-    <div className="py-6">
+    <Card>
+      <CardHeader>
+        <CardTitle>Security Settings</CardTitle>
+        <CardDescription>Manage your account password.</CardDescription>
+      </CardHeader>
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmitPassword)}
-          className="space-y-6 max-w-md"
-        >
-          <FormField
-            control={form.control}
-            name="currentPassword"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Current Password</FormLabel>
-                <FormControl>
-                  <Input type="password" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="newPassword"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>New Password</FormLabel>
-                <FormControl>
-                  <Input type="password" {...field} />
-                </FormControl>
-                <FormDescription>Min 8 characters.</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="confirmNewPassword"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Confirm New Password</FormLabel>
-                <FormControl>
-                  <Input type="password" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button type="submit" disabled={changePasswordMutation.isPending}>
-            {changePasswordMutation.isPending
-              ? "Changing..."
-              : "Change Password"}
-          </Button>
+        <form onSubmit={form.handleSubmit(onSubmitPassword)}>
+          <CardContent className="space-y-4">
+            <FormField
+              control={form.control}
+              name="currentPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Current Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      {...field}
+                      autoComplete="current-password"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="newPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>New Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      {...field}
+                      autoComplete="new-password"
+                    />
+                  </FormControl>
+                  <FormDescription>Minimum 8 characters.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="confirmNewPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirm New Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      {...field}
+                      autoComplete="new-password"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+          <CardFooter>
+            <Button type="submit" disabled={changePasswordMutation.isPending}>
+              {changePasswordMutation.isPending ? <Loading /> : null}
+              {changePasswordMutation.isPending
+                ? "Updating..."
+                : "Update Password"}
+            </Button>
+          </CardFooter>
         </form>
       </Form>
-    </div>
+    </Card>
+  );
+}
+
+// Section: Referrals
+function ReferralSection() {
+  const auth = useAuth();
+  if (!auth.isAuthenticated || !auth.user) return <Loading />;
+
+  const referralCode = auth.user.$id.slice(-8).toUpperCase();
+  const referralLink =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/auth?ref=${referralCode}`
+      : "";
+
+  const copyToClipboard = (textToCopy: string, type: string) => {
+    navigator.clipboard
+      .writeText(textToCopy)
+      .then(() => toast.success(`${type} copied to clipboard!`))
+      .catch(() => toast.error(`Failed to copy ${type}.`));
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Refer a Friend</CardTitle>
+        <CardDescription>
+          Share your referral link or code to earn rewards when your friends
+          sign up.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div>
+          <Label htmlFor="referral-link" className="text-sm font-medium">
+            Your Unique Referral Link
+          </Label>
+          <div className="flex items-center space-x-2 mt-1">
+            <Input
+              id="referral-link"
+              value={referralLink}
+              readOnly
+              className="bg-muted/50 flex-grow"
+            />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => copyToClipboard(referralLink, "Link")}
+              aria-label="Copy referral link"
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        <div>
+          <Label htmlFor="referral-code" className="text-sm font-medium">
+            Your Referral Code
+          </Label>
+          <div className="flex items-center space-x-2 mt-1">
+            <Input
+              id="referral-code"
+              value={referralCode}
+              readOnly
+              className="bg-muted/50 flex-grow"
+            />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => copyToClipboard(referralCode, "Code")}
+              aria-label="Copy referral code"
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        <Separator />
+        <div>
+          <h4 className="font-medium mb-2">How it works:</h4>
+          <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+            <li>Share your unique referral link or code with friends.</li>
+            <li>
+              When a friend signs up using your link or code, they get a bonus.
+            </li>
+            <li>
+              You also receive a reward for each successful referral. (Reward
+              details coming soon!)
+            </li>
+          </ul>
+        </div>
+      </CardContent>
+      <CardFooter>
+        <p className="text-xs text-muted-foreground">
+          Referral program terms and conditions apply.
+        </p>
+      </CardFooter>
+    </Card>
   );
 }
 
 // Section: Billing
-const formatCurrency = (amount: number, currencyCode = "NGN") =>
-  new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: currencyCode,
-  }).format(amount / 100);
-
 function BillingSection() {
   const auth = useAuth();
   const {
@@ -620,145 +780,163 @@ function BillingSection() {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }
   );
+
   const handleManageSubscription = () =>
-    toast.info("Subscription management coming soon!");
-  if (!auth.isAuthenticated) return null;
+    toast.info("Subscription management is coming soon!");
+
+  if (!auth.isAuthenticated) return <Loading />;
+
   const allTransactions =
     paymentHistoryData?.pages.flatMap((page) => page.transactions) ?? [];
 
   return (
-    <div className="py-6">
-      <div className="space-y-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Current Subscription</CardTitle>
-            <CardDescription>Manage your plan.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {isLoadingSubscription && <Loading />}
-            {subscriptionError && (
-              <p className="text-red-500">Error: {subscriptionError.message}</p>
-            )}
-            {subscriptionData &&
-              !isLoadingSubscription &&
-              !subscriptionError && (
-                <div className="space-y-2">
-                  <p>
-                    <strong>Plan:</strong> {subscriptionData.planId || "N/A"}
-                  </p>
-                  <p>
-                    <strong>Status:</strong>{" "}
-                    <span
-                      className={`capitalize px-2 py-1 text-xs rounded-full ${
-                        subscriptionData.status === "active"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-yellow-100 text-yellow-700"
-                      }`}
-                    >
-                      {subscriptionData.status || "N/A"}
-                    </span>
-                  </p>
-                  <p>
-                    <strong>Renews/Expires:</strong>{" "}
-                    {subscriptionData.currentPeriodEnd
-                      ? format(
-                          new Date(subscriptionData.currentPeriodEnd),
-                          "PPP"
-                        )
-                      : "N/A"}
-                  </p>
-                  <Button
-                    onClick={handleManageSubscription}
-                    variant="outline"
-                    size="sm"
-                    className="mt-2"
-                  >
-                    Manage
-                  </Button>
-                </div>
-              )}
-            {subscriptionData &&
-              subscriptionData.status === "none" &&
-              !isLoadingSubscription && <p>No active subscription.</p>}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Payment History</CardTitle>
-            <CardDescription>Past transactions.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoadingHistory && !paymentHistoryData && <Loading />}
-            {historyError && (
-              <p className="text-red-500">Error: {historyError.message}</p>
-            )}
-            {!isLoadingHistory && allTransactions.length === 0 && (
-              <p>No payment history.</p>
-            )}
-            {allTransactions.length > 0 && (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Invoice</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {allTransactions.map((tx) => (
-                    <TableRow key={tx.$id || tx.providerTransactionId}>
-                      <TableCell>{format(new Date(tx.date), "PP")}</TableCell>
-                      <TableCell>{tx.description}</TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(tx.amount, tx.currency)}
-                      </TableCell>
-                      <TableCell>
-                        <span
-                          className={`capitalize px-2 py-1 text-xs rounded-full ${
-                            tx.status === "succeeded"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          {tx.status}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {tx.invoiceUrl ? (
-                          <Button variant="link" size="sm" asChild>
-                            <a
-                              href={tx.invoiceUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              View
-                            </a>
-                          </Button>
-                        ) : (
-                          "N/A"
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-            {hasNextPage && (
-              <div className="mt-4 text-center">
-                <Button
-                  onClick={() => fetchNextPage()}
-                  disabled={isFetchingNextPage}
-                  variant="outline"
+    <div className="space-y-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>Current Subscription</CardTitle>
+          <CardDescription>
+            View and manage your current subscription plan.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {isLoadingSubscription && (
+            <div className="flex justify-start h-[20vh]">
+              <Loading />
+            </div>
+          )}
+          {subscriptionError && (
+            <p className="text-red-500">
+              Error loading subscription: {subscriptionError.message}
+            </p>
+          )}
+          {subscriptionData && !isLoadingSubscription && !subscriptionError && (
+            <div className="space-y-3">
+              <p>
+                <strong>Plan:</strong> {subscriptionData.planId || "N/A"}
+              </p>
+              <p>
+                <strong>Status:</strong>
+                <span
+                  className={`ml-2 capitalize px-2 py-1 text-xs rounded-full font-medium ${
+                    subscriptionData.status === "active"
+                      ? "bg-green-100 text-green-700"
+                      : subscriptionData.status === "past_due"
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-yellow-100 text-yellow-700"
+                  }`}
                 >
-                  {isFetchingNextPage ? "Loading..." : "Load More"}
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                  {subscriptionData.status || "N/A"}
+                </span>
+              </p>
+              <p>
+                <strong>Renews/Expires:</strong>{" "}
+                {subscriptionData.currentPeriodEnd
+                  ? format(new Date(subscriptionData.currentPeriodEnd), "PPP")
+                  : "N/A"}
+              </p>
+            </div>
+          )}
+          {subscriptionData &&
+            subscriptionData.status === "none" &&
+            !isLoadingSubscription && <p>No active subscription.</p>}
+        </CardContent>
+        <CardFooter>
+          <Button onClick={handleManageSubscription} variant="outline">
+            Manage Subscription
+          </Button>
+        </CardFooter>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Payment History</CardTitle>
+          <CardDescription>
+            Review your past transactions and invoices.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoadingHistory && !paymentHistoryData && (
+            <div className="flex justify-start h-[20vh]">
+              <Loading />
+            </div>
+          )}
+          {historyError && (
+            <p className="text-red-500">
+              Error loading payment history: {historyError.message}
+            </p>
+          )}
+          {!isLoadingHistory && allTransactions.length === 0 && (
+            <p>No payment history found.</p>
+          )}
+          {allTransactions.length > 0 && (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Invoice</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {allTransactions.map((tx) => (
+                  <TableRow key={tx.$id || tx.providerTransactionId}>
+                    <TableCell>{format(new Date(tx.date), "PP")}</TableCell>
+                    <TableCell>{tx.description}</TableCell>
+                    <TableCell className="text-right">
+                      {formatCurrency(tx.amount, tx.currency)}
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={`capitalize px-2 py-1 text-xs rounded-full font-medium ${
+                          tx.status === "succeeded"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {tx.status}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {tx.invoiceUrl ? (
+                        <Button
+                          variant="link"
+                          size="sm"
+                          asChild
+                          className="p-0 h-auto"
+                        >
+                          <a
+                            href={tx.invoiceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            View Invoice
+                          </a>
+                        </Button>
+                      ) : (
+                        "N/A"
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+          {hasNextPage && (
+            <div className="mt-6 text-center">
+              <Button
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                variant="outline"
+              >
+                {isFetchingNextPage ? <Loading /> : null}
+                {isFetchingNextPage ? "Loading..." : "Load More Transactions"}
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -769,7 +947,7 @@ export default function ProfilePage() {
 
   if (auth.isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
         <Loading />
       </div>
     );
@@ -779,21 +957,21 @@ export default function ProfilePage() {
     if (typeof window !== "undefined") {
       redirect("/auth");
     }
-    return null;
+    return null; // Or a redirect component if preferred server-side
   }
 
   const tabItems = [
     {
       value: "overview",
-      label: "Profile Overview",
+      label: "Overview",
       icon: User,
-      component: <ViewProfileSection />,
+      component: <ProfileOverviewSection />,
     },
     {
-      value: "details",
-      label: "Edit Details",
-      icon: Settings,
-      component: <ConfigureDetailsSection />,
+      value: "edit-profile",
+      label: "Edit Profile",
+      icon: Edit3,
+      component: <EditProfileSection />,
     },
     {
       value: "businesses",
@@ -804,14 +982,20 @@ export default function ProfilePage() {
     {
       value: "settings",
       label: "App Settings",
-      icon: ListChecks,
+      icon: Settings,
       component: <AppSettingsSection />,
-    }, // Changed icon
+    },
     {
       value: "security",
       label: "Security",
       icon: ShieldCheck,
-      component: <PasswordManagementSection />,
+      component: <SecuritySection />,
+    },
+    {
+      value: "referrals",
+      label: "Referrals",
+      icon: Share2,
+      component: <ReferralSection />,
     },
     {
       value: "billing",
@@ -829,24 +1013,49 @@ export default function ProfilePage() {
         </div>
       }
     >
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">Your Profile & Settings</h1>
+      <div className="container mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 h-[80vh]">
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+            Account Settings
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Manage your account information, preferences, and security settings.
+          </p>
+        </header>
+
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-6 mb-6">
-            {tabItems.map((tab) => (
-              <TabsTrigger
-                key={tab.value}
-                value={tab.value}
-                className="flex-col sm:flex-row h-auto sm:h-10 py-2 sm:py-0"
-              >
-                <tab.icon className="h-5 w-5 mb-1 sm:mb-0 sm:mr-2" />
-                {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+          <div className="mb-6">
+            <TabsList
+              className="h-15 flex flex-row items-center overflow-x-auto p-2 space-x-2 justify-between bg-background border"
+              style={{
+                gridTemplateColumns: "repeat(auto-fill, minmax(72px, 1fr))",
+              }}
+            >
+              {tabItems.map((tab) => (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  className="h-10 flex flex-col items-center justify-center aspect-square p-2 flex-shrink-0 rounded-lg hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-colors"
+                  title={tab.label} // Tooltip for icon-only view
+                >
+                  <tab.icon className="h-6 w-6" /> {/* Consistent icon size */}
+                  <span className="sr-only">{tab.label}</span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+
           {tabItems.map((tab) => (
-            <TabsContent key={tab.value} value={tab.value}>
-              {tab.component}
+            <TabsContent key={tab.value} value={tab.value} className="mt-0">
+              <Suspense
+                fallback={
+                  <div className="flex justify-center py-10">
+                    <Loading />
+                  </div>
+                }
+              >
+                {tab.component}
+              </Suspense>
             </TabsContent>
           ))}
         </Tabs>

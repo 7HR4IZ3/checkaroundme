@@ -29,9 +29,9 @@ body {
   --radius: 0.625rem;
   --background: oklch(1 0 0); /* White */
   --foreground: oklch(0 0 0); /* Black */
-  --card: oklch(0.98 0.002 270); /* Near white, cool tone */
+  --card: oklch(1 0 0); /* Near white, cool tone */
   --card-foreground: oklch(0 0 0); /* Black */
-  --popover: oklch(0.98 0.002 270); /* Near white, cool tone */
+  --popover: oklch(1 0 0); /* Near white, cool tone */
   --popover-foreground: oklch(0 0 0); /* Black */
   --primary: oklch(0.47 0.14 262.41);
   --primary-foreground: oklch(1 0 0); /* White */

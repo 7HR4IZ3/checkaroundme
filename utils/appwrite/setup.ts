@@ -12,6 +12,7 @@ import {
   CATEGORIES_COLLECTION_ID,
   MESSAGES_COLLECTION_ID,
   CONVERSATIONS_COLLECTION_ID,
+  PAYMENT_TRANSACTIONS_COLLECTION_ID,
   client,
   databases,
 } from "../../src/lib/appwrite";
@@ -44,7 +45,7 @@ async function ensureAttribute(
   collectionId: string,
   attrId: string,
   type: string,
-  options: any = {},
+  options: any = {}
 ) {
   // Check if attribute exists
   const attrs = await databases.listAttributes(DATABASE_ID, collectionId);
@@ -60,7 +61,7 @@ async function ensureAttribute(
         attrId,
         options.size || 255,
         options.required || false,
-        options.default,
+        options.default
       );
       break;
     case "email":
@@ -69,7 +70,7 @@ async function ensureAttribute(
         collectionId,
         attrId,
         options.required || false,
-        options.default,
+        options.default
       );
       break;
     case "boolean":
@@ -78,7 +79,7 @@ async function ensureAttribute(
         collectionId,
         attrId,
         options.required || false,
-        options.default,
+        options.default
       );
       break;
     case "integer":
@@ -89,7 +90,7 @@ async function ensureAttribute(
         options.required || false,
         options.min,
         options.max,
-        options.default,
+        options.default
       );
       break;
     case "float":
@@ -100,7 +101,7 @@ async function ensureAttribute(
         options.required || false,
         options.min,
         options.max,
-        options.default,
+        options.default
       );
       break;
     case "url":
@@ -109,7 +110,7 @@ async function ensureAttribute(
         collectionId,
         attrId,
         options.required || false,
-        options.default,
+        options.default
       );
       break;
     case "enum":
@@ -119,7 +120,7 @@ async function ensureAttribute(
         attrId,
         options.elements,
         options.required || false,
-        options.default,
+        options.default
       );
       break;
     case "string[]":
@@ -130,7 +131,7 @@ async function ensureAttribute(
         options.size || 255,
         options.required || false,
         options.default,
-        true, // array
+        true // array
       );
       break;
     case "datetime":
@@ -139,7 +140,7 @@ async function ensureAttribute(
         collectionId,
         attrId,
         options.required || false,
-        options.default,
+        options.default
       );
       break;
     default:
@@ -323,7 +324,7 @@ async function setupCollectionsAndAttributes() {
   await ensureAttribute(
     REVIEW_REACTIONS_COLLECTION_ID,
     "createdAt",
-    "datetime",
+    "datetime"
   );
 
   // CATEGORIES
@@ -371,16 +372,86 @@ async function setupCollectionsAndAttributes() {
     CONVERSATIONS_COLLECTION_ID,
     "participants",
     "string[]",
-    { required: true },
+    { required: true }
   );
   await ensureAttribute(
     CONVERSATIONS_COLLECTION_ID,
     "lastMessageId",
     "string",
-    { size: 36 },
+    { size: 36 }
   );
   await ensureAttribute(CONVERSATIONS_COLLECTION_ID, "createdAt", "datetime");
   await ensureAttribute(CONVERSATIONS_COLLECTION_ID, "updatedAt", "datetime");
+
+  // PAYMENT_TRANSACTIONS
+  await ensureCollection(
+    PAYMENT_TRANSACTIONS_COLLECTION_ID,
+    "Payment Transactions"
+  );
+  await ensureAttribute(
+    PAYMENT_TRANSACTIONS_COLLECTION_ID,
+    "userId",
+    "string",
+    { required: true, size: 50 }
+  );
+  await ensureAttribute(
+    PAYMENT_TRANSACTIONS_COLLECTION_ID,
+    "providerTransactionId",
+    "string",
+    { required: true, size: 255 }
+  );
+  await ensureAttribute(
+    PAYMENT_TRANSACTIONS_COLLECTION_ID,
+    "date",
+    "datetime",
+    { required: true }
+  );
+  await ensureAttribute(PAYMENT_TRANSACTIONS_COLLECTION_ID, "amount", "float", {
+    required: true,
+  });
+  await ensureAttribute(
+    PAYMENT_TRANSACTIONS_COLLECTION_ID,
+    "currency",
+    "string",
+    { required: true, size: 10 }
+  );
+  await ensureAttribute(
+    PAYMENT_TRANSACTIONS_COLLECTION_ID,
+    "description",
+    "string",
+    { required: true, size: 500 }
+  );
+  await ensureAttribute(PAYMENT_TRANSACTIONS_COLLECTION_ID, "status", "enum", {
+    elements: ["succeeded", "failed", "pending", "refunded"],
+    required: true,
+  });
+  await ensureAttribute(
+    PAYMENT_TRANSACTIONS_COLLECTION_ID,
+    "provider",
+    "enum",
+    {
+      elements: ["paystack", "flutterwave"],
+      required: true,
+    }
+  );
+  await ensureAttribute(
+    PAYMENT_TRANSACTIONS_COLLECTION_ID,
+    "invoiceUrl",
+    "url",
+    { required: false }
+  );
+  await ensureAttribute(
+    PAYMENT_TRANSACTIONS_COLLECTION_ID,
+    "createdAt",
+    "datetime",
+    { required: false } // Appwrite typically handles this, but explicit for clarity
+  );
+  await ensureAttribute(
+    PAYMENT_TRANSACTIONS_COLLECTION_ID,
+    "updatedAt",
+    "datetime",
+    { required: false } // Appwrite typically handles this
+  );
 }
 
 async function main() {

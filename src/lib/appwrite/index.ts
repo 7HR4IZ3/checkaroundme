@@ -87,7 +87,9 @@ export const UserService = {
     if (!currentUserData || currentUserData.user.$id !== userId) {
       // It's good practice to throw a specific error type or use a custom error class
       // For now, a generic error with a clear message.
-      const error = new Error("Unauthorized: You can only update your own profile.");
+      const error = new Error(
+        "Unauthorized: You can only update your own profile."
+      );
       (error as any).code = 403; // Forbidden
       throw error;
     }
@@ -113,25 +115,31 @@ export const UserService = {
   async uploadAvatar(file: File, userId: string): Promise<string> {
     const currentUserData = await AuthService.getCurrentUser();
     if (!currentUserData || currentUserData.user.$id !== userId) {
-      const error = new Error("Unauthorized: You can only upload your own avatar.");
+      const error = new Error(
+        "Unauthorized: You can only upload your own avatar."
+      );
       (error as any).code = 403; // Forbidden
       throw error;
     }
+
     try {
-      const result = await storage.createFile(
-        AVATAR_IMAGES_BUCKET_ID,
-        userId, // Using target userId as the file ID, implies overwriting previous avatar
-        file
-      );
-      const fileUrl = storage.getFileView(AVATAR_IMAGES_BUCKET_ID, result.$id);
+      try {
+        const existing = await storage.getFile(AVATAR_IMAGES_BUCKET_ID, userId);
+        if (existing) {
+          await storage.deleteFile(AVATAR_IMAGES_BUCKET_ID, userId);
+        }
+      } catch {}
+
+      await storage.createFile(AVATAR_IMAGES_BUCKET_ID, userId, file);
+      const fileUrl = getImageURl(userId);
 
       // Update the user document in the 'users' collection
       await databases.updateDocument(DATABASE_ID, USERS_COLLECTION_ID, userId, {
-        avatarUrl: fileUrl.toString(), // Ensure your user document schema has avatarUrl
+        avatarUrl: fileUrl,
         updatedAt: new Date().toISOString(),
       });
 
-      return fileUrl.toString();
+      return fileUrl;
     } catch (error) {
       console.error("Upload avatar error:", error);
       throw error;
@@ -165,7 +173,9 @@ export const UserService = {
   ): Promise<Models.Preferences> {
     const currentUserData = await AuthService.getCurrentUser();
     if (!currentUserData || currentUserData.user.$id !== userId) {
-      const error = new Error("Unauthorized: You can only update your own settings.");
+      const error = new Error(
+        "Unauthorized: You can only update your own settings."
+      );
       (error as any).code = 403; // Forbidden
       throw error;
     }
@@ -194,7 +204,9 @@ export const UserService = {
     // relying on webhook secret verification instead.
     const currentUserData = await AuthService.getCurrentUser();
     if (!currentUserData || currentUserData.user.$id !== userId) {
-      const error = new Error("Unauthorized: You can only update your own subscription status.");
+      const error = new Error(
+        "Unauthorized: You can only update your own subscription status."
+      );
       (error as any).code = 403; // Forbidden
       throw error;
     }
@@ -1032,5 +1044,91 @@ export function getImageURl(imageID: string) {
   return `https://cloud.appwrite.io/v1/storage/buckets/${BUSINESS_IMAGES_BUCKET_ID}/files/${imageID}/view?project=${process.env.APPWRITE_PROJECT_ID}`;
 }
 
+// Payment Transaction Service
+export const PaymentTransactionService = {
+  // Create a new payment transaction
+  async createPaymentTransaction(
+    data: Omit<PaymentTransaction, "$id" | "createdAt" | "updatedAt">
+  ): Promise<PaymentTransaction> {
+    try {
+      const newTransaction = await databases.createDocument(
+        DATABASE_ID,
+        PAYMENT_TRANSACTIONS_COLLECTION_ID,
+        ID.unique(),
+        {
+          ...data,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }
+      );
+      return newTransaction as unknown as PaymentTransaction;
+    } catch (error) {
+      console.error("Create payment transaction error:", error);
+      throw error;
+    }
+  },
+
+  // Get a payment transaction by ID
+  async getPaymentTransactionById(
+    transactionId: string
+  ): Promise<PaymentTransaction | null> {
+    try {
+      const transaction = await databases.getDocument(
+        DATABASE_ID,
+        PAYMENT_TRANSACTIONS_COLLECTION_ID,
+        transactionId
+      );
+      return transaction as unknown as PaymentTransaction;
+    } catch (error: any) {
+      if (error.code === 404) {
+        // Document not found
+        return null;
+      }
+      console.error("Get payment transaction by ID error:", error);
+      throw error;
+    }
+  },
+
+  // Update a payment transaction
+  async updatePaymentTransaction(
+    transactionId: string,
+    data: Partial<
+      Omit<
+        PaymentTransaction,
+        "$id" | "createdAt" | "updatedAt" | "userId" | "providerTransactionId"
+      >
+    >
+  ): Promise<PaymentTransaction> {
+    try {
+      const updatedTransaction = await databases.updateDocument(
+        DATABASE_ID,
+        PAYMENT_TRANSACTIONS_COLLECTION_ID,
+        transactionId,
+        {
+          ...data,
+          updatedAt: new Date().toISOString(),
+        }
+      );
+      return updatedTransaction as unknown as PaymentTransaction;
+    } catch (error) {
+      console.error("Update payment transaction error:", error);
+      throw error;
+    }
+  },
+
+  // Delete a payment transaction
+  async deletePaymentTransaction(transactionId: string): Promise<void> {
+    try {
+      await databases.deleteDocument(
+        DATABASE_ID,
+        PAYMENT_TRANSACTIONS_COLLECTION_ID,
+        transactionId
+      );
+    } catch (error) {
+      console.error("Delete payment transaction error:", error);
+      throw error;
+    }
+  },
+};
 // Export client for direct use in components when needed
 export { client, databases, storage, avatars, users, account };
