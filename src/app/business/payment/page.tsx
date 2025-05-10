@@ -219,7 +219,7 @@ export default function OnboardingSubscriptionPage() {
 
             <div className="bg-white p-6 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl shadow-xl space-y-4 sm:space-y-6">
               <div className="flex items-center space-x-3">
-                <div className="flex-shrink-0 bg-primary rounded-full h-6 w-6 sm:h-7 sm:w-7 flex items-center justify-center">
+                <div className="flex-shrink-0 bg-primary text-white rounded-full h-6 w-6 sm:h-7 sm:w-7 flex items-center justify-center">
                   {" "}
                   {/* Adjusted size */}
                   <Check
@@ -233,7 +233,7 @@ export default function OnboardingSubscriptionPage() {
                 </span>
               </div>
               <div className="flex items-center space-x-3">
-                <div className="flex-shrink-0 bg-primary rounded-full h-6 w-6 sm:h-7 sm:w-7 flex items-center justify-center">
+                <div className="flex-shrink-0 bg-primary text-white rounded-full h-6 w-6 sm:h-7 sm:w-7 flex items-center justify-center">
                   {" "}
                   {/* Adjusted size */}
                   <Check
