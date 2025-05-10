@@ -219,7 +219,7 @@ export default function OnboardingSubscriptionPage() {
 
             <div className="bg-white p-6 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl shadow-xl space-y-4 sm:space-y-6">
               <div className="flex items-center space-x-3">
-                <div className="flex-shrink-0 bg-[#4F46E5] rounded-full h-6 w-6 sm:h-7 sm:w-7 flex items-center justify-center">
+                <div className="flex-shrink-0 bg-primary rounded-full h-6 w-6 sm:h-7 sm:w-7 flex items-center justify-center">
                   {" "}
                   {/* Adjusted size */}
                   <Check
@@ -229,11 +229,11 @@ export default function OnboardingSubscriptionPage() {
                   {/* Adjusted size */}
                 </div>
                 <span className="text-gray-700 text-sm sm:text-base lg:text-lg">
-                  Free 1 month trial for new user
+                  Free 2 month trial for new user
                 </span>
               </div>
               <div className="flex items-center space-x-3">
-                <div className="flex-shrink-0 bg-[#4F46E5] rounded-full h-6 w-6 sm:h-7 sm:w-7 flex items-center justify-center">
+                <div className="flex-shrink-0 bg-primary rounded-full h-6 w-6 sm:h-7 sm:w-7 flex items-center justify-center">
                   {" "}
                   {/* Adjusted size */}
                   <Check
@@ -248,7 +248,7 @@ export default function OnboardingSubscriptionPage() {
               </div>
               <div className="flex justify-end">
                 <Button
-                  className="w-full sm:w-2/3 bg-[#4F46E5] hover:bg-[#4338CA]  mt-6 sm:mt-8 py-3 sm:py-4 lg:py-5 text-base sm:text-lg lg:text-xl font-semibold rounded-xl sm:rounded-2xl" // Adjusted padding, font-size, and rounding
+                  className="w-full sm:w-2/3 bg-primary hover:bg-[#4338CA]  mt-6 sm:mt-8 py-3 sm:py-4 lg:py-5 text-base sm:text-lg lg:text-xl font-semibold rounded-xl sm:rounded-2xl" // Adjusted padding, font-size, and rounding
                   onClick={() => handleSubscribe()}
                   disabled={
                     !selectedPlan || initializeTransactionMutation.isPending
@@ -279,7 +279,7 @@ export default function OnboardingSubscriptionPage() {
                     }
                     ${
                       isPro && isExpanded
-                        ? "bg-primary  ring-2 ring-[#4F46E5]"
+                        ? "bg-primary  ring-2 ring-primary"
                         : "bg-white text-gray-800 hover:shadow-xl"
                     }`}
                 >
@@ -361,7 +361,7 @@ export default function OnboardingSubscriptionPage() {
                             ${
                               isPro
                                 ? "bg-[#5D5FEF] hover:bg-[#4A4A7A]  px-6 py-3 sm:px-8 md:px-10 lg:px-12 sm:py-3.5 lg:py-4" // Pro button
-                                : "bg-[#4F46E5] hover:bg-[#4338CA]  px-5 py-2.5 sm:px-6 md:px-8 lg:px-10 sm:py-3 lg:py-3.5" // Standard plan button
+                                : "bg-primary hover:bg-[#4338CA]  px-5 py-2.5 sm:px-6 md:px-8 lg:px-10 sm:py-3 lg:py-3.5" // Standard plan button
                             }`}
                         >
                           {initializeTransactionMutation.isPending &&
