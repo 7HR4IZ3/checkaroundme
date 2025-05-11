@@ -58,6 +58,7 @@ export const businessSchema = z.object({
   createdAt: z.date().default(() => new Date()),
   updatedAt: z.date().default(() => new Date()),
   ownerId: z.string(),
+  status: z.enum(["active", "disabled"]).default("disabled"),
 
   // Fields for filtering based on FiltersPanel
   priceIndicator: z.string().optional(), // Stores "$10", "$100", etc.

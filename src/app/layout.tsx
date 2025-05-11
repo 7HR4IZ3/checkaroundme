@@ -65,18 +65,25 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      {process.env.NODE_ENV === "development" && (
+        <script
+          crossOrigin="anonymous"
+          src="//unpkg.com/react-scan/dist/auto.global.js"
+        />
+      )}
       <body className={inter.className}>
         <TrpcProvider>
           <HydrateClient>
             <Suspense fallback={<Loading />}>
               <AuthProvider>
-                {/* Use LayoutInner to access auth context */}
                 <LayoutInner>{children}</LayoutInner>
               </AuthProvider>
             </Suspense>
           </HydrateClient>
         </TrpcProvider>
-        <Analytics mode="production" />
+        {process.env.NODE_ENV !== "development" && (
+          <Analytics mode="production" />
+        )}
       </body>
     </html>
   );

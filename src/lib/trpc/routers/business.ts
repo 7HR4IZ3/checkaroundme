@@ -1,4 +1,5 @@
 import { z } from "zod";
+// import redisClient from "../../redis"; // Removed Redis client import
 import { BusinessService } from "../../appwrite/services/business";
 import { BusinessImagesService } from "../../appwrite/services/business-images";
 import { BusinessHoursService } from "../../appwrite/services/business-hours";
@@ -9,6 +10,9 @@ import {
   businessHoursSchema,
   businessSchema,
   daySchema,
+  BusinessImage,
+  BusinessHours,
+  Business,
 } from "../../schema";
 
 import type { AppTRPC } from "../router";
@@ -49,7 +53,31 @@ export function createBusinessProcedures(
     getBusinessById: t.procedure
       .input(z.object({ businessId: z.string() }))
       .query(async ({ input }) => {
-        return await BusinessService.getBusinessById(input.businessId);
+        const { businessId } = input;
+        // const cacheKey = `business:${businessId}`; // Cache logic moved to BusinessService
+
+        // try {
+        //   const cachedBusiness = await redisClient.get(cacheKey);
+        //   if (cachedBusiness) {
+        //     return JSON.parse(cachedBusiness) as Business;
+        //   }
+        // } catch (error) {
+        //   console.error("Redis GET error:", error);
+        // }
+
+        const business = await BusinessService.getBusinessById(businessId);
+
+        // if (business) { // Cache logic moved to BusinessService
+        //   try {
+        //     // Cache for 30 days (2592000 seconds)
+        //     await redisClient.set(cacheKey, JSON.stringify(business), {
+        //       EX: 2592000,
+        //     });
+        //   } catch (error) {
+        //     console.error("Redis SET error:", error);
+        //   }
+        // }
+        return business;
       }),
 
     updateBusiness: protectedProcedure
@@ -75,10 +103,21 @@ export function createBusinessProcedures(
         }),
       )
       .mutation(async ({ input }) => {
-        return await BusinessService.updateBusiness(
-          input.businessId,
-          input.data,
+        const { businessId, data } = input;
+        const updatedBusiness = await BusinessService.updateBusiness(
+          businessId,
+          data,
         );
+
+        // if (updatedBusiness) { // Cache invalidation moved to BusinessService
+        //   const businessCacheKey = `business:${businessId}`;
+        //   try {
+        //     await redisClient.del(businessCacheKey);
+        //   } catch (error) {
+        //     console.error("Redis DEL error during updateBusiness:", error);
+        //   }
+        // }
+        return updatedBusiness;
       }),
 
     listBusinesses: t.procedure
@@ -167,13 +206,27 @@ export function createBusinessProcedures(
       // .output(businessImageSchema)
       .mutation(async ({ input }) => {
         const { businessId, file, title, userID, isPrimary } = input;
-        return await BusinessImagesService.uploadBusinessImage(
+        const result = await BusinessImagesService.uploadBusinessImage(
           businessId,
           file,
           title,
           userID,
           isPrimary,
         );
+
+        // Cache invalidation for images should be handled in BusinessImagesService if needed
+        // if (result) {
+        //   const cacheKeyImages = `businessImages:${businessId}`;
+        //   try {
+        //     await redisClient.del(cacheKeyImages);
+        //   } catch (error) {
+        //     console.error(
+        //       "Redis DEL error for businessImages during upload:",
+        //       error
+        //     );
+        //   }
+        // }
+        return result;
       }),
 
     uploadTempBusinessImage: protectedProcedure
@@ -202,14 +255,48 @@ export function createBusinessProcedures(
       .input(z.object({ businessId: z.string() }))
       // .output(z.array(businessImageSchema))
       .query(async ({ input }) => {
-        return await BusinessImagesService.getBusinessImages(input.businessId);
+        const { businessId } = input;
+        // const cacheKey = `businessImages:${businessId}`; // Cache logic should be in BusinessImagesService
+
+        // try {
+        //   const cachedImages = await redisClient.get(cacheKey);
+        //   if (cachedImages) {
+        //     return JSON.parse(cachedImages) as BusinessImage[];
+        //   }
+        // } catch (error) {
+        //   console.error("Redis GET error for businessImages:", error);
+        // }
+
+        const images =
+          await BusinessImagesService.getBusinessImages(businessId);
+
+        // if (images) { // Cache logic should be in BusinessImagesService
+        //   try {
+        //     // Cache for 30 days
+        //     await redisClient.set(cacheKey, JSON.stringify(images), {
+        //       EX: 2592000,
+        //     });
+        //   } catch (error) {
+        //     console.error("Redis SET error for businessImages:", error);
+        //   }
+        // }
+        return images;
       }),
 
     deleteBusinessImage: t.procedure
-      .input(z.object({ imageId: z.string() }))
+      .input(z.object({ imageId: z.string(), businessId: z.string() }))
       .output(z.object({ success: z.boolean() }))
       .mutation(async ({ input }) => {
-        await BusinessImagesService.deleteBusinessImage(input.imageId);
+        const { imageId, businessId } = input; // businessId can be used if BusinessImagesService needs it for cache invalidation
+        await BusinessImagesService.deleteBusinessImage(imageId);
+
+        // Cache invalidation for images should be handled in BusinessImagesService
+        // const imagesCacheKey = `businessImages:${businessId}`;
+        // try {
+        //   await redisClient.del(imagesCacheKey);
+        // } catch (error) {
+        //   console.error("Redis DEL error during image delete:", error);
+        // }
         return { success: true };
       }),
 
@@ -231,17 +318,52 @@ export function createBusinessProcedures(
       )
       // .output(z.array(businessHoursSchema))
       .mutation(async ({ input }) => {
-        return await BusinessHoursService.setBusinessHours(
-          input.businessId,
-          input.hours,
+        const { businessId, hours } = input;
+        const result = await BusinessHoursService.setBusinessHours(
+          businessId,
+          hours,
         );
+
+        // Cache invalidation for hours should be handled in BusinessHoursService
+        // const hoursCacheKey = `businessHours:${businessId}`;
+        // try {
+        //   await redisClient.del(hoursCacheKey);
+        // } catch (error) {
+        //   console.error("Redis DEL error during setBusinessHours:", error);
+        // }
+
+        return result;
       }),
 
     getBusinessHours: t.procedure
       .input(z.object({ businessId: z.string() }))
       // .output(z.array(businessHoursSchema))
       .query(async ({ input }) => {
-        return await BusinessHoursService.getBusinessHours(input.businessId);
+        const { businessId } = input;
+        // const cacheKey = `businessHours:${businessId}`; // Cache logic should be in BusinessHoursService
+
+        // try {
+        //   const cachedHours = await redisClient.get(cacheKey);
+        //   if (cachedHours) {
+        //     return JSON.parse(cachedHours) as BusinessHours[];
+        //   }
+        // } catch (error) {
+        //   console.error("Redis GET error for businessHours:", error);
+        // }
+
+        const hours = await BusinessHoursService.getBusinessHours(businessId);
+
+        // if (hours) { // Cache logic should be in BusinessHoursService
+        //   try {
+        //     // Cache for 30 days
+        //     await redisClient.set(cacheKey, JSON.stringify(hours), {
+        //       EX: 2592000,
+        //     });
+        //   } catch (error) {
+        //     console.error("Redis SET error for businessHours:", error);
+        //   }
+        // }
+        return hours;
       }),
 
     getBusinessesByUserId: t.procedure

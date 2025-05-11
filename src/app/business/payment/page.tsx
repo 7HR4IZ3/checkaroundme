@@ -68,24 +68,24 @@ export default function OnboardingSubscriptionPage() {
   const displayedPlans = plans.filter((plan) =>
     isAnnualBilling
       ? plan.interval?.toLowerCase() === "annually"
-      : plan.interval?.toLowerCase() === "monthly"
+      : plan.interval?.toLowerCase() === "monthly",
   );
 
   useEffect(() => {
     if (displayedPlans.length > 0) {
       const proPlan = displayedPlans.find(
-        (p) => p.name?.toLowerCase() === "pro"
+        (p) => p.name?.toLowerCase() === "pro",
       );
-      if (proPlan) {
-        setExpandedPlanCode(proPlan.plan_code);
-        setSelectedPlan(proPlan);
-      } else if (displayedPlans.length > 0 && !expandedPlanCode) {
-        setExpandedPlanCode(displayedPlans[0].plan_code);
-        setSelectedPlan(displayedPlans[0]);
-      } else if (displayedPlans.length === 0) {
-        setExpandedPlanCode(null);
-        setSelectedPlan(null);
-      }
+      setExpandedPlanCode(displayedPlans[0].plan_code);
+      setSelectedPlan(displayedPlans[0]);
+      // if (proPlan) {
+      //   setExpandedPlanCode(proPlan.plan_code);
+      //   setSelectedPlan(proPlan);
+      // } else if (displayedPlans.length > 0 && !expandedPlanCode) {
+      // } else if (displayedPlans.length === 0) {
+      //   setExpandedPlanCode(null);
+      //   setSelectedPlan(null);
+      // }
     } else {
       setExpandedPlanCode(null);
       setSelectedPlan(null);
@@ -96,7 +96,7 @@ export default function OnboardingSubscriptionPage() {
   const handleSelectAndToggleExpand = (plan: IPlan) => {
     setSelectedPlan(plan);
     setExpandedPlanCode((current) =>
-      current === plan.plan_code ? null : plan.plan_code
+      current === plan.plan_code ? null : plan.plan_code,
     );
   };
 
@@ -186,8 +186,8 @@ export default function OnboardingSubscriptionPage() {
 
             <div className="flex items-center space-x-3 sm:space-x-4">
               <Label
-                htmlFor="billing-cycle"
-                className={`text-sm sm:text-base font-medium transition-colors ${
+                onClick={() => setIsAnnualBilling(false)}
+                className={`text-sm sm:text-base font-medium transition-colors hover:transparent ${
                   !isAnnualBilling ? "" : "text-gray-400"
                 }`}
               >
@@ -208,8 +208,8 @@ export default function OnboardingSubscriptionPage() {
                 />
               </Switch>
               <Label
-                htmlFor="billing-cycle"
-                className={`text-sm sm:text-base font-medium transition-colors ${
+                onClick={() => setIsAnnualBilling(true)}
+                className={`text-sm sm:text-base font-medium transition-colors hover:transparent ${
                   isAnnualBilling ? "" : "text-gray-400"
                 }`}
               >

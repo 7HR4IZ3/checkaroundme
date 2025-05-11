@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { redirect } from "next/navigation";
 
 import { trpc } from "@/lib/trpc/server";
 import {
@@ -35,6 +34,7 @@ export default async function Categories() {
             align: "start",
             loop: true,
           }}
+          autoplay={true} // Enable autoplay
           className="w-full"
         >
           <CarouselContent className="-ml-2 md:-ml-4">
@@ -51,11 +51,10 @@ export default async function Categories() {
                     <div className="w-full h-full rounded-full overflow-hidden">
                       <Image
                         src={category.imageUrl || "/images/cat-placeholder.png"}
-                        alt={category.name}
+                        alt={category.description || category.name}
                         width={200}
                         height={200}
-                        objectFit="cover"
-                        className="w-full h-full"
+                        className="w-full h-full object-cover"
                       />
                     </div>
                   </div>

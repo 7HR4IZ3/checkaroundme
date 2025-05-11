@@ -21,14 +21,14 @@ export async function POST(req: NextRequest) {
   if (!file.type.startsWith("image/")) {
     return NextResponse.json(
       { error: "Invalid file type. Only images are allowed." },
-      { status: 400 }
+      { status: 400 },
     );
   }
   if (file.size > 5 * 1024 * 1024) {
     // 5MB limit
     return NextResponse.json(
       { error: "File is too large. Maximum size is 5MB." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -49,14 +49,14 @@ export async function POST(req: NextRequest) {
       const httpCode = getHTTPStatusCodeFromError(cause);
       return NextResponse.json(
         { error: { message: cause.message, code: cause.code } },
-        { status: httpCode }
+        { status: httpCode },
       );
     }
     // Check for Appwrite specific exception structure if not TRPCError
     if (cause.code && cause.message && typeof cause.code === "number") {
       return NextResponse.json(
         { error: { message: cause.message, code: cause.code } },
-        { status: cause.code >= 400 && cause.code < 600 ? cause.code : 500 }
+        { status: cause.code >= 400 && cause.code < 600 ? cause.code : 500 },
       );
     }
 
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
         error: "Internal server error during avatar upload",
         details: cause.message || "Unknown error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

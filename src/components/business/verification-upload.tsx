@@ -153,8 +153,8 @@ export function VerificationUpload({ businessId }: VerificationUploadProps) {
             {isUploading
               ? "Uploading..."
               : mutation.isPending
-              ? "Submitting..."
-              : "Processing..."}
+                ? "Submitting..."
+                : "Processing..."}
           </>
         ) : (
           "Upload Document"

@@ -4,7 +4,13 @@ import { User, AuthSession } from "../../schema";
 
 import { createAdminClient } from "../admin";
 import { createSessionClient } from "../session";
-import { client, databases, DATABASE_ID, USERS_COLLECTION_ID, account } from "../index"; // Assuming client, databases and constants remain in index.ts
+import {
+  client,
+  databases,
+  DATABASE_ID,
+  USERS_COLLECTION_ID,
+  account,
+} from "../index"; // Assuming client, databases and constants remain in index.ts
 
 // Auth Service
 export const AuthService = {

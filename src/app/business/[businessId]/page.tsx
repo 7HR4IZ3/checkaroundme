@@ -13,7 +13,19 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
+  DialogDescription,
 } from "@/components/ui/dialog";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -28,6 +40,8 @@ import {
   MessageSquare,
   ChevronLeft,
   ChevronRight,
+  Power,
+  PowerOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -175,8 +189,36 @@ export default function BusinessPage() {
   const [editReviewText, setEditReviewText] = useState(""); // State for edit modal textarea
   const [editReviewRating, setEditReviewRating] = useState(0); // State for edit modal rating
   const [replyText, setReplyText] = useState(""); // State for reply modal textarea
+  const [showStatusConfirmModal, setShowStatusConfirmModal] = useState(false);
+  const [targetStatus, setTargetStatus] = useState<
+    "active" | "disabled" | null
+  >(null);
 
   // tRPC mutations
+  const updateBusinessMutation = trpc.updateBusiness.useMutation({
+    onSuccess: (updatedBusiness) => {
+      utils.getBusinessById.invalidate({ businessId });
+      if (updatedBusiness) {
+        toast.success(
+          `Business ${
+            updatedBusiness.status === "active" ? "activated" : "deactivated"
+          } successfully.`,
+        );
+      } else {
+        // This case should ideally not happen if the mutation was "successful"
+        // but the service returned null. Consider if a different toast message is needed.
+        toast.info("Business status updated, but no data returned.");
+      }
+      setShowStatusConfirmModal(false);
+    },
+    onError: (error) => {
+      toast.error("Failed to update business status.", {
+        description: error.message,
+      });
+      setShowStatusConfirmModal(false);
+    },
+  });
+
   const editReviewMutation = trpc.updateReview.useMutation({
     onSuccess: () => {
       utils.getBusinessReviews.invalidate({ businessId });
@@ -224,8 +266,8 @@ export default function BusinessPage() {
     typeof params.businessId === "string"
       ? params.businessId
       : Array.isArray(params.businessId)
-      ? params.businessId[0]
-      : "";
+        ? params.businessId[0]
+        : "";
 
   // tRPC queries
   const {
@@ -239,7 +281,7 @@ export default function BusinessPage() {
     error: imagesError,
   } = trpc.getBusinessImages.useQuery(
     { businessId },
-    { enabled: !!businessId }
+    { enabled: !!businessId },
   );
   const {
     data: hours,
@@ -413,6 +455,39 @@ export default function BusinessPage() {
     });
   };
 
+  const handleToggleBusinessStatus = () => {
+    if (!business) return;
+    const newStatus = business.status === "active" ? "disabled" : "active";
+    setTargetStatus(newStatus);
+    setShowStatusConfirmModal(true);
+  };
+
+  const confirmToggleBusinessStatus = () => {
+    if (!business || targetStatus === null) return;
+
+    // Check for subscription if activating
+    if (
+      targetStatus === "active" &&
+      user?.prefs.subscriptionStatus !== "active"
+    ) {
+      toast.error("Subscription Required", {
+        description:
+          "You need an active subscription to activate your business. Please subscribe first.",
+        action: {
+          label: "Subscribe",
+          onClick: () => router.push("/business/payment"),
+        },
+      });
+      setShowStatusConfirmModal(false);
+      return;
+    }
+
+    updateBusinessMutation.mutate({
+      businessId: business.$id,
+      data: { status: targetStatus },
+    });
+  };
+
   return (
     <>
       <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -443,6 +518,28 @@ export default function BusinessPage() {
                     Edit Business
                   </Button>
                 )}
+                {user?.$id === business.ownerId && (
+                  <Button
+                    size="sm"
+                    variant={
+                      business.status === "active" ? "destructive" : "default"
+                    }
+                    className="ml-2 flex items-center gap-1"
+                    onClick={handleToggleBusinessStatus}
+                    disabled={updateBusinessMutation.isPending}
+                  >
+                    {business.status === "active" ? (
+                      <PowerOff className="w-4 h-4 mr-1" />
+                    ) : (
+                      <Power className="w-4 h-4 mr-1" />
+                    )}
+                    {updateBusinessMutation.isPending
+                      ? "Updating..."
+                      : business.status === "active"
+                        ? "Deactivate"
+                        : "Activate"}
+                  </Button>
+                )}
               </div>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-2">
                 <div className="flex items-center gap-1">
@@ -454,6 +551,13 @@ export default function BusinessPage() {
                     count={business.reviewCount}
                   />
                 </div>
+                <Badge
+                  variant={
+                    business.status === "active" ? "default" : "secondary"
+                  }
+                >
+                  Status: {business.status === "active" ? "Active" : "Inactive"}
+                </Badge>
               </div>
               <div className="flex items-center gap-1 mb-2 text-sm">
                 {business.verificationStatus === "verified" && (
@@ -485,7 +589,7 @@ export default function BusinessPage() {
                 <span>
                   {(() => {
                     const today = openingHours.find(
-                      (h) => h.day === currentDay
+                      (h) => h.day === currentDay,
                     );
                     return today ? today.hours : "";
                   })()}
@@ -632,7 +736,7 @@ export default function BusinessPage() {
                           .map((opt) =>
                             opt
                               .replace(/_/g, " ")
-                              .replace(/\b\w/g, (l) => l.toUpperCase())
+                              .replace(/\b\w/g, (l) => l.toUpperCase()),
                           )
                           .join(", ")}
                       </span>
@@ -716,9 +820,9 @@ export default function BusinessPage() {
                             item.hours === "Closed"
                               ? "text-red-600"
                               : item.day === currentDay &&
-                                item.hours !== "Closed"
-                              ? "text-green-600"
-                              : ""
+                                  item.hours !== "Closed"
+                                ? "text-green-600"
+                                : ""
                           }
                         >
                           {item.hours}
@@ -919,7 +1023,7 @@ export default function BusinessPage() {
                 disabled={currentImageIndex === imageUrls.length - 1}
                 onClick={() =>
                   setCurrentImageIndex((prev) =>
-                    Math.min(imageUrls.length - 1, prev + 1)
+                    Math.min(imageUrls.length - 1, prev + 1),
                   )
                 }
               >
@@ -1093,6 +1197,56 @@ export default function BusinessPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirmation Modal for Business Status Change */}
+      <AlertDialog
+        open={showStatusConfirmModal}
+        onOpenChange={setShowStatusConfirmModal}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Business Status Change</AlertDialogTitle>
+            <AlertDialogDescription>
+              {targetStatus === "active" &&
+              user?.prefs.subscriptionStatus !== "active" ? (
+                <>
+                  To activate your business, an active subscription is required.
+                  Please subscribe to proceed.
+                </>
+              ) : (
+                `Are you sure you want to ${
+                  targetStatus === "active" ? "activate" : "deactivate"
+                } this business?`
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            {targetStatus === "active" &&
+            user?.prefs.subscriptionStatus !== "active" ? (
+              <Button onClick={() => router.push("/business/payment")}>
+                Go to Subscription
+              </Button>
+            ) : (
+              <AlertDialogAction
+                onClick={confirmToggleBusinessStatus}
+                disabled={updateBusinessMutation.isPending}
+                className={
+                  targetStatus === "active"
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-red-600 hover:bg-red-700"
+                }
+              >
+                {updateBusinessMutation.isPending
+                  ? "Updating..."
+                  : `Confirm ${
+                      targetStatus === "active" ? "Activation" : "Deactivation"
+                    }`}
+              </AlertDialogAction>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

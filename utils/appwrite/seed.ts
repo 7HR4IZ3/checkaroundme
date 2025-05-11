@@ -26,83 +26,123 @@ async function seedCategories() {
   const demoCategories = [
     {
       name: "Cleaner",
+      imageUrl:
+        "https://images.unsplash.com/photo-1550963295-019d8a8a61c5?w=500&auto=format&fit=crop&q=60",
       description: "Home and commercial cleaning",
     },
     {
-      name: "Beauty & Spa",
+      name: "Salon",
       description: "Personal care and relaxation",
-    },
-    {
-      name: "Aluminum Fabricater",
-      description: "Custom aluminum products",
-    },
-    {
-      name: "Mechanic (Auto Repair)",
-      description: "Vehicle maintenance and repair",
-    },
-    {
-      name: "Event Planner",
-      description: "Planning and support for events",
+      imageUrl:
+        "https://images.unsplash.com/photo-1562322140-8baeececf3df?w=500&auto=format&fit=crop&q=60",
     },
     {
       name: "Electrician",
       description: "Electrical installation and repair",
+      imageUrl:
+        "https://images.unsplash.com/photo-1601462904263-f2fa0c851cb9?w=500&auto=format&fit=crop&q=60",
     },
     {
       name: "Plumber",
       description: "Water systems installation and repair",
+      imageUrl:
+        "https://images.unsplash.com/photo-1620653713380-7a34b773fef8?w=500&auto=format&fit=crop&q=60",
     },
     {
-      name: "Handyman",
-      description: "General home repairs and maintenance",
+      name: "Mechanic",
+      description: "Vehicle maintenance and repair",
+      imageUrl:
+        "https://images.unsplash.com/photo-1599256872237-5dcc0fbe9668?w=500&auto=format&fit=crop&q=60",
     },
     {
       name: "Painter",
       description: "Interior and exterior painting",
-    },
-    {
-      name: "Landscaper / Gardener",
-      description: "Outdoor space design and maintenance",
-    },
-    {
-      name: "Pest Control",
-      description: "Pest extermination and prevention",
-    },
-    {
-      name: "HVAC",
-      description: "Heating, ventilation, and air conditioning",
-    },
-    {
-      name: "Tutor",
-      description: "Academic assistance and instruction",
-    },
-    {
-      name: "Pet Groomer / Sitter",
-      description: "Care for pets",
+      imageUrl:
+        "https://images.unsplash.com/photo-1605201470550-f107ba6fdad3?w=500&auto=format&fit=crop&q=60",
     },
     {
       name: "Photographer",
       description: "Professional photography for various needs",
+      imageUrl:
+        "https://images.unsplash.com/photo-1513031300226-c8fb12de9ade?w=500&auto=format&fit=crop&q=60",
+    },
+    {
+      name: "Event Planner",
+      description: "Planning and support for events",
+      imageUrl:
+        "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=500&auto=format&fit=crop&q=60",
+    },
+    {
+      name: "Handyman",
+      description: "General home repairs and maintenance",
+      imageUrl:
+        "https://images.unsplash.com/photo-1625559540632-6ce21b9f4e44?w=500&auto=format&fit=crop&q=60",
+    },
+    {
+      name: "Aluminum Fabricater",
+      description: "Custom aluminum products",
+      imageUrl:
+        "https://images.unsplash.com/photo-1575305842946-0e807ce6f3fc?w=500&auto=format&fit=crop&q=60",
+    },
+    {
+      name: "Landscaper / Gardener",
+      description: "Outdoor space design and maintenance",
+      imageUrl:
+        "https://images.unsplash.com/photo-1637531347055-4fa8aa80c111?w=500&auto=format&fit=crop&q=60",
+    },
+    {
+      name: "Pest Control",
+      description: "Pest extermination and prevention",
+      imageUrl:
+        "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=500&auto=format&fit=crop&q=60",
+    },
+    {
+      name: "HVAC",
+      description: "Heating, ventilation, and air conditioning",
+      imageUrl:
+        "https://images.unsplash.com/photo-1615309662243-70f6df917b59?w=500&auto=format&fit=crop&q=60",
+    },
+    {
+      name: "Tutor",
+      description: "Academic assistance and instruction",
+      imageUrl:
+        "https://images.unsplash.com/photo-1583468991267-3f068b607ae1?w=500&auto=format&fit=crop&q=60",
+    },
+    {
+      name: "Pet Groomer / Sitter",
+      description: "Care for pets",
+      imageUrl:
+        "https://images.unsplash.com/photo-1494947665470-20322015e3a8?w=500&auto=format&fit=crop&q=60",
     },
     {
       name: "Caterer",
       description: "Food preparation and service for events",
+      imageUrl:
+        "https://images.unsplash.com/photo-1638704890058-841a4a376654?w=500&auto=format&fit=crop&q=60",
     },
     {
       name: "Mover",
       description: "Relocation assistance",
+      imageUrl:
+        "https://images.unsplash.com/photo-1586781383963-8e66f88077ec?w=500&auto=format&fit=crop&q=60",
     },
     {
       name: "Home Renovator / Contractor",
       description: "Home improvement and construction",
+      imageUrl:
+        "https://images.unsplash.com/photo-1527342959657-ddbaa82495d5?w=500&auto=format&fit=crop&q=60",
     },
     {
       name: "IT Support / Computer Repair",
       description: "Technical assistance for computers and IT systems",
+      imageUrl:
+        "https://images.unsplash.com/photo-1714079761488-e0c9b9ac4138?w=500&auto=format&fit=crop&q=60",
     },
     {
       name: "Personal Trainer / Fitness Instructor",
       description: "Guided fitness programs and instruction",
+      imageUrl:
+        "https://images.unsplash.com/photo-1518459031867-a89b944bffe4?w=500&auto=format&fit=crop&q=60",
     },
   ];
   for (const cat of demoCategories) {

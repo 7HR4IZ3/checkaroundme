@@ -4,6 +4,7 @@ import * as React from "react";
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay"; // Import Autoplay
 import { ArrowLeft, ArrowRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -16,9 +17,10 @@ type CarouselPlugin = UseCarouselParameters[1];
 
 type CarouselProps = {
   opts?: CarouselOptions;
-  plugins?: CarouselPlugin;
+  plugins?: CarouselPlugin; // This is EmblaPluginType[] | undefined
   orientation?: "horizontal" | "vertical";
   setApi?: (api: CarouselApi) => void;
+  autoplay?: boolean | Parameters<typeof Autoplay>[0]; // Add autoplay prop
 };
 
 type CarouselContextProps = {
@@ -46,17 +48,44 @@ function Carousel({
   orientation = "horizontal",
   opts,
   setApi,
-  plugins,
+  plugins: externalPlugins, // Renamed to avoid conflict
+  autoplay, // Destructure autoplay prop
   className,
   children,
   ...props
 }: React.ComponentProps<"div"> & CarouselProps) {
+  const autoplayPluginRef = React.useRef<ReturnType<typeof Autoplay> | null>(
+    null,
+  );
+
+  if (autoplay && !autoplayPluginRef.current) {
+    const autoplayOptions =
+      typeof autoplay === "object"
+        ? autoplay
+        : { delay: 3000, stopOnInteraction: true, stopOnMouseEnter: true };
+    autoplayPluginRef.current = Autoplay(autoplayOptions);
+  } else if (!autoplay && autoplayPluginRef.current) {
+    // If autoplay is turned off, destroy the plugin instance
+    autoplayPluginRef.current?.destroy();
+    autoplayPluginRef.current = null;
+  }
+
+  const activePlugins = React.useMemo(() => {
+    const p: NonNullable<CarouselPlugin> = externalPlugins
+      ? [...externalPlugins]
+      : [];
+    if (autoplayPluginRef.current) {
+      p.push(autoplayPluginRef.current);
+    }
+    return p.length > 0 ? p : undefined;
+  }, [externalPlugins, autoplay]); // Recompute if autoplay prop changes
+
   const [carouselRef, api] = useEmblaCarousel(
     {
       ...opts,
       axis: orientation === "horizontal" ? "x" : "y",
     },
-    plugins,
+    activePlugins, // Use the combined plugins
   );
   const [canScrollPrev, setCanScrollPrev] = React.useState(false);
   const [canScrollNext, setCanScrollNext] = React.useState(false);

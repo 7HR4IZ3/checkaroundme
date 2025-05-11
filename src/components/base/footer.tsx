@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useState, FormEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -7,8 +9,52 @@ import {
   FaTwitter,
   FaInstagram,
 } from "react-icons/fa";
+import { toast } from "sonner";
 
 const Footer = () => {
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsLoading(true);
+    setMessage(""); // Clear previous messages
+
+    if (!email) {
+      setMessage("Please enter your email address.");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/mailing-list/subscribe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast.success(result.message || "Successfully subscribed!");
+        setEmail("");
+        setMessage(result.message || "Successfully subscribed!"); // Also set local message
+      } else {
+        toast.error(result.error || "Subscription failed. Please try again.");
+        setMessage(result.error || "Subscription failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Subscription error:", error);
+      toast.error("An unexpected error occurred. Please try again.");
+      setMessage("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <footer className="bg-black text-gray-300 pt-16 pb-8">
       <div className="container mx-auto px-4">
@@ -19,19 +65,37 @@ const Footer = () => {
               Subscribe
             </h3>
             <p className="text-sm mb-4">Subscribe to our newsletter</p>
-            <form className="flex items-center border border-gray-600 rounded overflow-hidden">
+            <form
+              onSubmit={handleSubmit}
+              className="flex items-center border border-gray-600 rounded overflow-hidden"
+            >
               <input
                 type="email"
                 placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
                 className="bg-transparent px-3 py-2 text-sm flex-grow focus:outline-none text-white dark:text-black placeholder-gray-500"
               />
               <button
                 type="submit"
-                className="text-gray-400 px-3 hover:text-white dark:text-black"
+                disabled={isLoading}
+                className="text-gray-400 px-3 hover:text-white dark:text-black disabled:opacity-50"
               >
-                <FaPaperPlane />
+                {isLoading ? "..." : <FaPaperPlane />}
               </button>
             </form>
+            {message && (
+              <p
+                className={`text-sm mt-2 ${
+                  message.includes("Successfully")
+                    ? "text-green-400"
+                    : "text-red-400"
+                }`}
+              >
+                {message}
+              </p>
+            )}
           </div>
 
           {/* Support */}
