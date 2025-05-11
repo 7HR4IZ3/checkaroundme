@@ -52,13 +52,13 @@ async function seedCategories() {
       name: "Mechanic",
       description: "Vehicle maintenance and repair",
       imageUrl:
-        "https://images.unsplash.com/photo-1599256872237-5dcc0fbe9668?w=500&auto=format&fit=crop&q=60",
+        "https://images.unsplash.com/photo-1615906655593-ad0386982a0f?w=500&auto=format&fit=crop&q=60",
     },
     {
       name: "Painter",
       description: "Interior and exterior painting",
       imageUrl:
-        "https://images.unsplash.com/photo-1605201470550-f107ba6fdad3?w=500&auto=format&fit=crop&q=60",
+        "hhttps://plus.unsplash.com/premium_photo-1683121602687-60c47b2222f0?w=500&auto=format&fit=crop&q=60",
     },
     {
       name: "Photographer",
@@ -70,7 +70,7 @@ async function seedCategories() {
       name: "Event Planner",
       description: "Planning and support for events",
       imageUrl:
-        "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=500&auto=format&fit=crop&q=60",
+        "https://images.unsplash.com/photo-1524824267900-2fa9cbf7a506?w=500&auto=format&fit=crop&q=60",
     },
     {
       name: "Handyman",
@@ -94,7 +94,7 @@ async function seedCategories() {
       name: "Pest Control",
       description: "Pest extermination and prevention",
       imageUrl:
-        "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=500&auto=format&fit=crop&q=60",
+        "https://plus.unsplash.com/premium_photo-1682126104327-ef7d5f260cf7?w=500&auto=format&fit=crop&q=60",
     },
     {
       name: "HVAC",
@@ -118,13 +118,13 @@ async function seedCategories() {
       name: "Caterer",
       description: "Food preparation and service for events",
       imageUrl:
-        "https://images.unsplash.com/photo-1638704890058-841a4a376654?w=500&auto=format&fit=crop&q=60",
+        "https://plus.unsplash.com/premium_photo-1686086520541-0d0a8b864bed?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTN8fGNhdGVyaW5nfGVufDB8fDB8fHww",
     },
     {
       name: "Mover",
       description: "Relocation assistance",
       imageUrl:
-        "https://images.unsplash.com/photo-1586781383963-8e66f88077ec?w=500&auto=format&fit=crop&q=60",
+        "https://images.unsplash.com/photo-1614359835514-92f8ba196357?w=500&auto=format&fit=crop&q=60",
     },
     {
       name: "Home Renovator / Contractor",

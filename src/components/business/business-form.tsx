@@ -821,7 +821,7 @@ export default function BusinessForm({
             <Badge
               key={service}
               variant="secondary"
-              className="py-1 px-2 text-sm text-primary bg-primary"
+              className="py-1 px-2 text-sm text-white bg-primary"
             >
               {service}
               <button
@@ -829,7 +829,7 @@ export default function BusinessForm({
                 className="ml-1.5 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 aria-label={`Remove ${service}`}
               >
-                <X className="h-3 w-3 text-primary hover:text-foreground" />
+                <X className="h-3 w-3 text-white hover:text-foreground" />
               </button>
             </Badge>
           ))}
