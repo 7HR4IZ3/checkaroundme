@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -68,7 +68,9 @@ export default function BusinessForm({
   submitButtonText,
   isSubmitting,
 }: BusinessFormProps) {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+
+  if (!businessId && !isAuthenticated) return redirect("/auth");
 
   // --- State Hooks ---
   const [businessName, setBusinessName] = useState("");
@@ -116,7 +118,7 @@ export default function BusinessForm({
 
   // State for new filterable attributes
   const [priceIndicator, setPriceIndicator] = useState<string | undefined>(
-    undefined,
+    undefined
   );
   const [onSiteParking, setOnSiteParking] = useState(false);
   const [garageParking, setGarageParking] = useState(false);
@@ -135,8 +137,10 @@ export default function BusinessForm({
   const { data: tempBusinessImages, isLoading: isLoadingTempImages } =
     trpc.getBusinessImages.useQuery(
       { businessId: user?.$id! },
-      { enabled: !businessId && !!user?.$id },
-    ); // Fetch temp images only in create mode
+      { enabled: !businessId && !!user?.$id }
+    );
+
+  const deleteTempImage = trpc.uploadTempBusinessImage;
   const deleteBusinessImage = trpc.deleteBusinessImage.useMutation();
 
   // --- Populate form state when initialData loads (for edit mode) ---
@@ -200,7 +204,7 @@ export default function BusinessForm({
   useEffect(() => {
     if (country) {
       const selectedCountry = Country.getAllCountries().find(
-        (c) => c.name === country,
+        (c) => c.name === country
       );
       if (selectedCountry) {
         setStates(State.getStatesOfCountry(selectedCountry.isoCode));
@@ -219,18 +223,18 @@ export default function BusinessForm({
   useEffect(() => {
     if (country && state) {
       const selectedCountry = Country.getAllCountries().find(
-        (c) => c.name === country,
+        (c) => c.name === country
       );
       if (selectedCountry) {
         const selectedState = State.getStatesOfCountry(
-          selectedCountry.isoCode,
+          selectedCountry.isoCode
         ).find((s) => s.name === state);
         if (selectedState) {
           setCities(
             City.getCitiesOfState(
               selectedCountry.isoCode,
-              selectedState.isoCode,
-            ),
+              selectedState.isoCode
+            )
           );
           setCity(""); // Clear selected city when state changes
         }
@@ -244,7 +248,7 @@ export default function BusinessForm({
   const updateBusinessHours = (
     day: string,
     type: "start" | "end" | "closed",
-    value: string | boolean,
+    value: string | boolean
   ) => {
     setAvailableHours((prev) => ({
       ...prev,
@@ -267,7 +271,10 @@ export default function BusinessForm({
   const handleImageDelete = async (idToDelete: string) => {
     try {
       setIsImageDeleting((prev) => [...prev, idToDelete]);
-      await deleteBusinessImage.mutateAsync({ imageId: idToDelete });
+      await deleteBusinessImage.mutateAsync({
+        imageId: idToDelete,
+        businessId: businessId || user?.$id!,
+      });
       setBusinessImages((prev) => prev.filter((img) => img.$id !== idToDelete));
       setIsImageDeleting((prev) => prev.filter((id) => id !== idToDelete));
     } catch (err) {
@@ -277,7 +284,7 @@ export default function BusinessForm({
   };
 
   const handleImageUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
     setIsImageUploading(true);
 
@@ -326,7 +333,7 @@ export default function BusinessForm({
 
   const handleRemoveService = (serviceToRemove: string) => {
     setServicesOffered(
-      servicesOffered.filter((service) => service !== serviceToRemove),
+      servicesOffered.filter((service) => service !== serviceToRemove)
     );
   };
 
@@ -367,7 +374,7 @@ export default function BusinessForm({
 
     if (!isFormValid()) {
       console.error(
-        "Form is not valid. Please fill all required fields and agree to the terms.",
+        "Form is not valid. Please fill all required fields and agree to the terms."
       );
       if (!businessId && !agreedToTerms) {
         // Only set terms error in create mode
@@ -387,7 +394,7 @@ export default function BusinessForm({
       categories: businessCategory ? [businessCategory] : [],
       services: servicesOffered,
       paymentOptions: Object.keys(paymentOptions).filter(
-        (key) => paymentOptions[key],
+        (key) => paymentOptions[key]
       ),
       hours: availableHours,
       images: businessImages.map(({ isPrimary, $id }) => ({
@@ -426,7 +433,9 @@ export default function BusinessForm({
               setBusinessNameError(""); // Clear error on change
             }}
             placeholder="Enter business name"
-            className={`mt-1 w-[100%] ${businessNameError ? "border-red-500" : ""}`}
+            className={`mt-1 w-[100%] ${
+              businessNameError ? "border-red-500" : ""
+            }`}
           />
           {businessNameError && (
             <p className="text-red-500 text-sm mt-1">{businessNameError}</p>
@@ -603,7 +612,7 @@ export default function BusinessForm({
               setCountryError("");
 
               const country = countries.find(
-                (country) => country.name === value,
+                (country) => country.name === value
               );
               country && setPhoneCountryCode(country.phoneCode);
             }}
@@ -611,7 +620,9 @@ export default function BusinessForm({
           >
             <SelectTrigger
               id="country"
-              className={`mt-2 w-[100%] ${countryError ? "border-red-500" : ""}`}
+              className={`mt-2 w-[100%] ${
+                countryError ? "border-red-500" : ""
+              }`}
             >
               <SelectValue placeholder="Select country" />
             </SelectTrigger>
@@ -697,7 +708,7 @@ export default function BusinessForm({
               value={phoneCountryCode}
               onValueChange={(country) => {
                 setPhoneCountryCode(
-                  countries.find((c) => c.name === country)?.phonecode,
+                  countries.find((c) => c.name === country)?.phonecode
                 );
               }}
             >
