@@ -46,7 +46,7 @@ async function seedCategories() {
       name: "Plumber",
       description: "Water systems installation and repair",
       imageUrl:
-        "hhttps://plus.unsplash.com/premium_photo-1663045495725-89f23b57cfc5?w=500&auto=format&fit=crop&q=60",
+        "https://plus.unsplash.com/premium_photo-1663045495725-89f23b57cfc5?w=500&auto=format&fit=crop&q=60",
     },
     {
       name: "Mechanic",
@@ -58,7 +58,7 @@ async function seedCategories() {
       name: "Painter",
       description: "Interior and exterior painting",
       imageUrl:
-        "hhttps://plus.unsplash.com/premium_photo-1683121602687-60c47b2222f0?w=500&auto=format&fit=crop&q=60",
+        "https://plus.unsplash.com/premium_photo-1683121602687-60c47b2222f0?w=500&auto=format&fit=crop&q=60",
     },
     {
       name: "Photographer",
@@ -118,7 +118,7 @@ async function seedCategories() {
       name: "Caterer",
       description: "Food preparation and service for events",
       imageUrl:
-        "https://plus.unsplash.com/premium_photo-1686086520541-0d0a8b864bed?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTN8fGNhdGVyaW5nfGVufDB8fDB8fHww",
+        "https://plus.unsplash.com/premium_photo-1686086520541-0d0a8b864bed?w=500&auto=format&fit=crop&q=60",
     },
     {
       name: "Mover",

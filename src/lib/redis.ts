@@ -1,10 +1,12 @@
 import { createClient } from "redis";
 
 const redisClient = createClient({
-  // Configure your Redis connection URL here.
-  // For local development, it's often 'redis://localhost:6379'
-  // For production, use your Redis provider's URL.
-  url: process.env.REDIS_URL || "redis://localhost:6379",
+  username: process.env.REDIS_USERNAME,
+  password: process.env.REDIS_PASSWORD,
+  socket: {
+    host: process.env.REDIS_HOST,
+    port: parseInt(process.env.REDIS_PORT!),
+  }
 });
 
 redisClient.on("error", (err) => console.error("Redis Client Error", err));
