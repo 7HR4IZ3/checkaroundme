@@ -114,14 +114,14 @@ const Header = () => {
                   <NavigationMenuTrigger>For User</NavigationMenuTrigger>
                   <NavigationMenuContent>
                     {isLoading ? (
-                      <div className="flex items-center select-none space-x-2 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground w-[10vw]">
+                      <div className="flex items-center select-none space-x-2 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
                         <Skeleton className="h-4 w-4" />
                         <Skeleton className="h-4 w-3/4" />
                       </div>
                     ) : businesses && businesses.length > 0 ? (
                       <Link
                         href={`/business/${businesses[0].$id}`} // Assuming the first business is the primary one
-                        className="flex items-center select-none space-x-2 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground w-[10vw]"
+                        className="flex items-center select-none space-x-2 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                       >
                         <div className="flex items-center">
                           <Store className="mr-3 h-5 w-5 text-muted-foreground group-hover:text-primary" />
@@ -134,7 +134,7 @@ const Header = () => {
                     ) : (
                       <Link
                         href="/business/create"
-                        className="flex items-center select-none space-x-2 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground w-[10vw]"
+                        className="flex items-center select-none space-x-2 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                       >
                         <Briefcase className="h-4 w-4" />
                         <span>Add a business</span>

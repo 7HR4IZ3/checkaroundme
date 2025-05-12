@@ -39,8 +39,8 @@ body {
   --secondary-foreground: oklch(0 0 0); /* Black */
   --muted: oklch(0.92 0.005 270); /* Light gray, cool tone */
   --muted-foreground: oklch(0.35 0.01 270); /* Darker gray, cool tone */
-  --accent: oklch(0.64 0.13 263.68); /* Light desaturated blue */
-  --accent-foreground: oklch(0.15 0.02 230); /* Dark desaturated blue */
+  /* --accent: oklch(0.64 0.13 263.68); Light desaturated blue */
+  /* --accent-foreground: oklch(0.15 0.02 230); Dark desaturated blue */
   --destructive: oklch(0.55 0.22 25); /* A noticeable red */
   --border: oklch(0.88 0.008 270); /* Light gray border, cool tone */
   --input: oklch(0.88 0.008 270); /* Light gray input, cool tone */
@@ -75,8 +75,8 @@ body {
   --secondary-foreground: oklch(0.95 0.002 270); /* Near white, cool tone */
   --muted: oklch(0.25 0.008 270); /* Mid-dark gray, cool tone */
   --muted-foreground: oklch(0.75 0.005 270); /* Light gray, cool tone */
-  --accent: oklch(0.5 0.05 230); /* Mid-tone desaturated blue */
-  --accent-foreground: oklch(0.9 0.01 230); /* Light desaturated blue */
+  /* --accent: oklch(0.5 0.05 230); Mid-tone desaturated blue */
+  /* --accent-foreground: oklch(0.9 0.01 230); Light desaturated blue */
   --destructive: oklch(
     0.6 0.2 25
   ); /* A noticeable red, slightly lighter for dark */

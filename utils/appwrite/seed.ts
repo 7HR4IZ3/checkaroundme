@@ -27,7 +27,7 @@ async function seedCategories() {
     {
       name: "Cleaner",
       imageUrl:
-        "https://images.unsplash.com/photo-1550963295-019d8a8a61c5?w=500&auto=format&fit=crop&q=60",
+        "https://plus.unsplash.com/premium_photo-1661662860714-7ea91a565bf9?w=500&auto=format&fit=crop&q=60",
       description: "Home and commercial cleaning",
     },
     {
@@ -46,7 +46,7 @@ async function seedCategories() {
       name: "Plumber",
       description: "Water systems installation and repair",
       imageUrl:
-        "https://images.unsplash.com/photo-1620653713380-7a34b773fef8?w=500&auto=format&fit=crop&q=60",
+        "hhttps://plus.unsplash.com/premium_photo-1663045495725-89f23b57cfc5?w=500&auto=format&fit=crop&q=60",
     },
     {
       name: "Mechanic",

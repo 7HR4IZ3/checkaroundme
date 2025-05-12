@@ -80,7 +80,7 @@ function ProfileOverviewSection() {
   const appwriteUser = auth.user;
 
   return (
-    <Card>
+    <Card className="border-0 shadow-0">
       <CardHeader>
         <CardTitle>Profile Overview</CardTitle>
         <CardDescription>
@@ -252,7 +252,7 @@ function EditProfileSection() {
   if (!auth.isAuthenticated || !auth.user) return <Loading />;
 
   return (
-    <Card>
+    <Card className="border-0 shadow-0">
       <CardHeader>
         <CardTitle>Edit Profile</CardTitle>
         <CardDescription>
@@ -354,7 +354,7 @@ function MyBusinessesSection() {
   const auth = useAuth();
   if (!auth.isAuthenticated) return <Loading />;
   return (
-    <Card>
+    <Card className="border-0 shadow-0">
       <CardHeader>
         <CardTitle>My Businesses</CardTitle>
         <CardDescription>Manage your registered businesses.</CardDescription>
@@ -420,7 +420,7 @@ function AppSettingsSection() {
     );
 
   return (
-    <Card>
+    <Card className="border-0 shadow-0">
       <CardHeader>
         <CardTitle>Application Settings</CardTitle>
         <CardDescription>
@@ -430,7 +430,7 @@ function AppSettingsSection() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmitSettings)}>
           <CardContent className="space-y-6">
-            <Card>
+            <Card className="border-0 shadow-0">
               <CardHeader>
                 <CardTitle className="text-lg">
                   Notification Preferences
@@ -488,7 +488,7 @@ function AppSettingsSection() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-0 shadow-0">
               <CardHeader>
                 <CardTitle className="text-lg">Theme Settings</CardTitle>
               </CardHeader>
@@ -587,7 +587,7 @@ function SecuritySection() {
   if (!auth.isAuthenticated) return <Loading />;
 
   return (
-    <Card>
+    <Card className="border-0 shadow-0">
       <CardHeader>
         <CardTitle>Security Settings</CardTitle>
         <CardDescription>Manage your account password.</CardDescription>
@@ -681,7 +681,7 @@ function ReferralSection() {
   };
 
   return (
-    <Card>
+    <Card className="border-0 shadow-0">
       <CardHeader>
         <CardTitle>Refer a Friend</CardTitle>
         <CardDescription>
@@ -791,7 +791,7 @@ function BillingSection() {
 
   return (
     <div className="space-y-8">
-      <Card>
+      <Card className="border-0 shadow-0">
         <CardHeader>
           <CardTitle>Current Subscription</CardTitle>
           <CardDescription>
@@ -847,7 +847,7 @@ function BillingSection() {
         </CardFooter>
       </Card>
 
-      <Card>
+      <Card className="border-0 shadow-0">
         <CardHeader>
           <CardTitle>Payment History</CardTitle>
           <CardDescription>
@@ -1013,7 +1013,7 @@ export default function ProfilePage() {
         </div>
       }
     >
-      <div className="container mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 h-[80vh]">
+      <div className="container mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 lg:h-[80vh]">
         <header className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
             Account Settings
