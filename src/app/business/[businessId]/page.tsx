@@ -202,7 +202,7 @@ export default function BusinessPage() {
         toast.success(
           `Business ${
             updatedBusiness.status === "active" ? "activated" : "deactivated"
-          } successfully.`,
+          } successfully.`
         );
       } else {
         // This case should ideally not happen if the mutation was "successful"
@@ -266,8 +266,8 @@ export default function BusinessPage() {
     typeof params.businessId === "string"
       ? params.businessId
       : Array.isArray(params.businessId)
-        ? params.businessId[0]
-        : "";
+      ? params.businessId[0]
+      : "";
 
   // tRPC queries
   const {
@@ -281,7 +281,7 @@ export default function BusinessPage() {
     error: imagesError,
   } = trpc.getBusinessImages.useQuery(
     { businessId },
-    { enabled: !!businessId },
+    { enabled: !!businessId }
   );
   const {
     data: hours,
@@ -536,8 +536,8 @@ export default function BusinessPage() {
                     {updateBusinessMutation.isPending
                       ? "Updating..."
                       : business.status === "active"
-                        ? "Deactivate"
-                        : "Activate"}
+                      ? "Deactivate"
+                      : "Activate"}
                   </Button>
                 )}
               </div>
@@ -589,7 +589,7 @@ export default function BusinessPage() {
                 <span>
                   {(() => {
                     const today = openingHours.find(
-                      (h) => h.day === currentDay,
+                      (h) => h.day === currentDay
                     );
                     return today ? today.hours : "";
                   })()}
@@ -736,7 +736,7 @@ export default function BusinessPage() {
                           .map((opt) =>
                             opt
                               .replace(/_/g, " ")
-                              .replace(/\b\w/g, (l) => l.toUpperCase()),
+                              .replace(/\b\w/g, (l) => l.toUpperCase())
                           )
                           .join(", ")}
                       </span>
@@ -820,9 +820,9 @@ export default function BusinessPage() {
                             item.hours === "Closed"
                               ? "text-red-600"
                               : item.day === currentDay &&
-                                  item.hours !== "Closed"
-                                ? "text-green-600"
-                                : ""
+                                item.hours !== "Closed"
+                              ? "text-green-600"
+                              : ""
                           }
                         >
                           {item.hours}
@@ -856,56 +856,44 @@ export default function BusinessPage() {
                     ({business.reviewCount} reviews)
                   </p>
                 </div>
-                {isAuthenticated ? (
-                  <div className="flex-1 w-full space-y-1">
-                    {(() => {
-                      // Calculate star distribution
-                      const starCounts = [0, 0, 0, 0, 0];
-                      reviews?.reviews.forEach((review) => {
-                        const stars = Math.round(review.rating);
-                        if (stars >= 1 && stars <= 5) {
-                          starCounts[stars - 1]++;
-                        }
-                      });
+                <div className="flex-1 w-full space-y-1">
+                  {(() => {
+                    // Calculate star distribution
+                    const starCounts = [0, 0, 0, 0, 0];
+                    reviews?.reviews.forEach((review) => {
+                      const stars = Math.round(review.rating);
+                      if (stars >= 1 && stars <= 5) {
+                        starCounts[stars - 1]++;
+                      }
+                    });
 
-                      const totalReviews = reviews?.reviews.length || 1;
-                      return (
-                        <>
-                          <RatingBar
-                            stars={5}
-                            percentage={(starCounts[4] / totalReviews) * 100}
-                          />
-                          <RatingBar
-                            stars={4}
-                            percentage={(starCounts[3] / totalReviews) * 100}
-                          />
-                          <RatingBar
-                            stars={3}
-                            percentage={(starCounts[2] / totalReviews) * 100}
-                          />
-                          <RatingBar
-                            stars={2}
-                            percentage={(starCounts[1] / totalReviews) * 100}
-                          />
-                          <RatingBar
-                            stars={1}
-                            percentage={(starCounts[0] / totalReviews) * 100}
-                          />
-                        </>
-                      );
-                    })()}
-                  </div>
-                ) : (
-                  <div className="flex-1 w-full flex items-center justify-center">
-                    <Button
-                      variant="link"
-                      onClick={() => router.push("/auth")}
-                      className="text-blue-600"
-                    >
-                      Sign in to see rating distribution
-                    </Button>
-                  </div>
-                )}
+                    const totalReviews = reviews?.reviews.length || 1;
+                    return (
+                      <>
+                        <RatingBar
+                          stars={5}
+                          percentage={(starCounts[4] / totalReviews) * 100}
+                        />
+                        <RatingBar
+                          stars={4}
+                          percentage={(starCounts[3] / totalReviews) * 100}
+                        />
+                        <RatingBar
+                          stars={3}
+                          percentage={(starCounts[2] / totalReviews) * 100}
+                        />
+                        <RatingBar
+                          stars={2}
+                          percentage={(starCounts[1] / totalReviews) * 100}
+                        />
+                        <RatingBar
+                          stars={1}
+                          percentage={(starCounts[0] / totalReviews) * 100}
+                        />
+                      </>
+                    );
+                  })()}
+                </div>
               </div>
 
               {/* Individual Reviews */}
@@ -976,7 +964,7 @@ export default function BusinessPage() {
               {businesses?.businesses.map((business) => (
                 <CarouselItem
                   key={business.$id}
-                  className="basis-1/1 md:basis-1/2"
+                  className="basis-1/1 lg:basis-1/2"
                 >
                   <ListingCard hideButton={true} business={business} />
                 </CarouselItem>
@@ -1023,7 +1011,7 @@ export default function BusinessPage() {
                 disabled={currentImageIndex === imageUrls.length - 1}
                 onClick={() =>
                   setCurrentImageIndex((prev) =>
-                    Math.min(imageUrls.length - 1, prev + 1),
+                    Math.min(imageUrls.length - 1, prev + 1)
                   )
                 }
               >
