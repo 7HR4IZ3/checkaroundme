@@ -5,7 +5,6 @@ import { redirect, useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
 import Image from "next/image";
 import { toast } from "sonner";
-import { Country, State, City } from "country-state-city";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,7 +32,11 @@ import {
 import { useAuth } from "@/lib/hooks/useClientAuth";
 import { Business, BusinessImage } from "@/lib/schema";
 import { LoadingSVG } from "@/components/ui/loading";
-import { VerificationUpload } from "@/components/business/verification-upload"; // Changed to named import
+import { VerificationUpload } from "@/components/business/verification-upload";
+import { BusinessFormAddress } from "./business-form-address";
+import { BusinessFormServices } from "./business-form-services";
+import { BusinessFormPayment } from "./business-form-payment";
+import { BusinessFormHours } from "./business-form-hours"; // Import the new component
 
 interface BusinessFormProps {
   initialData?: Business & {
@@ -78,20 +81,19 @@ export default function BusinessForm({
   const [addressLine1, setAddressLine1] = useState("");
   const [addressLine2, setAddressLine2] = useState("");
   const [city, setCity] = useState("");
-  const [country, setCountry] = useState("");
-  const [state, setState] = useState(""); // Added state for selected state
+  const [country, setCountry] = useState(""); // Stores selected country *name*
+  const [countryIsoCode, setCountryIsoCode] = useState<string | undefined>(undefined); // Stores selected country *ISO code*
+  const [state, setState] = useState(""); // Stores selected state *name*
+  const [stateIsoCode, setStateIsoCode] = useState<string | undefined>(undefined); // Stores selected state *ISO code*
   const [newService, setNewService] = useState("");
-  const [phoneCountryCode, setPhoneCountryCode] = useState("+234");
+  const [phoneCountryCode, setPhoneCountryCode] = useState("+234"); // Keep for phone input default/update
   const [phoneNumber, setPhoneNumber] = useState("");
   const [businessCategory, setBusinessCategory] = useState("");
   const [servicesOffered, setServicesOffered] = useState<string[]>([]);
   const [isImageUploading, setIsImageUploading] = useState(false);
   const [isImageDeleting, setIsImageDeleting] = useState<string[]>([]);
 
-  // State for country, state, and city data
-  const [countries, setCountries] = useState<any[]>([]);
-  const [states, setStates] = useState<any[]>([]);
-  const [cities, setCities] = useState<any[]>([]);
+  // Removed local state for countries, states, cities - will use tRPC query data directly
 
   const [businessEmail, setBusinessEmail] = useState("");
   const [businessWebsite, setBusinessWebsite] = useState("https://");
@@ -133,11 +135,25 @@ export default function BusinessForm({
   const [termsError, setTermsError] = useState("");
 
   // --- tRPC queries ---
+  // --- tRPC queries ---
   const { data: businessCategories } = trpc.getAllCategories.useQuery();
   const { data: tempBusinessImages, isLoading: isLoadingTempImages } =
     trpc.getBusinessImages.useQuery(
       { businessId: user?.$id! },
       { enabled: !businessId && !!user?.$id },
+    );
+  // Location Queries
+  const { data: countriesData, isLoading: isLoadingCountries } =
+    trpc.getCountries.useQuery();
+  const { data: statesData, isLoading: isLoadingStates } =
+    trpc.getStatesByCountry.useQuery(
+      { countryIsoCode: countryIsoCode },
+      { enabled: !!countryIsoCode }, // Only fetch states when a country ISO code is selected
+    );
+  const { data: citiesData, isLoading: isLoadingCities } =
+    trpc.getCitiesByState.useQuery(
+      { countryIsoCode: countryIsoCode, stateIsoCode: stateIsoCode },
+      { enabled: !!countryIsoCode && !!stateIsoCode }, // Only fetch cities when country and state ISO codes are selected
     );
 
   const deleteTempImage = trpc.uploadTempBusinessImage;
@@ -162,8 +178,11 @@ export default function BusinessForm({
       setBusinessWebsite(initialData.website ?? "");
       setCity(initialData.city ?? "");
       setCountry(initialData.country ?? "");
-      setState(initialData.state ?? ""); // Populate state from initial data
-
+      // Need to find and set the ISO codes based on names from initialData
+      // This requires the countriesData to be loaded first.
+      // We'll handle this in a separate useEffect below.
+      setState(initialData.state ?? "");
+    
       // Populate new filterable attributes
       setPriceIndicator(initialData.priceIndicator ?? undefined);
       setOnSiteParking(initialData.onSiteParking ?? false);
@@ -186,8 +205,27 @@ export default function BusinessForm({
         setAvailableHours(formattedHours);
       }
     }
-  }, [initialData]);
-
+  }, [initialData]); // Keep initialData dependency
+  
+  // Effect to set initial country/state ISO codes when editing and data is loaded
+  useEffect(() => {
+    if (initialData && countriesData && initialData.country) {
+      const initialCountry = countriesData.find(c => c.name === initialData.country);
+      if (initialCountry) {
+        setCountryIsoCode(initialCountry.isoCode);
+        // If state also exists in initialData, try to find its ISO code once statesData loads
+        if (initialData.state && statesData) {
+           const initialSelectedState = statesData.find(s => s.name === initialData.state);
+           if (initialSelectedState) {
+              setStateIsoCode(initialSelectedState.isoCode);
+           }
+        }
+      }
+    }
+  // Depend on initialData, countriesData, and statesData to ensure codes are set correctly
+  }, [initialData, countriesData, statesData]);
+  
+  
   // Populate temp images in create mode
   useEffect(() => {
     if (!businessId && !isLoadingTempImages && tempBusinessImages) {
@@ -195,69 +233,6 @@ export default function BusinessForm({
     }
   }, [businessId, isLoadingTempImages, tempBusinessImages]);
 
-  // Fetch countries on component mount
-  useEffect(() => {
-    setCountries(Country.getAllCountries());
-  }, []);
-
-  // Fetch states when country changes
-  useEffect(() => {
-    if (country) {
-      const selectedCountry = Country.getAllCountries().find(
-        (c) => c.name === country,
-      );
-      if (selectedCountry) {
-        setStates(State.getStatesOfCountry(selectedCountry.isoCode));
-        setCities([]); // Clear cities when country changes
-        setCity(""); // Clear selected city when country changes
-      }
-    } else {
-      setStates([]);
-      setCities([]);
-      setCity("");
-      setState(""); // Clear selected state when country changes
-    }
-  }, [country]);
-
-  // Fetch cities when state changes
-  useEffect(() => {
-    if (country && state) {
-      const selectedCountry = Country.getAllCountries().find(
-        (c) => c.name === country,
-      );
-      if (selectedCountry) {
-        const selectedState = State.getStatesOfCountry(
-          selectedCountry.isoCode,
-        ).find((s) => s.name === state);
-        if (selectedState) {
-          setCities(
-            City.getCitiesOfState(
-              selectedCountry.isoCode,
-              selectedState.isoCode,
-            ),
-          );
-          setCity(""); // Clear selected city when state changes
-        }
-      }
-    } else {
-      setCities([]);
-      setCity("");
-    }
-  }, [country, state]);
-
-  const updateBusinessHours = (
-    day: string,
-    type: "start" | "end" | "closed",
-    value: string | boolean,
-  ) => {
-    setAvailableHours((prev) => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        [type]: value,
-      },
-    }));
-  };
 
   // --- Handlers ---
   const handleBusinessWebsite = (value: string) => {
@@ -323,28 +298,7 @@ export default function BusinessForm({
 
     setIsImageUploading(false);
   };
-
-  const handleSetPaymentOption = (option: string, value: boolean) => {
-    setPaymentOptions((prev) => ({
-      ...prev,
-      [option]: value,
-    }));
-  };
-
-  const handleRemoveService = (serviceToRemove: string) => {
-    setServicesOffered(
-      servicesOffered.filter((service) => service !== serviceToRemove),
-    );
-  };
-
-  const handleAddService = () => {
-    const trimmedService = newService.trim();
-    if (trimmedService && !servicesOffered.includes(trimmedService)) {
-      setServicesOffered([...servicesOffered, trimmedService]);
-      setNewService(""); // Clear the input
-    }
-  };
-
+  
   const isFormValid = () => {
     // Basic validation for required fields
     const isValid =
@@ -580,162 +534,39 @@ export default function BusinessForm({
         </div>
       </div>
 
-      {/* Business Address */}
-      <div className="flex flex-col md:flex-row gap-4 flex-wrap">
-        <div className="flex-grow">
-          <Label htmlFor="addressLine1" className="font-semibold">
-            <span className="text-destructive">*</span> Business Address Line 1
-          </Label>
-          <Input
-            id="addressLine1"
-            value={addressLine1}
-            required
-            onChange={(e) => {
-              setAddressLine1(e.target.value);
-              setAddressLine1Error(""); // Clear error on change
-            }}
-            placeholder="Enter address line 1"
-            className={`mt-2 ${addressLine1Error ? "border-red-500" : ""}`}
-          />
-          {addressLine1Error && (
-            <p className="text-red-500 text-sm mt-1">{addressLine1Error}</p>
-          )}
-        </div>
-        <div className="flex-grow">
-          <Label htmlFor="country" className="font-semibold">
-            <span className="text-destructive">*</span> Country
-          </Label>
-          <Select
-            value={country}
-            onValueChange={(value) => {
-              setCountry(value);
-              setCountryError("");
+      {/* --- Business Address Section (Extracted Component) --- */}
+      <BusinessFormAddress
+        addressLine1={addressLine1}
+        setAddressLine1={setAddressLine1}
+        addressLine1Error={addressLine1Error}
+        setAddressLine1Error={setAddressLine1Error}
+        country={country}
+        setCountry={setCountry}
+        countryIsoCode={countryIsoCode}
+        setCountryIsoCode={setCountryIsoCode}
+        countryError={countryError}
+        setCountryError={setCountryError}
+        state={state}
+        setState={setState}
+        stateIsoCode={stateIsoCode}
+        setStateIsoCode={setStateIsoCode}
+        city={city}
+        setCity={setCity}
+        cityError={cityError}
+        setCityError={setCityError}
+        phoneCountryCode={phoneCountryCode}
+        setPhoneCountryCode={setPhoneCountryCode}
+        phoneNumber={phoneNumber}
+        setPhoneNumber={setPhoneNumber}
+        countriesData={countriesData}
+        isLoadingCountries={isLoadingCountries}
+        statesData={statesData}
+        isLoadingStates={isLoadingStates}
+        citiesData={citiesData}
+        isLoadingCities={isLoadingCities}
+      />
+      {/* --- End Business Address Section --- */}
 
-              const country = countries.find(
-                (country) => country.name === value,
-              );
-              country && setPhoneCountryCode(country.phoneCode);
-            }}
-            required
-          >
-            <SelectTrigger
-              id="country"
-              className={`mt-2 w-[100%] ${
-                countryError ? "border-red-500" : ""
-              }`}
-            >
-              <SelectValue placeholder="Select country" />
-            </SelectTrigger>
-            <SelectContent>
-              {countries.map((country) => (
-                <SelectItem key={country.isoCode} value={country.name}>
-                  {country.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {countryError && (
-            <p className="text-red-500 text-sm mt-1">{countryError}</p>
-          )}
-        </div>
-        <div className="flex-grow">
-          <Label htmlFor="state" className="font-semibold">
-            <span className="text-destructive">*</span> State
-          </Label>
-          <Select
-            value={state}
-            onValueChange={(value) => {
-              setState(value);
-              // No state error state needed as city error covers it
-            }}
-            required
-            disabled={!country} // Disable state select if no country is selected
-          >
-            <SelectTrigger
-              id="state"
-              className={`mt-2 w-[100%] ${cityError ? "border-red-500" : ""}`} // Use cityError for state as well for simplicity
-            >
-              <SelectValue placeholder="Select state" />
-            </SelectTrigger>
-            <SelectContent>
-              {states.map((state) => (
-                <SelectItem key={state.isoCode} value={state.name}>
-                  {state.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex-grow">
-          <Label htmlFor="city" className="font-semibold">
-            <span className="text-destructive">*</span> City
-          </Label>
-          <Select
-            value={city}
-            onValueChange={(value) => {
-              setCity(value);
-              setCityError(""); // Clear error on change
-            }}
-            required
-            disabled={!state} // Disable city select if no state is selected
-          >
-            <SelectTrigger
-              id="city"
-              className={`mt-2 w-[100%] ${cityError ? "border-red-500" : ""}`}
-            >
-              <SelectValue placeholder="Select city" />
-            </SelectTrigger>
-            <SelectContent>
-              {cities.map((city) => (
-                <SelectItem key={city.name} value={city.name}>
-                  {city.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {cityError && (
-            <p className="text-red-500 text-sm mt-1">{cityError}</p>
-          )}
-        </div>
-
-        {/* Phone Number */}
-        <div className="flex-grow">
-          <Label htmlFor="phoneNumber" className="font-semibold">
-            Phone number
-          </Label>
-          <div className="flex gap-2 mt-2">
-            <Select
-              value={phoneCountryCode}
-              onValueChange={(country) => {
-                setPhoneCountryCode(
-                  countries.find((c) => c.name === country)?.phonecode,
-                );
-              }}
-            >
-              <SelectTrigger id="phoneCountryCode" className="w-24">
-                <SelectValue placeholder="Code" />
-              </SelectTrigger>
-              <SelectContent>
-                {countries
-                  .map((country) => country.name)
-                  .sort()
-                  .map((country) => (
-                    <SelectItem value={country}>{country}</SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-            <Input
-              id="phoneNumber"
-              type="tel"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="Enter phone number"
-              className="flex-1"
-              aria-label="Phone number"
-            />
-          </div>
-        </div>
-      </div>
 
       {/* Business Email & Website */}
       <div className="flex flex-col md:flex-row gap-4 flex-wrap">
@@ -786,87 +617,23 @@ export default function BusinessForm({
         </Select>
       </div>
 
-      {/* Services Offered */}
-      <div>
-        <Label className="font-semibold block mb-2">Services Offered</Label>
-        <p className="text-sm text-muted-foreground mb-2">
-          Add or remove services your business offers
-        </p>
-        {/* Input to add new service */}
-        <div className="flex gap-2 mb-4">
-          <Input
-            value={newService}
-            onChange={(e) => setNewService(e.target.value)}
-            placeholder="Enter a service (e.g., Haircut)"
-            className="flex-grow"
-            onKeyDown={(e) => {
-              // Add service on Enter key press
-              if (e.key === "Enter") {
-                e.preventDefault(); // Prevent potential form submission
-                handleAddService();
-              }
-            }}
-          />
-          <Button
-            onClick={handleAddService}
-            type="button"
-            className="bg-primary"
-          >
-            Add Service
-          </Button>
-        </div>
-        {/* Display existing services */}
-        <div className="flex flex-wrap gap-2">
-          {servicesOffered.map((service) => (
-            <Badge
-              key={service}
-              variant="secondary"
-              className="py-1 px-2 text-sm text-white bg-primary"
-            >
-              {service}
-              <button
-                onClick={() => handleRemoveService(service)}
-                className="ml-1.5 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                aria-label={`Remove ${service}`}
-              >
-                <X className="h-3 w-3 text-white hover:text-foreground" />
-              </button>
-            </Badge>
-          ))}
-        </div>
-      </div>
+      {/* --- Services Offered Section (Extracted Component) --- */}
+      <BusinessFormServices
+        servicesOffered={servicesOffered}
+        setServicesOffered={setServicesOffered}
+        newService={newService}
+        setNewService={setNewService}
+      />
+      {/* --- End Services Offered Section --- */}
 
-      {/* Payment Options */}
-      <div>
-        <Label className="font-semibold block mb-2">Payment Options</Label>
-        <p className="text-sm text-muted-foreground mb-2">
-          Select payment options your business accepts
-        </p>
-        <div className="flex gap-4 mt-2">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="cashPayment"
-              className="data-[state=checked]:bg-primary"
-              checked={paymentOptions.cash}
-              onCheckedChange={(ev) =>
-                handleSetPaymentOption("cash", ev.valueOf() as boolean)
-              }
-            />
-            <Label htmlFor="cashPayment">Cash Payment</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="transfer"
-              className="data-[state=checked]:bg-primary"
-              checked={paymentOptions.transfer}
-              onCheckedChange={(ev) =>
-                handleSetPaymentOption("transfer", ev.valueOf() as boolean)
-              }
-            />
-            <Label htmlFor="transfer">Transfer</Label>
-          </div>
-        </div>
-      </div>
+
+      {/* --- Payment Options Section (Extracted Component) --- */}
+      <BusinessFormPayment
+        paymentOptions={paymentOptions}
+        setPaymentOptions={setPaymentOptions}
+      />
+      {/* --- End Payment Options Section --- */}
+
 
       {/* Price Indicator */}
       <div className="md:w-1/2">
@@ -931,54 +698,11 @@ export default function BusinessForm({
         </div>
       </div>
 
-      {/* Available Hours */}
-      <div className="">
-        <Label className="font-semibold block mb-2">Available hours</Label>
-        <div className="space-y-2 text-sm text-muted-foreground mt-2">
-          {Object.entries(availableHours).map(([day, hours]) => (
-            <div key={day} className="flex items-center gap-2 md:gap-8">
-              <span className="w-1/5 font-medium text-card-foreground">
-                {day}
-              </span>
-              <div className="flex flex-row flex-grow">
-                <Input
-                  type="time"
-                  className="border-0 border-bottom"
-                  value={availableHours[day].open}
-                  onChange={(ev) =>
-                    updateBusinessHours(day, "start", ev.target.value)
-                  }
-                  disabled={availableHours[day].closed}
-                  name={day + "-start"}
-                ></Input>{" "}
-                <span className="flex items-center">-</span>
-                <Input
-                  type="time"
-                  className="border-0 border-bottom"
-                  value={availableHours[day].close}
-                  onChange={(ev) =>
-                    updateBusinessHours(day, "end", ev.target.value)
-                  }
-                  disabled={availableHours[day].closed}
-                  name={day + "-end"}
-                ></Input>
-              </div>
-              <span className="flex items-center gap-3">
-                <Label htmlFor={day + "-closed"}>Closed</Label>
-                <Checkbox
-                  className="h-5 w-5 data-[state=checked]:bg-primary"
-                  id={day + "-closed"}
-                  name={day + "-closed"}
-                  checked={availableHours[day].closed}
-                  onCheckedChange={(ev) =>
-                    updateBusinessHours(day, "closed", ev.valueOf())
-                  }
-                />
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* --- Available Hours Section (Extracted Component) --- */}
+      <BusinessFormHours
+        availableHours={availableHours}
+        setAvailableHours={setAvailableHours}
+      />
 
       {/* Terms and Conditions Checkbox (only in create mode) */}
       {!businessId && (

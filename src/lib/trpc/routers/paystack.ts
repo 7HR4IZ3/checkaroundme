@@ -28,7 +28,7 @@ const initializeTransactionInputSchema = z.object({
   metadata: z.record(z.any()).optional(),
   channels: z
     .array(
-      z.enum(["card", "bank", "ussd", "qr", "mobile_money", "bank_transfer"]),
+      z.enum(["card", "bank", "ussd", "qr", "mobile_money", "bank_transfer"])
     )
     .optional(),
 });
@@ -107,7 +107,7 @@ const updateUserSubscriptionInputSchema = z.object({
 
 export function createPaystackProcedures(
   t: AppTRPC,
-  protectedProcedure: typeof t.procedure, // Pass your actual protected procedure
+  protectedProcedure: typeof t.procedure // Pass your actual protected procedure
 ) {
   return {
     // --- Transactions ---
@@ -119,7 +119,7 @@ export function createPaystackProcedures(
           if (!response.status) {
             // Paystack uses { status: true/false }
             throw new Error(
-              response.message || "Failed to initialize Paystack transaction.",
+              response.message || "Failed to initialize Paystack transaction."
             );
           }
           return response.data; // Contains authorization_url, access_code, reference
@@ -147,31 +147,49 @@ export function createPaystackProcedures(
           ) {
             throw new Error(
               verifyResponse.message ||
-                `Transaction verification failed or status was not 'success': ${verifyResponse.data?.status}`,
+                `Transaction verification failed or status was not 'success': ${verifyResponse.data?.status}`
             );
           }
           const transactionData = verifyResponse.data;
 
           // 2. Extract necessary details for subscription creation
+          const metadata = transactionData.metadata as any;
           const customerEmail = transactionData.customer?.email;
           const planCode =
             // @ts-ignore
-            transactionData.plan || (transactionData.metadata as any)?.planCode; // Get plan code from transaction or metadata
+            transactionData.plan || metadata?.planCode;
           const authorizationCode =
             transactionData.authorization?.authorization_code;
-          const userId = (transactionData.metadata as any)?.userId; // Get userId from metadata
+          const userId = metadata?.userId;
+          const isEligibleForTwoMonthFreeOffer =
+            metadata?.isEligibleForTwoMonthFreeOffer === true;
+          const planInterval = metadata?.interval?.toLowerCase();
 
-          if (!customerEmail || !planCode || !authorizationCode || !userId) {
+          if (
+            !customerEmail ||
+            !planCode ||
+            !authorizationCode ||
+            !userId ||
+            !planInterval
+          ) {
             console.error("Missing data for subscription creation:", {
               customerEmail,
               planCode,
               authorizationCode,
               userId,
+              planInterval,
               transactionData,
             });
             throw new Error(
-              "Verification successful, but missing required details to create subscription.",
+              "Verification successful, but missing required details (email, planCode, authCode, userId, or interval) to create subscription."
             );
+          }
+
+          let paystackSubscriptionStartDate = new Date();
+          if (isEligibleForTwoMonthFreeOffer) {
+            const twoMonthsFromNow = new Date();
+            twoMonthsFromNow.setMonth(twoMonthsFromNow.getMonth() + 2);
+            paystackSubscriptionStartDate = twoMonthsFromNow;
           }
 
           // 3. Create the subscription on Paystack
@@ -179,7 +197,7 @@ export function createPaystackProcedures(
             customer: customerEmail,
             plan: planCode,
             authorization: authorizationCode,
-            start_date: new Date(), // Optional: Start immediately
+            start_date: paystackSubscriptionStartDate,
           });
 
           if (
@@ -191,51 +209,55 @@ export function createPaystackProcedures(
             // Paystack might return an error message indicating this.
             console.error(
               "Paystack subscription creation failed:",
-              createSubResponse,
+              createSubResponse
             );
             throw new Error(
               createSubResponse.message ||
-                "Failed to create Paystack subscription after successful payment.",
+                "Failed to create Paystack subscription after successful payment."
             );
           }
           // @ts-ignore
           const subscriptionData = createSubResponse.data;
 
           // 4. Update Appwrite User Document
-          // We need the plan interval to calculate expiry. Fetch plan details if not in metadata.
-          // For now, assume interval IS in metadata or fetch it. Let's assume metadata for simplicity.
-          const interval = (transactionData.metadata as any)?.interval;
           const paystackCustomerId =
             transactionData.customer?.customer_code ||
             String(transactionData.customer?.id || "");
 
-          if (!interval) {
-            console.error(
-              "Plan interval missing from metadata. Cannot calculate expiry.",
-            );
-            throw new Error(
-              "Subscription created, but failed to update user profile: Missing plan interval.",
-            );
-          }
-          // Ensure interval is one of the allowed enum values
+          // Ensure planInterval is one of the allowed enum values (already checked if it exists)
           const validIntervals = [
-            "hourly",
-            "daily",
-            "weekly",
+            "hourly", // Though likely not used for this offer
+            "daily", // Though likely not used for this offer
+            "weekly", // Though likely not used for this offer
             "monthly",
             "quarterly",
             "biannually",
             "annually",
           ];
-          if (!validIntervals.includes(interval)) {
-            throw new Error(`Invalid plan interval received: ${interval}`);
+          if (!validIntervals.includes(planInterval)) {
+            throw new Error(`Invalid plan interval received: ${planInterval}`);
           }
 
-          const expiryDate = calculateExpiryDate(new Date(), interval);
+          let appwriteExpiryDate: Date;
+          const currentDate = new Date();
+
+          if (isEligibleForTwoMonthFreeOffer) {
+            // Base expiry is 2 months from now + plan's original interval
+            const twoMonthsFromNow = new Date(currentDate);
+            twoMonthsFromNow.setMonth(currentDate.getMonth() + 2);
+            appwriteExpiryDate = calculateExpiryDate(
+              twoMonthsFromNow,
+              planInterval
+            );
+          } else {
+            // Standard expiry calculation
+            appwriteExpiryDate = calculateExpiryDate(currentDate, planInterval);
+          }
+
           await appwriteUpdateUserSubscription(userId, {
             subscriptionStatus: "active",
             planCode: planCode,
-            subscriptionExpiry: expiryDate,
+            subscriptionExpiry: appwriteExpiryDate,
             paystackCustomerId: paystackCustomerId,
             paystackSubscriptionCode: subscriptionData.subscription_code,
           });
@@ -251,7 +273,7 @@ export function createPaystackProcedures(
         } catch (error: any) {
           console.error(
             "Error in verifyTransactionAndCreateSubscription:",
-            error,
+            error
           );
           // Rethrow as TRPCError
           throw new TRPCError({
@@ -272,7 +294,7 @@ export function createPaystackProcedures(
           const response = await psCreatePlan(input);
           if (!response.status) {
             throw new Error(
-              response.message || "Failed to create Paystack plan.",
+              response.message || "Failed to create Paystack plan."
             );
           }
           return response.data; // Contains plan details like plan_code
@@ -292,7 +314,7 @@ export function createPaystackProcedures(
           const response = await psListPlans(input as any); // Cast needed if input type mismatch with SDK
           if (!response.status) {
             throw new Error(
-              response.message || "Failed to list Paystack plans.",
+              response.message || "Failed to list Paystack plans."
             );
           }
           return response.data as unknown as IPlan[]; // Array of plans
@@ -313,7 +335,7 @@ export function createPaystackProcedures(
           const response = await psCreateSubscription(input);
           if (!response.status) {
             throw new Error(
-              response.message || "Failed to create Paystack subscription.",
+              response.message || "Failed to create Paystack subscription."
             );
           }
           // @ts-ignore
@@ -334,7 +356,7 @@ export function createPaystackProcedures(
           const response = await psListSubscriptions(input);
           if (!response.status) {
             throw new Error(
-              response.message || "Failed to list Paystack subscriptions.",
+              response.message || "Failed to list Paystack subscriptions."
             );
           }
           // @ts-ignore
@@ -355,7 +377,7 @@ export function createPaystackProcedures(
           const response = await psDisableSubscription(input);
           if (!response.status) {
             throw new Error(
-              response.message || "Failed to disable Paystack subscription.",
+              response.message || "Failed to disable Paystack subscription."
             );
           }
           return { success: true, message: response.message };
@@ -375,7 +397,7 @@ export function createPaystackProcedures(
           const response = await psEnableSubscription(input);
           if (!response.status) {
             throw new Error(
-              response.message || "Failed to enable Paystack subscription.",
+              response.message || "Failed to enable Paystack subscription."
             );
           }
           return { success: true, message: response.message };

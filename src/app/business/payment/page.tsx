@@ -65,16 +65,23 @@ export default function OnboardingSubscriptionPage() {
       description: p.description || `Billed ${p.interval}`,
     })) || [];
 
-  const displayedPlans = plans.filter((plan) =>
+  const displayedPlans = plans.filter((plan) => {
+    if (
+      process.env.NODE_ENV !== "development" &&
+      plan.name?.toLowerCase().includes("test")
+    ) {
+      return false;
+    }
+
     isAnnualBilling
       ? plan.interval?.toLowerCase() === "annually"
-      : plan.interval?.toLowerCase() === "monthly",
-  );
+      : plan.interval?.toLowerCase() === "monthly";
+  });
 
   useEffect(() => {
     if (displayedPlans.length > 0) {
       const proPlan = displayedPlans.find(
-        (p) => p.name?.toLowerCase() === "pro",
+        (p) => p.name?.toLowerCase() === "pro"
       );
       setExpandedPlanCode(displayedPlans[0].plan_code);
       setSelectedPlan(displayedPlans[0]);
@@ -96,7 +103,7 @@ export default function OnboardingSubscriptionPage() {
   const handleSelectAndToggleExpand = (plan: IPlan) => {
     setSelectedPlan(plan);
     setExpandedPlanCode((current) =>
-      current === plan.plan_code ? null : plan.plan_code,
+      current === plan.plan_code ? null : plan.plan_code
     );
   };
 
@@ -116,6 +123,8 @@ export default function OnboardingSubscriptionPage() {
       return;
     }
 
+    const isEligibleForTwoMonthFreeOffer = !user?.prefs.subscriptionStatus; // This would be undefined for new users;
+
     const mutationInput = {
       email: user.email,
       amount: targetPlan.amount,
@@ -127,6 +136,7 @@ export default function OnboardingSubscriptionPage() {
         planId: targetPlan.id,
         planCode: targetPlan.plan_code,
         interval: targetPlan.interval,
+        isEligibleForTwoMonthFreeOffer: isEligibleForTwoMonthFreeOffer,
         custom_fields: [
           {
             display_name: "User Name",
@@ -229,7 +239,8 @@ export default function OnboardingSubscriptionPage() {
                   {/* Adjusted size */}
                 </div>
                 <span className="text-gray-700 text-sm sm:text-base lg:text-lg">
-                  Free 2 month trial for new user
+                  New User Offer: Get your first 2 months FREE on any plan! Your
+                  paid subscription starts after the free period.
                 </span>
               </div>
               <div className="flex items-center space-x-3">
@@ -246,7 +257,7 @@ export default function OnboardingSubscriptionPage() {
                   Cancel anytime you want
                 </span>
               </div>
-              <div className="flex justify-end">
+              {/* <div className="flex justify-end">
                 <Button
                   className="w-full sm:w-2/3 bg-primary hover:bg-[#4338CA]  mt-6 sm:mt-8 py-3 sm:py-4 lg:py-5 text-base sm:text-lg lg:text-xl font-semibold rounded-xl sm:rounded-2xl" // Adjusted padding, font-size, and rounding
                   onClick={() => handleSubscribe()}
@@ -258,7 +269,7 @@ export default function OnboardingSubscriptionPage() {
                     ? "Processing..."
                     : "Subscribe to Checkaroundme"}
                 </Button>
-              </div>
+              </div> */}
             </div>
           </div>
 

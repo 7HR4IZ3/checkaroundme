@@ -508,15 +508,15 @@ export default function BusinessPage() {
               <div className="flex items-center gap-2 mb-2">
                 <h1 className="text-3xl font-bold">{business.name}</h1>
                 {user?.$id === business.ownerId && (
-                  <Button
-                    size="sm"
-                    variant="outline"
+                  <Link
                     className="ml-2 flex items-center gap-1"
-                    onClick={() => router.push(`/business/${businessId}/edit`)}
+                    href={`/business/${businessId}/edit`}
                   >
+                    <Button>
                     <Pencil className="w-4 h-4 mr-1" />
                     Edit Business
-                  </Button>
+                    </Button>
+                  </Link>
                 )}
                 {user?.$id === business.ownerId && (
                   <Button

@@ -172,7 +172,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
                 href="/terms-of-service"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline"
+                className="text-white hover:underline"
               >
                 Terms of Service
               </Link>{" "}
@@ -181,7 +181,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
                 href="/privacy-policy"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline"
+                className="text-white hover:underline"
               >
                 Privacy Policy
               </Link>
@@ -243,7 +243,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
 
       <Button
         variant="outline"
-        className="w-full h-11 bg-black text-primary hover:bg-gray-800 hover:text-primary"
+        className="w-full h-11 bg-black text-white hover:bg-gray-800 hover:text-white"
         onClick={handleGoogleSignIn}
         disabled={
           !termsAccepted ||
@@ -260,7 +260,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
         Forgot your password?{" "}
         <Link
           href="/auth/forgot-password"
-          className="font-medium text-primary hover:underline"
+          className="font-medium text-white hover:underline"
         >
           Reset Password
         </Link>
@@ -278,7 +278,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
         <Link
           onClick={onToggle}
           href="#!"
-          className="font-medium text-primary hover:underline"
+          className="font-medium text-white hover:underline"
         >
           Sign Up
         </Link>
@@ -487,7 +487,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
                 href="/terms-of-service"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline"
+                className="text-white hover:underline"
               >
                 Terms of Service
               </Link>{" "}
@@ -496,7 +496,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
                 href="/privacy-policy"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline"
+                className="text-white hover:underline"
               >
                 Privacy Policy
               </Link>
@@ -562,7 +562,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
 
       <Button
         variant="outline"
-        className="w-full h-11 bg-black text-primary hover:bg-gray-800 hover:text-primary"
+        className="w-full h-11 bg-black text-white hover:bg-gray-800 hover:text-white"
         onClick={handleGoogleSignIn}
         disabled={
           !termsAccepted ||
@@ -581,7 +581,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
         <Link
           href="#!"
           onClick={onToggle}
-          className="font-medium text-primary hover:underline"
+          className="font-medium text-white hover:underline"
         >
           Login
         </Link>
@@ -795,7 +795,7 @@ function LandingPage() {
                   key={index}
                   className="flex flex-col items-center p-4 rounded-lg bg-muted/40"
                 >
-                  <div className="text-4xl mb-3 p-3 bg-primary/10 rounded-full text-primary">
+                  <div className="text-4xl mb-3 p-3 bg-primary/10 rounded-full text-white">
                     {step.icon}
                   </div>
                   <h3 className="text-xl font-semibold mb-1">{step.title}</h3>
@@ -867,7 +867,7 @@ function AuthPageInner() {
           />
         </Link>
       </div>
-      <div className="flex flex-col md:flex-row">
+      <div className="flex flex-row justify-center items-cente">
         <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 lg:p-16">
           <div className="space-y-6">
             <GoogleReCaptchaProvider

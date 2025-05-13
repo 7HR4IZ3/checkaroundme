@@ -151,9 +151,9 @@ export const createPlan = async (details: {
 export const listPlans = async (params?: {
   perPage: number;
   page: number;
-  status: string;
-  interval: number;
   amount: number;
+  status?: string;
+  interval?: number;
 }) => {
   const ps = getPaystackInstance();
   try {
