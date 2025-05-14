@@ -193,7 +193,7 @@ export const VerificationService = {
    * Fetches related business, user details, and generates a file view URL.
    * @returns Array of pending verification details.
    */
-  async listPendingVerificationsWithDetails(): Promise<any[]> {
+  async listPendingVerificationsWithDetails() {
     // Return type matches expected structure
     console.log("Fetching pending verification documents...");
     try {

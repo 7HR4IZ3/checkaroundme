@@ -1,6 +1,6 @@
 import { ID, Query, Models } from "node-appwrite";
 import axios, { AxiosError } from "axios";
-import redisClient from "../../redis"; // Import Redis client
+// import redisClient from "../../redis"; // Import Redis client
 
 import {
   Business,
@@ -217,19 +217,19 @@ export const BusinessService = {
 
   // Get business by ID
   async getBusinessById(businessId: string): Promise<Business | null> {
-    const cacheKey = `business:${businessId}`;
+    // const cacheKey = `business:${businessId}`;
 
-    try {
-      const cachedBusiness = await redisClient.get(cacheKey);
-      if (cachedBusiness) {
-        return JSON.parse(cachedBusiness) as Business;
-      }
-    } catch (error) {
-      console.error(
-        "Redis GET error in BusinessService.getBusinessById:",
-        error
-      );
-    }
+    // try {
+    //   const cachedBusiness = await redisClient.get(cacheKey);
+    //   if (cachedBusiness) {
+    //     return JSON.parse(cachedBusiness) as Business;
+    //   }
+    // } catch (error) {
+    //   console.error(
+    //     "Redis GET error in BusinessService.getBusinessById:",
+    //     error
+    //   );
+    // }
 
     try {
       const business = await databases.getDocument(
@@ -238,19 +238,19 @@ export const BusinessService = {
         businessId
       );
 
-      if (business) {
-        try {
-          // Cache for 30 days (2592000 seconds)
-          await redisClient.set(cacheKey, JSON.stringify(business), {
-            EX: 2592000,
-          });
-        } catch (error) {
-          console.error(
-            "Redis SET error in BusinessService.getBusinessById:",
-            error
-          );
-        }
-      }
+      // if (business) {
+      //   try {
+      //     // Cache for 30 days (2592000 seconds)
+      //     await redisClient.set(cacheKey, JSON.stringify(business), {
+      //       EX: 2592000,
+      //     });
+      //   } catch (error) {
+      //     console.error(
+      //       "Redis SET error in BusinessService.getBusinessById:",
+      //       error
+      //     );
+      //   }
+      // }
       return business as unknown as Business;
     } catch (error) {
       // Appwrite throws an error if document not found, return null in that case
@@ -303,16 +303,16 @@ export const BusinessService = {
       }
 
       // Invalidate cache for the business
-      const businessCacheKey = `business:${businessId}`;
-      try {
-        await redisClient.del(businessCacheKey);
-        console.log(`Cache invalidated for business: ${businessId}`);
-      } catch (error) {
-        console.error(
-          "Redis DEL error during BusinessService.updateBusiness:",
-          error
-        );
-      }
+      // const businessCacheKey = `business:${businessId}`;
+      // try {
+      //   await redisClient.del(businessCacheKey);
+      //   console.log(`Cache invalidated for business: ${businessId}`);
+      // } catch (error) {
+      //   console.error(
+      //     "Redis DEL error during BusinessService.updateBusiness:",
+      //     error
+      //   );
+      // }
 
       return updatedBusinessDoc as unknown as Business;
     } catch (error) {

@@ -29,6 +29,8 @@ export function VerificationRequestItem({
   request,
   refetch,
 }: VerificationRequestItemProps) {
+  if (!request.user || !request.business) return null;
+
   const [adminNotes, setAdminNotes] = useState("");
   const [showNotes, setShowNotes] = useState(false); // To show notes field only when rejecting
 
@@ -52,7 +54,7 @@ export function VerificationRequestItem({
   const handleApprove = () => {
     mutation.mutate({
       verificationDocumentId: request.verificationDocument.$id,
-      businessId: request.business.$id,
+      businessId: request.business?.$id!,
       newStatus: "verified",
     });
   };
@@ -69,22 +71,22 @@ export function VerificationRequestItem({
     }
     mutation.mutate({
       verificationDocumentId: request.verificationDocument.$id,
-      businessId: request.business.$id,
+      businessId: request.business?.$id!,
       newStatus: "rejected",
       adminNotes: adminNotes.trim(),
     });
   };
 
-  const submittedAtDate = request.verificationDocument.submittedAt
-    ? new Date(request.verificationDocument.submittedAt)
+  const submittedAtDate = request.verificationDocument.$createdAt
+    ? new Date(request.verificationDocument.$createdAt)
     : null;
 
   return (
     <Card className="mb-4">
       <CardHeader>
-        <CardTitle>{request.business.name}</CardTitle>
+        <CardTitle>{request.business?.name}</CardTitle>
         <CardDescription>
-          Submitted by: {request.user.name} ({request.user.email})
+          Submitted by: {request.user?.name} ({request.user?.email})
           <br />
           {submittedAtDate
             ? `Submitted ${formatDistanceToNow(submittedAtDate, {

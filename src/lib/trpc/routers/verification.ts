@@ -160,24 +160,10 @@ export function createVerificationProcedures(
 
     // --- Admin Procedures ---
     listPendingVerifications: adminProcedure
-      .output(z.array(pendingVerificationDetailsSchema))
       .query(async ({ ctx }) => {
         // No input needed for basic listing, add pagination input later if needed
         try {
-          // Call the Appwrite service function to get pending verifications with details
-          // This function needs to be implemented in VerificationService
-          // It should fetch verification docs where business status is 'pending',
-          // then fetch related business, user, and generate file URLs.
-          const pendingVerifications =
-            await VerificationService.listPendingVerificationsWithDetails();
-
-          // Validate the structure of the returned data (optional but recommended)
-          // This assumes the service function returns data matching the schema structure
-          // Use .safeParse for better error handling if needed
-          const parsedData = pendingVerificationDetailsSchema
-            .array()
-            .parse(pendingVerifications);
-          return parsedData;
+          return await VerificationService.listPendingVerificationsWithDetails();
         } catch (error) {
           console.error("Error listing pending verifications:", error);
           if (error instanceof z.ZodError) {

@@ -66,12 +66,12 @@ export default function OnboardingSubscriptionPage() {
     })) || [];
 
   const displayedPlans = plans.filter((plan) => {
-    if (
-      process.env.NODE_ENV !== "development" &&
-      plan.name?.toLowerCase().includes("test")
-    ) {
-      return false;
-    }
+    // if (
+    //   process.env.NODE_ENV !== "development" &&
+    //   plan.name?.toLowerCase().includes("test")
+    // ) {
+    //   return false;
+    // }
 
     isAnnualBilling
       ? plan.interval?.toLowerCase() === "annually"
