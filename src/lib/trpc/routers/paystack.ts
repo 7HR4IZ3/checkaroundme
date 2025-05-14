@@ -15,6 +15,8 @@ import { calculateExpiryDate } from "@/lib/utils";
 
 import type { IPlan } from "paystack-sdk/dist/plan";
 import type { AppTRPC } from "../router";
+import { AuthService } from "@/lib/appwrite/services/auth";
+import { Subscription } from "paystack-sdk/dist/subscription";
 
 // --- Zod Schemas for Paystack Inputs ---
 
@@ -136,8 +138,23 @@ export function createPaystackProcedures(
     verifyTransactionAndCreateSubscription: protectedProcedure // Make protected as it modifies user data
       .input(verifyTransactionInputSchema)
       .mutation(async ({ input, ctx }) => {
-        // Changed to mutation as it has side effects
         try {
+          // 0. Check for existing subscription
+          const user = await AuthService.getCurrentUser();
+          if (!user) throw new Error("Unauthenticated user");
+
+          console.log(user.user.prefs);
+
+          if (user.user.prefs.subscriptionStatus === "active") {
+            return {
+              success: true,
+              message:
+                "Transaction verified, subscription created, and user profile updated.",
+              subscriptionCode: "",
+              transactionStatus: "",
+            };
+          }
+
           // 1. Verify the transaction
           const verifyResponse = await psVerifyTransaction(input.reference);
           if (
@@ -161,8 +178,7 @@ export function createPaystackProcedures(
           const authorizationCode =
             transactionData.authorization?.authorization_code;
           const userId = metadata?.userId;
-          const isEligibleForTwoMonthFreeOffer =
-            metadata?.isEligibleForTwoMonthFreeOffer === true;
+          const isEligibleForTwoMonthFreeOffer = metadata?.isEligibleForTwoMonthFreeOffer === true;
           const planInterval = metadata?.interval?.toLowerCase();
 
           if (
@@ -186,7 +202,7 @@ export function createPaystackProcedures(
           }
 
           let paystackSubscriptionStartDate = new Date();
-          if (isEligibleForTwoMonthFreeOffer) {
+          if (true || isEligibleForTwoMonthFreeOffer) {
             const twoMonthsFromNow = new Date();
             twoMonthsFromNow.setMonth(twoMonthsFromNow.getMonth() + 2);
             paystackSubscriptionStartDate = twoMonthsFromNow;
@@ -217,7 +233,7 @@ export function createPaystackProcedures(
             );
           }
           // @ts-ignore
-          const subscriptionData = createSubResponse.data;
+          const subscriptionData = createSubResponse.data as Subscription;
 
           // 4. Update Appwrite User Document
           const paystackCustomerId =
@@ -241,7 +257,7 @@ export function createPaystackProcedures(
           let appwriteExpiryDate: Date;
           const currentDate = new Date();
 
-          if (isEligibleForTwoMonthFreeOffer) {
+          if (true || isEligibleForTwoMonthFreeOffer) {
             // Base expiry is 2 months from now + plan's original interval
             const twoMonthsFromNow = new Date(currentDate);
             twoMonthsFromNow.setMonth(currentDate.getMonth() + 2);
@@ -259,6 +275,7 @@ export function createPaystackProcedures(
             planCode: planCode,
             subscriptionExpiry: appwriteExpiryDate,
             paystackCustomerId: paystackCustomerId,
+            paystackSubscriptionToken: subscriptionData.email_token,
             paystackSubscriptionCode: subscriptionData.subscription_code,
           });
 

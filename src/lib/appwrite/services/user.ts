@@ -14,6 +14,7 @@ export const updateUserSubscriptionStatus = async (
     planCode: string;
     subscriptionExpiry: Date;
     paystackCustomerId?: string;
+    paystackSubscriptionToken?: string | null;
     paystackSubscriptionCode?: string | null; // Make explicitly optional or nullable
     // Add any other relevant fields you store
   },

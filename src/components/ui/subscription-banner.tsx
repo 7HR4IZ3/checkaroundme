@@ -20,7 +20,7 @@ export function SubscriptionBanner() {
           <p className="text-sm font-medium">
             You are currently not subscribed.{" "}
             <Link
-              href="/auth/onboarding"
+              href="/business/payment"
               className="font-semibold underline hover:text-yellow-800"
             >
               Subscribe now

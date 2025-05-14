@@ -65,18 +65,22 @@ export default function OnboardingSubscriptionPage() {
       description: p.description || `Billed ${p.interval}`,
     })) || [];
 
-  const displayedPlans = plans.filter((plan) => {
-    // if (
-    //   process.env.NODE_ENV !== "development" &&
-    //   plan.name?.toLowerCase().includes("test")
-    // ) {
-    //   return false;
-    // }
+  console.log(plans);
 
-    isAnnualBilling
-      ? plan.interval?.toLowerCase() === "annually"
-      : plan.interval?.toLowerCase() === "monthly";
+  const displayedPlans = plans.filter((plan) => {
+    if (
+      (!process.env.NODE_ENV || process.env.NODE_ENV !== "development") &&
+      plan.description.toLowerCase().includes("test")
+    ) {
+      return false;
+    }
+
+    return isAnnualBilling
+      ? plan.interval.toLowerCase() === "annually"
+      : plan.interval.toLowerCase() === "monthly";
   });
+
+  console.log(process.env.NODE_ENV, displayedPlans);
 
   useEffect(() => {
     if (displayedPlans.length > 0) {

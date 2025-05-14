@@ -23,10 +23,6 @@ export default function PaymentStatusPage() {
     return router.push("/auth");
   }
 
-  if (user.prefs.subscriptionStatus !== "active") {
-    return router.push("/auth/onboarding");
-  }
-
   const searchParams = useSearchParams();
   // Paystack typically uses 'reference' or 'trxref' in the callback
   const reference = searchParams.get("reference") || searchParams.get("trxref");
@@ -37,7 +33,7 @@ export default function PaymentStatusPage() {
     "loading" | "success" | "error" | "pending" | "cancelled"
   >("loading");
   const [displayMessage, setDisplayMessage] = useState<string>(
-    "Verifying your payment...",
+    "Verifying your payment..."
   );
   // Use the combined mutation
   const verifyAndSubscribeMutation =
@@ -46,7 +42,7 @@ export default function PaymentStatusPage() {
         console.log("Verification and subscription successful:", data);
         setDisplayStatus("success");
         setDisplayMessage(
-          data.message || "Payment successful and subscription activated!",
+          data.message || "Payment successful and subscription activated!"
         );
         toast.success("Subscription Activated!");
       },
@@ -54,7 +50,7 @@ export default function PaymentStatusPage() {
         console.error("Verification or subscription creation failed:", error);
         setDisplayStatus("error");
         setDisplayMessage(
-          error.message || "An error occurred during payment processing.",
+          error.message || "An error occurred during payment processing."
         );
         toast.error("Payment Processing Error", { description: error.message });
       },
@@ -64,7 +60,7 @@ export default function PaymentStatusPage() {
   useEffect(() => {
     if (reference && verifyAndSubscribeMutation.isIdle) {
       console.log(
-        `Attempting to verify and subscribe with reference: ${reference}`,
+        `Attempting to verify and subscribe with reference: ${reference}`
       );
       setDisplayStatus("loading");
       setDisplayMessage("Verifying payment and activating subscription...");
@@ -73,7 +69,7 @@ export default function PaymentStatusPage() {
       // Handle case where reference is missing on initial load
       setDisplayStatus("error");
       setDisplayMessage(
-        "Payment verification failed: Missing transaction reference.",
+        "Payment verification failed: Missing transaction reference."
       );
     }
     // Intentionally run only once when reference is available or changes
@@ -152,23 +148,23 @@ export default function PaymentStatusPage() {
           return null;
       }
     }
-
-    return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-center">
-              Payment Status
-            </CardTitle>
-            <CardDescription className="text-center text-muted-foreground">
-              {displayStatus === "pending"
-                ? "Please wait..."
-                : `Your payment status: ${displayStatus}.`}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-center">{renderContent()}</CardContent>
-        </Card>
-      </div>
-    );
   };
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-center">
+            Payment Status
+          </CardTitle>
+          <CardDescription className="text-center text-muted-foreground">
+            {displayStatus === "pending"
+              ? "Please wait..."
+              : `Your payment status: ${displayStatus}.`}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-center">{renderContent()}</CardContent>
+      </Card>
+    </div>
+  );
 }
