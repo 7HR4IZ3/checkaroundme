@@ -202,7 +202,7 @@ export default function BusinessPage() {
         toast.success(
           `Business ${
             updatedBusiness.status === "active" ? "activated" : "deactivated"
-          } successfully.`,
+          } successfully.`
         );
       } else {
         // This case should ideally not happen if the mutation was "successful"
@@ -266,8 +266,8 @@ export default function BusinessPage() {
     typeof params.businessId === "string"
       ? params.businessId
       : Array.isArray(params.businessId)
-        ? params.businessId[0]
-        : "";
+      ? params.businessId[0]
+      : "";
 
   // tRPC queries
   const {
@@ -281,7 +281,7 @@ export default function BusinessPage() {
     error: imagesError,
   } = trpc.getBusinessImages.useQuery(
     { businessId },
-    { enabled: !!businessId },
+    { enabled: !!businessId }
   );
   const {
     data: hours,
@@ -506,15 +506,20 @@ export default function BusinessPage() {
             {/* Business Info */}
             <section>
               <div className="flex items-center gap-2 mb-2">
-                <h1 className="text-3xl font-bold">{business.name}</h1>
+                <h1
+                  className="text-3xl font-bold"
+                  style={{ viewTransitionName: `business-${businessId}-name` }}
+                >
+                  {business.name}
+                </h1>
                 {user?.$id === business.ownerId && (
                   <Link
                     className="ml-2 flex items-center gap-1"
                     href={`/business/${businessId}/edit`}
                   >
                     <Button>
-                    <Pencil className="w-4 h-4 mr-1" />
-                    Edit Business
+                      <Pencil className="w-4 h-4 mr-1" />
+                      Edit Business
                     </Button>
                   </Link>
                 )}
@@ -536,8 +541,8 @@ export default function BusinessPage() {
                     {updateBusinessMutation.isPending
                       ? "Updating..."
                       : business.status === "active"
-                        ? "Deactivate"
-                        : "Activate"}
+                      ? "Deactivate"
+                      : "Activate"}
                   </Button>
                 )}
               </div>
@@ -589,7 +594,7 @@ export default function BusinessPage() {
                 <span>
                   {(() => {
                     const today = openingHours.find(
-                      (h) => h.day === currentDay,
+                      (h) => h.day === currentDay
                     );
                     return today ? today.hours : "";
                   })()}
@@ -677,7 +682,10 @@ export default function BusinessPage() {
                           src={imgSrc}
                           alt={`Business photo ${index + 1}`}
                           fill
-                          style={{ objectFit: "cover" }}
+                          style={{
+                            objectFit: "cover",
+                            viewTransitionName: `business-${businessId}-image`,
+                          }}
                           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                           priority={index < 3}
                         />
@@ -736,7 +744,7 @@ export default function BusinessPage() {
                           .map((opt) =>
                             opt
                               .replace(/_/g, " ")
-                              .replace(/\b\w/g, (l) => l.toUpperCase()),
+                              .replace(/\b\w/g, (l) => l.toUpperCase())
                           )
                           .join(", ")}
                       </span>
@@ -820,9 +828,9 @@ export default function BusinessPage() {
                             item.hours === "Closed"
                               ? "text-red-600"
                               : item.day === currentDay &&
-                                  item.hours !== "Closed"
-                                ? "text-green-600"
-                                : ""
+                                item.hours !== "Closed"
+                              ? "text-green-600"
+                              : ""
                           }
                         >
                           {item.hours}
@@ -930,8 +938,16 @@ export default function BusinessPage() {
                 variant="ghost"
                 className="w-full flex justify-end md:justify-between flex-row-reverse md:flex-row"
               >
-                <Link href={`tel:${business.phone}`}>
-                  <span className="ml-2">{business.phone}</span>{" "}
+                <Link
+                  href={`tel:${
+                    (business.phoneCountryCode || "") +
+                    (business.phoneNumber || "")
+                  }`}
+                >
+                  <span className="ml-2">
+                    {(business.phoneCountryCode || "") +
+                      (business.phoneNumber || "")}
+                  </span>{" "}
                 </Link>
                 <Phone className="h-4 w-4" />
               </Button>
@@ -1011,7 +1027,7 @@ export default function BusinessPage() {
                 disabled={currentImageIndex === imageUrls.length - 1}
                 onClick={() =>
                   setCurrentImageIndex((prev) =>
-                    Math.min(imageUrls.length - 1, prev + 1),
+                    Math.min(imageUrls.length - 1, prev + 1)
                   )
                 }
               >

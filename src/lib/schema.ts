@@ -52,9 +52,10 @@ export const businessSchema = z.object({
   postalCode: z.string().optional(),
   paymentOptions: z.array(z.string()).optional(), // e.g., ["cash", "bank_transfers"] - Can be used for filtering
   coordinates: z.string().optional(),
-  phone: z.string().optional(),
+  phoneCountryCode: z.string().optional(),
+  phoneNumber: z.string().optional(),
   email: z.string().email().optional(),
-  website: z.string().url().optional(),
+  website: z.string().url().optional().nullable(),
   createdAt: z.date().default(() => new Date()),
   updatedAt: z.date().default(() => new Date()),
   ownerId: z.string(),
@@ -182,9 +183,9 @@ export const verificationDocumentSchema = z.object({
   businessId: z.string(),
   userId: z.string(),
   documentFileId: z.string(),
-  documentType: z.string().optional(), // e.g., "Passport", "Driver's License"
-  submittedAt: z.date().default(() => new Date()),
-  adminNotes: z.string().optional(), // Admin review comments
+  status: z.enum(["pending", "verified", "rejected"]).default("pending"),
+  documentType: z.string().optional(),
+  adminNotes: z.string().optional(),
 });
 
 // User Settings Schema
@@ -212,6 +213,16 @@ export const changePasswordSchema = z
     message: "New passwords do not match",
     path: ["confirmNewPassword"],
   });
+
+export const registerInputSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  phone: z.string().optional(),
+  captchaToken: z.string().min(1, "Captcha is required"),
+  login: z.boolean().optional().default(true),
+  referralCode: z.string().optional(),
+});
 
 // User Subscription Schema (for Appwrite User Prefs)
 export const userSubscriptionSchema = z.object({
@@ -255,5 +266,6 @@ export type DaySchema = z.infer<typeof daySchema>;
 export type VerificationDocument = z.infer<typeof verificationDocumentSchema>;
 export type UserSettings = z.infer<typeof userSettingsSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type RegisterInput = z.infer<typeof registerInputSchema>;
 export type UserSubscription = z.infer<typeof userSubscriptionSchema>;
 export type PaymentTransaction = z.infer<typeof paymentTransactionSchema>;

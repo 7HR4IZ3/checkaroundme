@@ -83,6 +83,7 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
             alt={business.name}
             fill
             className="rounded-xl bg-gray-200 object-cover" // Background while loading
+            style={{ viewTransitionName: `business-${business.$id}-image` }}
           />
         )}
       </div>
@@ -90,7 +91,10 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
         <div className="flex flex-col justify-between gap-1 md:gap-2">
           <div className="flex p-0 justify-between items-start">
             <Link href={`/business/${business.$id}`}>
-              <h3 className="text-md md:text-xl font-semibold text-gray-800">
+              <h3
+                className="text-md md:text-xl font-semibold text-gray-800"
+                style={{ viewTransitionName: `business-${business.$id}-name` }}
+              >
                 {business.name}
               </h3>
             </Link>
@@ -136,9 +140,14 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
           </p>
         </div>
         <div className="flex flex-row sm:items-center justify-end align-end mt-2 gap-8">
-          {business.phone && (
+          {(business.phoneCountryCode || "") + (business.phoneNumber || "") && (
             <Button className="text-xs" variant="ghost" size="icon">
-              <Link href={`tel:${business.phone}`}>
+              <Link
+                href={`tel:${
+                  (business.phoneCountryCode || "") +
+                  (business.phoneNumber || "")
+                }`}
+              >
                 <PhoneCallIcon />
               </Link>
             </Button>

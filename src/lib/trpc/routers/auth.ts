@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { AuthService } from "../../appwrite/services/auth";
-import { changePasswordSchema } from "../../schema";
+import { changePasswordSchema, registerInputSchema } from "../../schema";
 import SuperJSON from "superjson";
 import { TRPCError } from "@trpc/server";
 
@@ -48,16 +48,7 @@ export function createAuthProcedures(
 
   return {
     register: protectedProcedure
-      .input(
-        z.object({
-          email: z.string().email(),
-          password: z.string().min(6),
-          name: z.string(),
-          phone: z.string().optional(),
-          login: z.boolean().default(true),
-          captchaToken: z.string(), // Added captcha token
-        }),
-      )
+      .input(registerInputSchema)
       .mutation(async ({ input }) => {
         const captchaResult = await verifyCaptcha(input.captchaToken);
         if (!captchaResult.success) {

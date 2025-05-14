@@ -1,40 +1,53 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
+import {
+  UseFormRegister,
+  FieldErrors,
+  Control,
+  UseFormSetValue,
+  UseFormWatch,
+} from "react-hook-form";
+import { BusinessFormValues } from "./business-form"; // Import the main form values type
 
 interface BusinessFormServicesProps {
-  servicesOffered: string[];
-  setServicesOffered: React.Dispatch<React.SetStateAction<string[]>>;
-  newService: string;
-  setNewService: (value: string) => void;
+  // Pass RHF props down based on the main form values
+  register: UseFormRegister<BusinessFormValues>;
+  errors: FieldErrors<BusinessFormValues>;
+  control: Control<BusinessFormValues>;
+  setValue: UseFormSetValue<BusinessFormValues>;
+  watch: UseFormWatch<BusinessFormValues>;
 }
 
 export const BusinessFormServices: React.FC<BusinessFormServicesProps> =
   React.memo(
     ({
-      servicesOffered,
-      setServicesOffered,
-      newService,
-      setNewService,
+      setValue,
+      watch,
     }) => {
+      const [newService, setNewService] = useState(""); // Keep local state for the input
+
+      const servicesOffered = watch("services") ?? []; // Watch the services array from RHF
+
       const handleAddService = useCallback(() => {
         const trimmedService = newService.trim();
         if (trimmedService && !servicesOffered.includes(trimmedService)) {
-          setServicesOffered((prev) => [...prev, trimmedService]);
+          setValue("services", [...servicesOffered, trimmedService]); // Update RHF state
           setNewService(""); // Clear the input
         }
-      }, [newService, servicesOffered, setServicesOffered, setNewService]);
+      }, [newService, servicesOffered, setValue]);
 
       const handleRemoveService = useCallback(
         (serviceToRemove: string) => {
-          setServicesOffered((prev) =>
-            prev.filter((service) => service !== serviceToRemove),
+          setValue(
+            "services",
+            servicesOffered.filter((service) => service !== serviceToRemove), // Update RHF state
           );
         },
-        [setServicesOffered],
+        [servicesOffered, setValue],
       );
 
       const handleKeyDown = useCallback(

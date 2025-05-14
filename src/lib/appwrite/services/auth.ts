@@ -1,11 +1,10 @@
-import { Account, ID, Models, OAuthProvider } from "node-appwrite";
+import { ID, Models, OAuthProvider } from "node-appwrite";
 import { cookies } from "next/headers";
-import { User, AuthSession } from "../../schema";
+import { User } from "../../schema";
 
 import { createAdminClient } from "../admin";
 import { createSessionClient } from "../session";
 import {
-  client,
   databases,
   DATABASE_ID,
   USERS_COLLECTION_ID,
@@ -20,6 +19,7 @@ export const AuthService = {
     password: string,
     name: string,
     phone?: string,
+    referralCode?: string,
   ): Promise<User> {
     try {
       // Create user account
@@ -39,6 +39,7 @@ export const AuthService = {
           phone,
           fullName: name,
           avatarUrl: null,
+          referralCode: referralCode || null,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },

@@ -31,7 +31,7 @@ function getHaversineDistance(
   lat1: number,
   lon1: number,
   lat2: number,
-  lon2: number,
+  lon2: number
 ): number {
   const R = 6371; // Radius of the Earth in km
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -50,7 +50,7 @@ function getHaversineDistance(
 // Assumes BusinessHoursService.getBusinessHours(businessId) exists and returns BusinessHours or null
 async function checkOpenNow(
   business: Business,
-  currentTime: Date,
+  currentTime: Date
 ): Promise<boolean> {
   try {
     const hoursDoc = await BusinessHoursService.getBusinessHours(business.$id);
@@ -104,7 +104,7 @@ async function checkOpenNow(
   } catch (error) {
     console.warn(
       `Could not determine if business ${business.$id} is open due to error:`,
-      error,
+      error
     );
     return false; // Assume closed on error
   }
@@ -120,7 +120,7 @@ export const BusinessService = {
     > & { status?: "active" | "disabled" },
     userId: string,
     hours: { [key: string]: DaySchema },
-    images: { isPrimary: boolean; imageID: string }[],
+    images: BusinessImage[]
   ): Promise<Business> {
     try {
       const auth = await AuthService.getCurrentUser();
@@ -148,7 +148,7 @@ export const BusinessService = {
             headers: {
               "User-Agent": "CheckAroundMe/1.0 (contact@checkaroundme.com)", // Replace with your app name and contact
             },
-          },
+          }
         );
 
         if (geocodeResponse.data && geocodeResponse.data.length > 0) {
@@ -160,19 +160,19 @@ export const BusinessService = {
           console.log(`Geocoded address "${address}" to`, coordinates);
         } else {
           console.warn(
-            `Could not geocode address: "${address}". No results found.`,
+            `Could not geocode address: "${address}". No results found.`
           );
         }
       } catch (error) {
         if (axios.isAxiosError(error)) {
           console.error(
             `Geocoding API error: ${error.message}`,
-            error.response?.data,
+            error.response?.data
           );
         } else {
           console.error(
             "An unexpected error occurred during geocoding:",
-            error,
+            error
           );
         }
         // Continue without coordinates if geocoding fails
@@ -198,14 +198,14 @@ export const BusinessService = {
           ownerId: userId,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        },
+        }
       );
 
       await BusinessHoursService.setBusinessHours(newBusiness.$id, hours);
 
       await BusinessImagesService.uploadTempImagesToBusiness(
         newBusiness.$id,
-        images,
+        images
       );
 
       return newBusiness as unknown as Business;
@@ -227,7 +227,7 @@ export const BusinessService = {
     } catch (error) {
       console.error(
         "Redis GET error in BusinessService.getBusinessById:",
-        error,
+        error
       );
     }
 
@@ -235,7 +235,7 @@ export const BusinessService = {
       const business = await databases.getDocument(
         DATABASE_ID,
         BUSINESSES_COLLECTION_ID,
-        businessId,
+        businessId
       );
 
       if (business) {
@@ -247,7 +247,7 @@ export const BusinessService = {
         } catch (error) {
           console.error(
             "Redis SET error in BusinessService.getBusinessById:",
-            error,
+            error
           );
         }
       }
@@ -263,7 +263,7 @@ export const BusinessService = {
       }
       console.error(
         "Get business error in BusinessService.getBusinessById:",
-        error,
+        error
       );
       throw error;
     }
@@ -274,8 +274,8 @@ export const BusinessService = {
     businessId: string,
     data: Partial<Business> & {
       hours?: { [key: string]: DaySchema };
-      images?: { isPrimary: boolean; imageID: string }[];
-    },
+      images?: BusinessImage[];
+    }
   ): Promise<Business | null> {
     const { hours, images, ...businessData } = data;
     try {
@@ -286,19 +286,19 @@ export const BusinessService = {
         {
           ...businessData,
           updatedAt: new Date().toISOString(),
-        },
+        }
       );
 
       if (hours) {
         await BusinessHoursService.setBusinessHours(
           updatedBusinessDoc.$id,
-          hours,
+          hours
         );
       }
       if (images) {
         await BusinessImagesService.uploadTempImagesToBusiness(
           updatedBusinessDoc.$id,
-          images,
+          images
         );
       }
 
@@ -310,7 +310,7 @@ export const BusinessService = {
       } catch (error) {
         console.error(
           "Redis DEL error during BusinessService.updateBusiness:",
-          error,
+          error
         );
       }
 
@@ -325,7 +325,7 @@ export const BusinessService = {
       }
       console.error(
         "Update business error in BusinessService.updateBusiness:",
-        error,
+        error
       );
       throw error;
     }
@@ -369,7 +369,7 @@ export const BusinessService = {
 
       if (query) {
         appwriteFilters.push(
-          Query.or([Query.search("name", query), Query.search("about", query)]),
+          Query.or([Query.search("name", query), Query.search("about", query)])
         );
       }
 
@@ -381,7 +381,7 @@ export const BusinessService = {
             Query.search("city", location),
             Query.search("state", location),
             Query.search("country", location),
-          ]),
+          ])
         );
       }
 
@@ -389,7 +389,7 @@ export const BusinessService = {
         const priceValue = parseInt(price.replace(/[^0-9]/g, ""), 10);
         if (!isNaN(priceValue)) {
           appwriteFilters.push(
-            Query.lessThanEqual("priceIndicator", priceValue),
+            Query.lessThanEqual("priceIndicator", priceValue)
           );
         }
       }
@@ -425,13 +425,13 @@ export const BusinessService = {
         queryOptions.push(
           sortDirection === "asc"
             ? Query.orderAsc(sortBy)
-            : Query.orderDesc(sortBy),
+            : Query.orderDesc(sortBy)
         );
 
       const result = await databases.listDocuments(
         DATABASE_ID,
         BUSINESSES_COLLECTION_ID,
-        queryOptions,
+        queryOptions
       );
 
       let processedBusinesses = result.documents as unknown as Business[];
@@ -447,7 +447,7 @@ export const BusinessService = {
           async (business) => ({
             business,
             isOpen: await checkOpenNow(business, currentTime),
-          }),
+          })
         );
         const openBusinessesResults = await Promise.all(openBusinessesPromises);
         processedBusinesses = openBusinessesResults
@@ -481,13 +481,13 @@ export const BusinessService = {
               userLatitude,
               userLongitude,
               coords.latitude,
-              coords.longitude,
+              coords.longitude
             );
             return distance <= maxDistanceKm;
           } catch (e) {
             console.warn(
               `Error parsing coordinates for business ${business.$id}: ${business.coordinates}`,
-              e,
+              e
             );
             return false;
           }
@@ -506,13 +506,13 @@ export const BusinessService = {
             userLatitude,
             userLongitude,
             aCoords.latitude,
-            aCoords.longitude,
+            aCoords.longitude
           );
           const distanceB = getHaversineDistance(
             userLatitude,
             userLongitude,
             bCoords.latitude,
-            bCoords.longitude,
+            bCoords.longitude
           );
           return distanceA - distanceB;
         });
@@ -536,7 +536,7 @@ export const BusinessService = {
     latitude: number,
     longitude: number,
     distanceKm: number = 10, // Renamed for clarity, in kilometers
-    limit: number = 10,
+    limit: number = 10
   ): Promise<Business[]> {
     try {
       // Fetch a larger set of businesses to filter client-side.
@@ -547,7 +547,7 @@ export const BusinessService = {
         [
           Query.limit(Math.min(limit * 5, 100)), // Fetch more, up to 100 (Appwrite default max)
           Query.orderDesc("rating"), // Example sorting
-        ],
+        ]
       );
 
       const businesses = result.documents as unknown as Business[];
@@ -572,13 +572,13 @@ export const BusinessService = {
               latitude,
               longitude,
               coords.latitude,
-              coords.longitude,
+              coords.longitude
             );
             return dist <= distanceKm;
           } catch (e) {
             console.warn(
               `Error parsing coordinates for business ${business.$id} in getNearbyBusinesses: ${business.coordinates}`,
-              e,
+              e
             );
             return false;
           }
@@ -598,7 +598,7 @@ export const BusinessService = {
       const { documents: businesses } = await databases.listDocuments(
         DATABASE_ID,
         BUSINESSES_COLLECTION_ID,
-        [Query.equal("ownerId", userId)],
+        [Query.equal("ownerId", userId)]
       );
 
       return businesses as unknown as Business[];
@@ -606,5 +606,5 @@ export const BusinessService = {
       console.error("Get businesses by user ID error:", error);
       throw error;
     }
-  },
+  }
 };

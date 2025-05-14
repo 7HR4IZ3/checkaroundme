@@ -112,7 +112,7 @@ export const BusinessImagesService = {
 
   async uploadTempImagesToBusiness(
     businessId: string,
-    images: { isPrimary: boolean; imageID: string }[],
+    images: BusinessImage[],
   ): Promise<void> {
     let hasPrimaryimage = false;
     for (const [index, image] of images.reverse().entries()) {
@@ -123,7 +123,7 @@ export const BusinessImagesService = {
       await databases.updateDocument(
         DATABASE_ID,
         BUSINESS_IMAGES_COLLECTION_ID,
-        image.imageID,
+        image.$id,
         {
           businessId,
           isPrimary: hasPrimaryimage,

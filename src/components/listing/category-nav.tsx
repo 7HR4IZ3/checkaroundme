@@ -66,7 +66,7 @@ const CategoryIcon = ({
       return <Sprout size={size} />;
     case "Pest Control":
       return <Bug size={size} />;
-    case "HVAC":
+    case "HV / AC":
       return <AirVent size={size} />;
     case "Tutor":
       return <GraduationCap size={size} />;

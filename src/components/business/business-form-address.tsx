@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
@@ -8,6 +8,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  UseFormRegister,
+  FieldErrors,
+  Control,
+  UseFormSetValue,
+  UseFormWatch,
+} from "react-hook-form";
+import { BusinessFormValues } from "./business-form"; // Import the main form values type
+import { Controller } from "react-hook-form";
+import { trpc } from "@/lib/trpc/client";
 
 // Define types for the data fetched via tRPC to ensure type safety
 interface CountryData {
@@ -26,162 +36,140 @@ interface CityData {
 }
 
 interface BusinessFormAddressProps {
-  addressLine1: string;
-  setAddressLine1: (value: string) => void;
-  addressLine1Error: string;
-  setAddressLine1Error: (value: string) => void;
-
-  country: string;
-  setCountry: (value: string) => void;
-  countryIsoCode: string | undefined;
-  setCountryIsoCode: (value: string | undefined) => void;
-  countryError: string;
-  setCountryError: (value: string) => void;
-
-  state: string;
-  setState: (value: string) => void;
-  stateIsoCode: string | undefined;
-  setStateIsoCode: (value: string | undefined) => void;
-
-  city: string;
-  setCity: (value: string) => void;
-  cityError: string;
-  setCityError: (value: string) => void;
-
-  phoneCountryCode: string;
-  setPhoneCountryCode: (value: string) => void;
-  phoneNumber: string;
-  setPhoneNumber: (value: string) => void;
-
-  // tRPC query results passed as props
-  countriesData: CountryData[] | undefined;
-  isLoadingCountries: boolean;
-  statesData: StateData[] | undefined;
-  isLoadingStates: boolean;
-  citiesData: CityData[] | undefined;
-  isLoadingCities: boolean;
+  // Pass RHF props down based on the main form values
+  register: UseFormRegister<BusinessFormValues>;
+  errors: FieldErrors<BusinessFormValues>;
+  control: Control<BusinessFormValues>;
+  setValue: UseFormSetValue<BusinessFormValues>;
+  watch: UseFormWatch<BusinessFormValues>;
 }
 
-export const BusinessFormAddress: React.FC<BusinessFormAddressProps> =
-  React.memo(
-    ({
-      addressLine1,
-      setAddressLine1,
-      addressLine1Error,
-      setAddressLine1Error,
-      country,
-      setCountry,
-      countryIsoCode,
-      setCountryIsoCode,
-      countryError,
-      setCountryError,
-      state,
-      setState,
-      stateIsoCode,
-      setStateIsoCode,
-      city,
-      setCity,
-      cityError,
-      setCityError,
-      phoneCountryCode,
-      setPhoneCountryCode,
-      phoneNumber,
-      setPhoneNumber,
-      countriesData,
-      isLoadingCountries,
-      statesData,
-      isLoadingStates,
-      citiesData,
-      isLoadingCities,
-    }) => {
-      // Handler for country selection (main dropdown)
-      const handleCountryChange = (value: string) => {
-        setCountry(value);
-        setCountryError("");
-        setState(""); // Clear state name
-        setStateIsoCode(undefined); // Clear state ISO code
-        setCity(""); // Clear city name
+export const BusinessFormAddress: React.FC<BusinessFormAddressProps> = ({
+  register,
+  errors,
+  control,
+  setValue,
+  watch,
+}) => {
+  // Watch relevant fields from the main form state
+  const countryIsoCode = watch("country");
+  const stateIsoCode = watch("state");
 
-        const selectedCountryData = countriesData?.find(
-          (c) => c.name === value
-        );
-        if (selectedCountryData) {
-          setCountryIsoCode(selectedCountryData.isoCode);
-          setPhoneCountryCode(selectedCountryData.phonecode || "+");
-        } else {
-          setCountryIsoCode(undefined);
-          setPhoneCountryCode("+");
-        }
-      };
+  const { data: countriesData, isLoading: isLoadingCountries } =
+    trpc.getCountries.useQuery();
+  const { data: statesData, isLoading: isLoadingStates } =
+    trpc.getStatesByCountry.useQuery(
+      { countryIsoCode: countryIsoCode },
+      { enabled: !!countryIsoCode } // Only fetch states when a country ISO code is selected
+    );
+  const { data: citiesData, isLoading: isLoadingCities } =
+    trpc.getCitiesByState.useQuery(
+      { countryIsoCode: countryIsoCode, stateIsoCode: stateIsoCode },
+      { enabled: !!countryIsoCode && !!stateIsoCode } // Only fetch cities when country and state ISO codes are selected
+    );
 
-      // Handler for state selection
-      const handleStateChange = (value: string) => {
-        setState(value);
-        setCity(""); // Clear city name
-        const selectedStateData = statesData?.find((s) => s.name === value);
-        setStateIsoCode(selectedStateData?.isoCode);
-      };
+  // Effect to update phone country code when country ISO code changes
+  useEffect(() => {
+    if (countryIsoCode && countriesData) {
+      const selectedCountryData = countriesData.find(
+        (c) => c.isoCode === countryIsoCode
+      );
+      if (selectedCountryData) {
+        setValue("phoneCountryCode", selectedCountryData.phonecode || "+");
+      } else {
+        setValue("phoneCountryCode", "+");
+      }
+    } else {
+      setValue("phoneCountryCode", "+");
+    }
+  }, [countryIsoCode, countriesData, setValue]);
 
-      // Handler for country selection (phone code dropdown)
-      const handlePhoneCountryChange = (value: string) => {
-        setCountry(value); // Update country name based on selection
-        const selectedCountryData = countriesData?.find(
-          (c) => c.name === value
-        );
-        if (selectedCountryData) {
-          setCountryIsoCode(selectedCountryData.isoCode); // Update ISO code
-          setPhoneCountryCode(selectedCountryData.phonecode || "+"); // Update phone code
-        } else {
-          setPhoneCountryCode("+");
-        }
-        // Also clear state/city when changing country via phone code dropdown
-        setState("");
-        setStateIsoCode(undefined);
-        setCity("");
-      };
+  // Handler for country selection (main dropdown)
+  const handleCountryChange = (isoCode: string) => {
+    setValue("country", isoCode); // Set ISO code in form state
+    setValue("state", ""); // Clear state
+    setValue("city", ""); // Clear city
 
-      return (
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold border-b pb-2">
-            Business Address
-          </h3>
-          <div className="flex flex-col md:flex-row gap-4 flex-wrap">
-            {/* Address Line 1 */}
-            <div className="flex-grow">
-              <Label htmlFor="addressLine1" className="font-semibold">
-                <span className="text-destructive">*</span> Business Address
-                Line 1
-              </Label>
-              <Input
-                id="addressLine1"
-                value={addressLine1}
-                required
-                onChange={(e) => {
-                  setAddressLine1(e.target.value);
-                  setAddressLine1Error(""); // Clear error on change
-                }}
-                placeholder="Enter address line 1"
-                className={`mt-2 ${addressLine1Error ? "border-red-500" : ""}`}
-              />
-              {addressLine1Error && (
-                <p className="text-red-500 text-sm mt-1">{addressLine1Error}</p>
-              )}
-            </div>
+    const selectedCountryData = countriesData?.find(
+      (c) => c.isoCode === isoCode
+    );
+    if (selectedCountryData) {
+      setValue("phoneCountryCode", selectedCountryData.phonecode || "+");
+    } else {
+      setValue("phoneCountryCode", "+");
+    }
+  };
 
-            {/* Country */}
-            <div className="flex-grow">
-              <Label htmlFor="country" className="font-semibold">
-                <span className="text-destructive">*</span> Country
-              </Label>
+  // Handler for state selection
+  const handleStateChange = (isoCode: string) => {
+    setValue("state", isoCode); // Set ISO code in form state
+    setValue("city", ""); // Clear city
+  };
+
+  // Handler for city selection
+  const handleCityChange = (value: string) => {
+    setValue("city", value); // Set city name in form state
+  };
+
+  // Handler for phone country code selection (dropdown)
+  const handlePhoneCountryCodeChange = (phonecode: string) => {
+    // Find the country by phonecode and update the main country field as well
+    const selectedCountryData = countriesData?.find(
+      (c) => c.phonecode === phonecode
+    );
+    if (selectedCountryData) {
+      setValue("country", selectedCountryData.isoCode); // Update main country field
+      setValue("phoneCountryCode", phonecode); // Update phone country code field
+      // Also clear state/city when changing country via phone code dropdown
+      setValue("state", "");
+      setValue("city", "");
+    } else {
+      setValue("phoneCountryCode", phonecode); // Just update phone country code if country not found
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold border-b pb-2">Business Address</h3>
+      <div className="flex flex-col md:flex-row gap-4 flex-wrap">
+        {/* Address Line 1 */}
+        <div className="flex-grow">
+          <Label htmlFor="addressLine1" className="font-semibold">
+            <span className="text-destructive">*</span> Business Address Line 1
+          </Label>
+          <Input
+            id="addressLine1"
+            {...register("addressLine1")}
+            required
+            placeholder="Enter address line 1"
+            className={`mt-2 ${errors.addressLine1 ? "border-red-500" : ""}`}
+          />
+          {errors.addressLine1 && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.addressLine1.message}
+            </p>
+          )}
+        </div>
+
+        {/* Country */}
+        <div className="flex-grow">
+          <Label htmlFor="country" className="font-semibold">
+            <span className="text-destructive">*</span> Country
+          </Label>
+          <Controller
+            name="country"
+            control={control}
+            render={({ field }) => (
               <Select
-                value={country}
+                value={field.value}
                 onValueChange={handleCountryChange}
                 required
+                disabled={isLoadingCountries}
               >
                 <SelectTrigger
                   id="country"
                   className={`mt-2 w-[100%] ${
-                    countryError ? "border-red-500" : ""
+                    errors.country ? "border-red-500" : ""
                   }`}
                 >
                   <SelectValue placeholder="Select country" />
@@ -193,24 +181,32 @@ export const BusinessFormAddress: React.FC<BusinessFormAddressProps> =
                     </SelectItem>
                   )}
                   {countriesData?.map((c) => (
-                    <SelectItem key={c.isoCode} value={c.name}>
+                    <SelectItem key={c.isoCode} value={c.isoCode}>
                       {c.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              {countryError && (
-                <p className="text-red-500 text-sm mt-1">{countryError}</p>
-              )}
-            </div>
+            )}
+          />
+          {errors.country && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.country.message}
+            </p>
+          )}
+        </div>
 
-            {/* State */}
-            <div className="flex-grow">
-              <Label htmlFor="state" className="font-semibold">
-                <span className="text-destructive">*</span> State
-              </Label>
+        {/* State */}
+        <div className="flex-grow">
+          <Label htmlFor="state" className="font-semibold">
+            <span className="text-destructive">*</span> State
+          </Label>
+          <Controller
+            name="state"
+            control={control}
+            render={({ field }) => (
               <Select
-                value={state}
+                value={field.value}
                 onValueChange={handleStateChange}
                 required
                 disabled={!countryIsoCode || isLoadingStates}
@@ -218,8 +214,8 @@ export const BusinessFormAddress: React.FC<BusinessFormAddressProps> =
                 <SelectTrigger
                   id="state"
                   className={`mt-2 w-[100%] ${
-                    cityError ? "border-red-500" : ""
-                  }`} // Use cityError for state as well
+                    errors.state ? "border-red-500" : ""
+                  }`}
                 >
                   <SelectValue placeholder="Select state" />
                 </SelectTrigger>
@@ -237,33 +233,38 @@ export const BusinessFormAddress: React.FC<BusinessFormAddressProps> =
                       </SelectItem>
                     )}
                   {statesData?.map((s) => (
-                    <SelectItem key={s.isoCode} value={s.name}>
+                    <SelectItem key={s.isoCode} value={s.isoCode}>
                       {s.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              {/* No separate state error, covered by cityError */}
-            </div>
+            )}
+          />
+          {errors.state && (
+            <p className="text-red-500 text-sm mt-1">{errors.state.message}</p>
+          )}
+        </div>
 
-            {/* City */}
-            <div className="flex-grow">
-              <Label htmlFor="city" className="font-semibold">
-                <span className="text-destructive">*</span> City
-              </Label>
+        {/* City */}
+        <div className="flex-grow">
+          <Label htmlFor="city" className="font-semibold">
+            <span className="text-destructive">*</span> City
+          </Label>
+          <Controller
+            name="city"
+            control={control}
+            render={({ field }) => (
               <Select
-                value={city}
-                onValueChange={(value) => {
-                  setCity(value);
-                  setCityError(""); // Clear error on change
-                }}
+                value={field.value}
+                onValueChange={handleCityChange}
                 required
                 disabled={!stateIsoCode || isLoadingCities}
               >
                 <SelectTrigger
                   id="city"
                   className={`mt-2 w-[100%] ${
-                    cityError ? "border-red-500" : ""
+                    errors.city ? "border-red-500" : ""
                   }`}
                 >
                   <SelectValue placeholder="Select city" />
@@ -288,20 +289,26 @@ export const BusinessFormAddress: React.FC<BusinessFormAddressProps> =
                   ))}
                 </SelectContent>
               </Select>
-              {cityError && (
-                <p className="text-red-500 text-sm mt-1">{cityError}</p>
-              )}
-            </div>
+            )}
+          />
+          {errors.city && (
+            <p className="text-red-500 text-sm mt-1">{errors.city.message}</p>
+          )}
+        </div>
 
-            {/* Phone Number */}
-            <div className="flex-grow">
-              <Label htmlFor="phoneNumber" className="font-semibold">
-                Phone number
-              </Label>
-              <div className="flex gap-2 mt-2">
+        {/* Phone Number */}
+        <div className="flex-grow">
+          <Label htmlFor="phoneNumber" className="font-semibold">
+            Phone number
+          </Label>
+          <div className="flex gap-2 mt-2">
+            <Controller
+              name="phoneCountryCode"
+              control={control}
+              render={({ field }) => (
                 <Select
-                  value={country} // Bind to selected country name for consistency
-                  onValueChange={handlePhoneCountryChange}
+                  value={field.value}
+                  onValueChange={handlePhoneCountryCodeChange}
                 >
                   <SelectTrigger
                     id="phoneCountryCode"
@@ -318,27 +325,32 @@ export const BusinessFormAddress: React.FC<BusinessFormAddressProps> =
                     {countriesData
                       ?.sort((a, b) => a.name.localeCompare(b.name)) // Sort by name
                       .map((c) => (
-                        <SelectItem key={c.isoCode} value={c.name}>
+                        <SelectItem key={c.isoCode} value={c.phonecode || "+"}>
                           {c.name} ({c.phonecode || "N/A"})
                         </SelectItem>
                       ))}
                   </SelectContent>
                 </Select>
-                <Input
-                  id="phoneNumber"
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="Enter phone number"
-                  className="flex-1"
-                  aria-label="Phone number"
-                />
-              </div>
-            </div>
+              )}
+            />
+            <Input
+              id="phoneNumber"
+              type="tel"
+              {...register("phoneNumber")}
+              placeholder="Enter phone number"
+              className="flex-1"
+              aria-label="Phone number"
+            />
           </div>
+          {errors.phoneNumber && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.phoneNumber.message}
+            </p>
+          )}
         </div>
-      );
-    }
+      </div>
+    </div>
   );
+};
 
-BusinessFormAddress.displayName = "BusinessFormAddress"; // Add display name for React DevTools
+BusinessFormAddress.displayName = "BusinessFormAddress";

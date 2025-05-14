@@ -109,8 +109,8 @@ export const VerificationService = {
     try {
       // Prepare data according to schema (excluding fields Appwrite handles)
       const docData = {
-        business: businessId, // Assuming 'business' is the attribute key linking to the business collection
-        submittedBy: userId, // Assuming 'submittedBy' links to the user
+        businessId: businessId,
+        userId: userId,
         documentFileId: documentFileId,
         status: "pending", // Initial status
         // submittedAt is handled by Appwrite's $createdAt
@@ -120,7 +120,7 @@ export const VerificationService = {
       // Validate against a partial schema if needed
 
       // Type parameter for createDocument should represent the data being passed
-      const document = await databases.createDocument(
+      const document = await databases.createDocument<Models.Document & VerificationDocument>(
         DATABASE_ID,
         VERIFICATION_COLLECTION_ID,
         ID.unique(),
@@ -128,7 +128,7 @@ export const VerificationService = {
       );
       console.log(`Verification document record created: ${document.$id}`);
       // Cast the result to the combined type
-      return document as unknown as Models.Document & VerificationDocument;
+      return document;
     } catch (error) {
       console.error("Error creating verification document record:", error);
       throw new Error("Failed to create verification document record.");

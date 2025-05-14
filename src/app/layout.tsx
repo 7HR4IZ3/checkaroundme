@@ -33,6 +33,22 @@ export const metadata = {
   title: "Checkaroundme - Discover Local Businesses",
   description:
     "Find and connect with amazing local businesses in your community.",
+  manifest: "/manifest.json",
+  themeColor: "#000000",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Checkaroundme",
+    // startUpImage: [],
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: "/images/logo.png",
+    shortcut: "/images/logo.png",
+    apple: "/icons/apple-touch-icon.png",
+  },
 };
 
 // Inner component to access auth context

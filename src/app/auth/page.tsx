@@ -1,7 +1,7 @@
 // src/components/SignUpForm.tsx
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FaGoogle } from "react-icons/fa";
@@ -26,6 +26,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 function LoginForm({ onToggle }: { onToggle: () => void }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -60,7 +61,12 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
       console.log("Login result:", result);
 
       if (result.success) {
-        router.push("/");
+        const nextUrl = searchParams.get("next");
+        if (nextUrl && nextUrl.startsWith("/")) {
+          redirect(nextUrl);
+        } else {
+          redirect("/");
+        }
       } else {
         // This block might be reached if the mutation succeeds but the server returns success: false
         // Handle based on your API's specific error structure if different from mutation error
@@ -99,8 +105,19 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
     }
 
     try {
-      const redirectUrl = window.location.origin + "/api/auth/oauth-callback";
-      const url = await googleLogin.mutateAsync({ redirectUrl, captchaToken });
+      const nextUrl = searchParams.get("next");
+      let callbackUrl = window.location.origin + "/api/auth/oauth-callback";
+      const queryParams = new URLSearchParams();
+      if (nextUrl && nextUrl.startsWith("/")) {
+        queryParams.append("next", nextUrl);
+      }
+      if (queryParams.toString()) {
+        callbackUrl += `?${queryParams.toString()}`;
+      }
+      const url = await googleLogin.mutateAsync({
+        redirectUrl: callbackUrl,
+        captchaToken,
+      });
       window.location.href = url;
     } catch (error) {
       console.error("Google sign-in error:", error);
@@ -289,6 +306,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
 
 function SignUpForm({ onToggle }: { onToggle: () => void }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -337,10 +355,16 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
         phone,
         captchaToken,
         login: true,
+        referralCode: searchParams.get("ref") || undefined,
       });
 
       if (result.success) {
-        router.push("/");
+        const nextUrl = searchParams.get("next");
+        if (nextUrl && nextUrl.startsWith("/")) {
+          redirect(nextUrl);
+        } else {
+          redirect("/");
+        }
       } else {
         toast.error("Registration Failed", {
           description: "An unexpected error occurred.",
@@ -384,8 +408,23 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
     }
 
     try {
-      const redirectUrl = window.location.origin + "/api/auth/oauth-callback";
-      const url = await googleLogin.mutateAsync({ redirectUrl, captchaToken });
+      const refCode = searchParams.get("ref");
+      const nextUrl = searchParams.get("next");
+      let callbackUrl = window.location.origin + "/api/auth/oauth-callback";
+      const queryParams = new URLSearchParams();
+      if (refCode) {
+        queryParams.append("ref", refCode);
+      }
+      if (nextUrl && nextUrl.startsWith("/")) {
+        queryParams.append("next", nextUrl);
+      }
+      if (queryParams.toString()) {
+        callbackUrl += `?${queryParams.toString()}`;
+      }
+      const url = await googleLogin.mutateAsync({
+        redirectUrl: callbackUrl,
+        captchaToken,
+      });
       window.location.href = url;
     } catch (error) {
       console.error("Google sign-in error:", error);
@@ -856,7 +895,7 @@ function AuthPageInner() {
   if (auth.isAuthenticated) return redirect("/");
 
   return (
-    <div className="container flex flex-col p-8 gap-6 bg-background">
+    <div className="flex flex-col p-8 gap-6 bg-background">
       <div className="my-auto">
         <Link href="/">
           <Image
@@ -867,7 +906,7 @@ function AuthPageInner() {
           />
         </Link>
       </div>
-      <div className="flex flex-row justify-center items-cente">
+      <div className="flex flex-row h-[80vh]">
         <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 lg:p-16">
           <div className="space-y-6">
             <GoogleReCaptchaProvider
