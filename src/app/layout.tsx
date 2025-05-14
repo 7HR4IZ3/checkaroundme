@@ -34,7 +34,6 @@ export const metadata = {
   description:
     "Find and connect with amazing local businesses in your community.",
   manifest: "/manifest.json",
-  themeColor: "#000000",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
