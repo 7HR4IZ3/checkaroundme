@@ -70,7 +70,7 @@ interface BusinessFormProps {
 const businessFormSchema = z.object({
   name: z.string().min(1, "Business name is required"),
   about: z.string().min(1, "About section is required"),
-  status: z.enum(["active", "disabled"]),
+  status: z.enum(["active", "disabled"]).optional(),
   addressLine1: z.string().min(1, "Address Line 1 is required"),
   addressLine2: z.string().optional(),
   state: z.string().optional(),
@@ -250,7 +250,7 @@ export default function BusinessForm({
         images:
           initialData.images?.map(({ createdAt, ...image }) => ({
             ...image,
-            createdAt: createdAt,
+            createdAt: new Date(createdAt),
           })) ?? [],
         hours: initialData.hours?.reduce((acc, hour) => {
           acc[hour.day] = {
