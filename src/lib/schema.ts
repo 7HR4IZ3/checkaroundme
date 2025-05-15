@@ -48,7 +48,7 @@ export const businessSchema = z.object({
   addressLine2: z.string().optional(),
   city: z.string(),
   state: z.string().optional(),
-  country: z.string().default("Nigeria"),
+  country: z.string().optional(),
   postalCode: z.string().optional(),
   paymentOptions: z.array(z.string()).optional(), // e.g., ["cash", "bank_transfers"] - Can be used for filtering
   coordinates: z.string().optional(),
@@ -64,9 +64,9 @@ export const businessSchema = z.object({
   // Fields for filtering based on FiltersPanel
   maxPrice: z.number().optional(), // Stores "10", "100" in USD.
   // open_now: z.boolean().optional().default(false), // Requires logic to determine based on BusinessHours
-  onSiteParking: z.boolean().optional().default(false),
-  garageParking: z.boolean().optional().default(false),
-  wifi: z.boolean().optional().default(false),
+  onSiteParking: z.boolean().optional(),
+  garageParking: z.boolean().optional(),
+  wifi: z.boolean().optional(),
   // Note: bank_transfers and cash can be inferred from paymentOptions array
 });
 
