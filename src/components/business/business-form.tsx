@@ -226,6 +226,7 @@ export default function BusinessForm({
       reset({
         name: initialData.name ?? "",
         about: initialData.about ?? "",
+        status: initialData.status ?? "disabled",
         addressLine1: initialData.addressLine1 ?? "",
         addressLine2: initialData.addressLine2 ?? "",
         // Split the initial phone string into code and number if possible, or handle separately
@@ -373,7 +374,7 @@ export default function BusinessForm({
     setIsImageUploading(false);
   };
 
-  const handleToggleBusinessStatus = (status: string) => {
+  const handleToggleBusinessStatus = (status?: string) => {
     if (!user || !businessId) return;
     const newStatus = status === "active" ? "disabled" : "active";
     setValue("status", newStatus);
