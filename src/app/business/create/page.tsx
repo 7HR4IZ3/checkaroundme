@@ -77,7 +77,7 @@ export default function BusinessCreateForm() {
       <BusinessForm
         onSubmit={handleCreateBusiness}
         submitButtonText="Create Business"
-        isSubmitting={createBusiness.status === "pending"}
+        isSubmitting={createBusiness.isPending}
       />
       {showSubscriptionModal && newlyCreatedBusinessId && (
         <Dialog

@@ -452,15 +452,6 @@ export default function BusinessForm({
               {status === "active" ? "Disable" : "Enable"} Business
             </Button>
           )}
-          <Button
-            className="rounded-4xl bg-primary"
-            onClick={handleSubmit(onSubmitRHF, (event) => {
-              console.log(event);
-            })}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Saving..." : submitButtonText}
-          </Button>
           {businessId && (
             <Button variant="ghost" size="icon" className="h-8 w-8">
               <MoreVertical className="h-4 w-4" />
@@ -798,6 +789,15 @@ export default function BusinessForm({
 
       {/* Cancel Button */}
       <div className="flex justify-end gap-4 pt-4">
+        <Button
+          className="rounded-4xl bg-primary"
+          onClick={handleSubmit(onSubmitRHF, (event) => {
+            console.log(event);
+          })}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Saving..." : submitButtonText}
+        </Button>
         <Button
           variant="outline"
           onClick={() => window.history.back()} // Use window.history.back() for broader compatibility
