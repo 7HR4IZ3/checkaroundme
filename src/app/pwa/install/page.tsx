@@ -1,3 +1,5 @@
+"use client";
+
 import { PushNotificationManager } from "@/app/utils/push-notifications"
 import { useState, useEffect } from "react"
 
