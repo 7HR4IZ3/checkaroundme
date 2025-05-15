@@ -63,9 +63,9 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
       if (result.success) {
         const nextUrl = searchParams.get("next");
         if (nextUrl && nextUrl.startsWith("/")) {
-          redirect(nextUrl);
+          router.push(nextUrl);
         } else {
-          redirect("/");
+          router.push("/");
         }
       } else {
         // This block might be reached if the mutation succeeds but the server returns success: false
@@ -361,9 +361,9 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
       if (result.success) {
         const nextUrl = searchParams.get("next");
         if (nextUrl && nextUrl.startsWith("/")) {
-          redirect(nextUrl);
+          router.push(nextUrl);
         } else {
-          redirect("/");
+          router.push("/");
         }
       } else {
         toast.error("Registration Failed", {
