@@ -382,12 +382,12 @@ export default function BusinessForm({
 
   const onSubmitRHF = async (data: BusinessFormValues) => {
     console.log("Handling submit!");
-    if (!agreedToTerms) {
+    if (!businessId && !agreedToTerms) {
       // Only set terms error in create mode
       // Need to handle terms error state separately or add to schema
       console.error("Please accept the terms and conditions.");
       // You might want to set a separate state for terms error or use RHF's setError
-      // setError("agreedToTerms", { type: "manual", message: "Please accept the terms and conditions." });
+      setError("agreedToTerms", { type: "manual", message: "Please accept the terms and conditions." });
       return;
     }
 
@@ -786,6 +786,9 @@ export default function BusinessForm({
             </a>
             <span className="text-destructive">*</span>
           </Label>
+          {errors.agreedToTerms && (
+            <p className="text-red-500 text-sm mt-1">{errors.agreedToTerms.message}</p>
+          )}
         </div>
       )}
 
