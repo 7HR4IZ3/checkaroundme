@@ -104,7 +104,7 @@ const businessFormSchema = z.object({
       })
     )
     .optional(),
-  email: z.string().email("Invalid email address").optional().or(z.literal("")), // Allow empty string or valid email
+  email: z.string().email("Invalid email address"),
   website: z.string().url("Invalid URL").optional().or(z.literal("https://")), // Allow "https://" or valid URL
   maxPrice: z.number().optional(),
   on_site_parking: z.boolean().optional(),
@@ -590,7 +590,7 @@ export default function BusinessForm({
       <div className="flex flex-col md:flex-row gap-4 flex-wrap">
         <div className="flex-grow">
           <Label htmlFor="businessEmail" className="font-semibold">
-            Business Email
+          <span className="text-destructive">*</span> Business Email
           </Label>
           <Input
             id="businessEmail"
