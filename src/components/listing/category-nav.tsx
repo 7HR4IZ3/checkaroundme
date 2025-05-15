@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { FaChevronDown } from "react-icons/fa";
 import {
   DropdownMenu,
@@ -94,6 +94,18 @@ const CategoryNav: React.FC<CategoryNavProps> = ({
   onChangeCategory,
 }) => {
   const { data: categories = [], isLoading } = trpc.getAllCategories.useQuery();
+  const [displayCount, setDisplayCount] = useState(
+    typeof window !== "undefined" ? (window.innerWidth < 768 ? 3 : 4) : 3
+  );
+
+  useEffect(() => {
+    const handleResize = () => {
+      setDisplayCount(window.innerWidth < 768 ? 3 : 4);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Handle single-select category
   const handleCategoryClick = (categoryName: string) => {
@@ -106,27 +118,29 @@ const CategoryNav: React.FC<CategoryNavProps> = ({
 
   return (
     <nav className="container bg-white border-b border-gray-200 py-3">
-      <div className="w-screen mx-auto flex items-center md:justify-center space-x-2 md:space-x-3 overflow-x-auto whitespace-nowrap hide-scrollbar">
-        {categories.slice(0, 4).map((category) => {
-          const isSelected = selectedCategory === category.name;
-          return (
-            <button
-              type="button"
-              key={category.$id}
-              onClick={() => handleCategoryClick(category.name)}
-              className={`flex flex-shrink-0 items-center space-x-1.5 px-3 py-1.5 rounded-full border transition
-                ${
-                  isSelected
-                    ? "bg-blue-100 text-blue-700 border-blue-400 font-semibold"
-                    : "text-gray-600 hover:text-blue-600 border-transparent hover:bg-gray-100"
-                }`}
-              aria-pressed={isSelected}
-            >
-              <CategoryIcon category={category.name} size={14} />
-              <span className="text-xs sm:text-sm">{category.name}</span>
-            </button>
-          );
-        })}
+      <div className="w-screen mx-auto flex items-center justify-between">
+        <div className="flex items-center space-x-2 md:space-x-3 overflow-x-auto whitespace-nowrap hide-scrollbar">
+          {categories.slice(0, displayCount).map((category) => {
+            const isSelected = selectedCategory === category.name;
+            return (
+              <button
+                type="button"
+                key={category.$id}
+                onClick={() => handleCategoryClick(category.name)}
+                className={`flex flex-shrink-0 items-center space-x-1.5 px-3 py-1.5 rounded-full border transition
+                  ${
+                    isSelected
+                      ? "bg-blue-100 text-blue-700 border-blue-400 font-semibold"
+                      : "text-gray-600 hover:text-blue-600 border-transparent hover:bg-gray-100"
+                  }`}
+                aria-pressed={isSelected}
+              >
+                <CategoryIcon category={category.name} size={14} />
+                <span className="text-xs sm:text-sm">{category.name}</span>
+              </button>
+            );
+          })}
+        </div>
 
         {categories.length > 4 && (
           <DropdownMenu>
@@ -137,7 +151,7 @@ const CategoryNav: React.FC<CategoryNavProps> = ({
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              {categories.slice(4).map((category) => (
+              {categories.slice(displayCount).map((category) => (
                 <DropdownMenuItem
                   key={category.$id}
                   onSelect={() => handleCategoryClick(category.name)}

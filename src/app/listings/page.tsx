@@ -316,7 +316,7 @@ export default function Home() {
 
       {filtersPanelOpen && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/30">
-          <div className="h-full bg-white w-full max-w-xs animate-in fade-in slide-in-from-left">
+          <div className="h-full bg-white w-full max-w-xs animate-in fade-in slide-in-from-left overflow-auto">
             <div className="flex justify-end p-2">
               <button
                 className="text-gray-500 hover:text-gray-800 text-2xl"

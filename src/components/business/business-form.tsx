@@ -106,7 +106,7 @@ const businessFormSchema = z.object({
     .optional(),
   email: z.string().email("Invalid email address").optional().or(z.literal("")), // Allow empty string or valid email
   website: z.string().url("Invalid URL").optional().or(z.literal("https://")), // Allow "https://" or valid URL
-  priceIndicator: z.string().optional(),
+  maxPrice: z.number().optional(),
   on_site_parking: z.boolean().optional(),
   garage_parking: z.boolean().optional(),
   wifi: z.boolean().optional(),
@@ -159,7 +159,7 @@ export default function BusinessForm({
       images: [],
       email: "",
       website: "https://",
-      priceIndicator: undefined,
+      maxPrice: undefined,
       on_site_parking: false,
       garage_parking: false,
       wifi: false,
@@ -181,7 +181,7 @@ export default function BusinessForm({
   const businessCategory = watch("categories")?.[0] ?? "";
   const businessImages = watch("images") ?? [];
   const agreedToTerms = watch("agreedToTerms") ?? false;
-  const priceIndicator = watch("priceIndicator");
+  const maxPrice = watch("maxPrice");
   const onSiteParking = watch("on_site_parking") ?? false;
   const garageParking = watch("garage_parking") ?? false;
   const wifi = watch("wifi") ?? false;
@@ -242,7 +242,7 @@ export default function BusinessForm({
         city: initialData.city ?? "",
         country: initialData.country ?? "", // This will be the name, need to map to ISO code
         state: initialData.state ?? "", // This will be the name, need to map to ISO code
-        priceIndicator: initialData.priceIndicator ?? undefined,
+        maxPrice: initialData.maxPrice ?? undefined,
         on_site_parking: initialData.onSiteParking ?? false,
         garage_parking: initialData.garageParking ?? false,
         wifi: initialData.wifi ?? false,
@@ -406,7 +406,7 @@ export default function BusinessForm({
       images: data.images,
       email: data.email,
       website: data.website === "https://" ? null : data.website,
-      priceIndicator: data.priceIndicator,
+      maxPrice: data.maxPrice,
       on_site_parking: data.on_site_parking,
       garage_parking: data.garage_parking,
       wifi: data.wifi,
@@ -681,7 +681,7 @@ export default function BusinessForm({
 
       {/* Price Indicator */}
       <div className="md:w-1/2">
-        <Label htmlFor="priceIndicator" className="font-semibold">
+        <Label htmlFor="maxPrice" className="font-semibold">
           Price Indicator
         </Label>
         <p className="text-sm text-muted-foreground mb-2">
@@ -691,26 +691,24 @@ export default function BusinessForm({
         {/* Price Indicator Select (requires Controller or manual state management with setValue) */}
         {/* For simplicity in this diff, I'll keep the current state management and update it later if needed. */}
         <Select
-          value={priceIndicator}
-          onValueChange={(value) => setValue("priceIndicator", value)}
+          value={maxPrice?.toString()}
+          onValueChange={(value) =>
+            setValue("maxPrice", Number.parseFloat(value))
+          }
         >
-          <SelectTrigger id="priceIndicator" className="w-full mt-2">
+          <SelectTrigger id="maxPrice" className="w-full mt-2">
             <SelectValue placeholder="Select maximum price range" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="NGN 10">NGN 10</SelectItem>
-            <SelectItem value="NGN 100">NGN 100</SelectItem>
-            <SelectItem value="NGN 1,000">NGN 1,000</SelectItem>
-            <SelectItem value="NGN 10,000">NGN 10,000</SelectItem>
-            <SelectItem value="NGN 100,000">NGN 100,000</SelectItem>
-            <SelectItem value="NGN 1,000,000">NGN 1,000,000</SelectItem>
-            <SelectItem value="NGN 10,000,000">NGN 10,000,000</SelectItem>
+            <SelectItem value="1000">NGN 1,000</SelectItem>
+            <SelectItem value="10000">NGN 10,000</SelectItem>
+            <SelectItem value="100000">NGN 100,000</SelectItem>
+            <SelectItem value="1000000">NGN 1,000,000</SelectItem>
+            <SelectItem value="10000000">NGN 10,000,000</SelectItem>
           </SelectContent>
         </Select>
-        {errors.priceIndicator && (
-          <p className="text-red-500 text-sm mt-1">
-            {errors.priceIndicator.message}
-          </p>
+        {errors.maxPrice && (
+          <p className="text-red-500 text-sm mt-1">{errors.maxPrice.message}</p>
         )}
       </div>
 

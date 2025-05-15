@@ -143,14 +143,14 @@ export function FiltersPanel({
             // We store undefined if empty or the actual value.
             setSelectedPrice(value || undefined);
           }}
-          className="flex border rounded-md overflow-hidden gap-2 w-full" // Group styling
+          className="flex flex-wrap border rounded-md overflow-hidden gap-2 w-full" // Group styling
         >
-          {["$10", "$100", "$1,000", "$10,000"].map((price) => (
+          {["NGN 1,000", "NGN 10,000", "NGN 100,000", "NGN 1,000,000", "NGN 10,000,000"].map((price) => (
             <ToggleGroupItem
               key={price}
               value={price}
               aria-label={`Price range ${price}`}
-              className="flex-1 rounded-none data-[state=on]:bg-primary data-[state=on]:text-primary-foreground border-r last:border-r-0 flex-grow" // Style selected state & borders
+              className="basis-auto rounded-none data-[state=on]:bg-primary data-[state=on]:text-primary-foreground border-r last:border-r-0" // Style selected state & borders
             >
               {price}
             </ToggleGroupItem>

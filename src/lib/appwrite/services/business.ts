@@ -388,9 +388,7 @@ export const BusinessService = {
       if (price) {
         const priceValue = parseInt(price.replace(/[^0-9]/g, ""), 10);
         if (!isNaN(priceValue)) {
-          appwriteFilters.push(
-            Query.lessThanEqual("priceIndicator", priceValue)
-          );
+          appwriteFilters.push(Query.lessThanEqual("maxPrice", priceValue));
         }
       }
 
@@ -418,7 +416,7 @@ export const BusinessService = {
       ];
 
       if (sortBy === "price") {
-        sortBy = "priceIndicator";
+        sortBy = "maxPrice";
       }
 
       sortBy != "distance" &&
@@ -606,5 +604,5 @@ export const BusinessService = {
       console.error("Get businesses by user ID error:", error);
       throw error;
     }
-  }
+  },
 };

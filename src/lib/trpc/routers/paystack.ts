@@ -225,7 +225,7 @@ export function createPaystackProcedures(
             // Paystack might return an error message indicating this.
             console.error(
               "Paystack subscription creation failed:",
-              createSubResponse
+              createSubResponse.message
             );
             throw new Error(
               createSubResponse.message ||

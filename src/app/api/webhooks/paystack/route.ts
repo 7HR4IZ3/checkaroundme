@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { updateUserSubscriptionStatus as appwriteUpdateUserSubscription } from "@/lib/appwrite/services/user";
 import { calculateExpiryDate } from "@/lib/utils";
-import { listPlans } from "@/lib/paystack";
+import { getPlan, listPlans } from "@/lib/paystack";
 import { IPlan } from "paystack-sdk/dist/plan";
+import { users } from "@/lib/appwrite"; // Import Appwrite users service
+import { Query } from "node-appwrite"; // Import Query for Appwrite queries
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 
@@ -40,166 +42,235 @@ export async function POST(req: NextRequest) {
     }
 
     const event = JSON.parse(bodyText);
+    const eventType = event.event;
+    const eventData = event.data;
 
-    // Handle specific events
-    if (
-      event.event === "subscription.payment_success" ||
-      event.event === "charge.success"
-    ) {
-      // Using charge.success as a fallback, but subscription.payment_success is more specific for renewals
-      console.log("Received Paystack event:", event.event, event.data);
+    console.log(event);
+    try {
+      console.log(JSON.stringify(event));
+    } catch {}
 
-      const transactionData = event.data;
-      const customerEmail = transactionData?.customer?.email;
-      const paystackSubscriptionCode =
-        transactionData?.subscription?.subscription_code ||
-        transactionData?.plan_object?.subscription_code; // For charge.success, plan_object might hold it
-      const planCode =
-        transactionData?.plan?.plan_code ||
-        transactionData?.plan_object?.plan_code; // Get plan code
+    console.log(`Received Paystack event: ${eventType}`);
 
-      // Attempt to get userId from metadata if present (might not be on all renewal events)
-      // It's more reliable if your subscription creation ensures userId is in subscription metadata on Paystack
-      const userIdFromMetadata =
-        transactionData?.metadata?.userId ||
-        transactionData?.customer?.metadata?.userId;
+    // --- User Identification ---
+    let userId: string | null = null;
+    const customerEmail = eventData?.customer?.email;
+    const paystackSubscriptionCode =
+      eventData?.subscription?.subscription_code ||
+      eventData?.plan_object?.subscription_code;
 
-      if (!customerEmail) {
-        // UserID might not always be present, but email usually is
-        console.error(
-          "Webhook: Missing customer email from Paystack event data.",
-          event.data
-        );
-        return NextResponse.json(
-          { error: "Missing customer email." },
-          { status: 400 }
-        );
-      }
+    // Attempt to get userId from metadata first
+    userId =
+      eventData?.metadata?.userId ||
+      eventData?.customer?.metadata?.userId ||
+      eventData?.customer?.metadata?.appwrite_user_id; // Check common metadata locations
 
-      // If userId is not directly in the event, you might need to query your Appwrite DB
-      // by paystackSubscriptionCode or customerEmail to find the user.
-      // This part is crucial and might need adjustment based on how you store user IDs.
-      // For now, let's assume we can get userId or need to implement a lookup.
-      // If you stored userId in Paystack's subscription metadata, it should be there.
+    // If userId not found in metadata, attempt to look up in Appwrite by email
+    if (!userId && customerEmail) {
+      try {
+        const response = await users.list([
+          Query.equal("email", customerEmail),
+        ]);
 
-      // Placeholder: You'll need a robust way to get your internal userId
-      // For example, query Appwrite users by paystackSubscriptionCode or customerEmail
-      // const appwriteUser = await findUserByPaystackSubscriptionCode(paystackSubscriptionCode) || await findUserByEmail(customerEmail);
-      // const userId = appwriteUser?.$id;
-
-      // For this example, we'll assume userIdFromMetadata is available or you have a lookup
-      // This is a critical part to get right for your specific setup.
-      // If userIdFromMetadata is not found, you must have a fallback.
-      // One common way is to store your internal userId in Paystack's customer or subscription metadata.
-      // Let's assume for now that `transactionData.customer.metadata.appwrite_user_id` was set during subscription.
-      const userId =
-        userIdFromMetadata ||
-        transactionData?.customer?.metadata?.appwrite_user_id;
-
-      if (!userId) {
-        console.error(
-          "Webhook: Could not determine internal userId from Paystack event.",
-          event.data
-        );
-        // Potentially queue this event for manual review or retry if userId lookup fails
-        return NextResponse.json(
-          { error: "Could not determine user." },
-          { status: 400 }
-        );
-      }
-
-      if (!planCode) {
-        console.error(
-          "Webhook: Missing plan_code from Paystack event data.",
-          event.data
-        );
-        return NextResponse.json(
-          { error: "Missing plan_code." },
-          { status: 400 }
-        );
-      }
-
-      // Fetch the plan details from Paystack to get the interval
-      // This is important because the event itself might not contain the interval directly
-      // Or, ensure 'interval' is part of your subscription metadata on Paystack
-      let planInterval =
-        transactionData?.plan?.interval ||
-        transactionData?.plan_object?.interval;
-
-      if (!planInterval) {
-        // Fallback: Fetch all plans and find the matching one
-        // This is less efficient but a good fallback.
-        const plansResponse = await listPlans(); // Adjust perPage as needed
-        if (plansResponse.status && plansResponse.data) {
-          const foundPlan = (plansResponse.data as unknown as IPlan[]).find(
-            (p) => p.plan_code === planCode
+        if (response.users.length > 0) {
+          userId = response.users[0].$id;
+          if (response.users.length > 1) {
+            console.warn(
+              `Webhook: Multiple users found for email ${customerEmail}. Using the first one found.`
+            );
+          }
+        } else {
+          console.warn(
+            `Webhook: No user found in Appwrite for email ${customerEmail}.`
           );
-          if (foundPlan) {
-            planInterval = foundPlan.interval;
+        }
+      } catch (lookupError: any) {
+        console.error(
+          "Webhook: Error during Appwrite user lookup by email:",
+          lookupError
+        );
+        // Continue processing, but userId will be null
+      }
+    }
+
+    if (!userId) {
+      console.error(
+        "Webhook: Could not determine internal userId from Paystack event or Appwrite lookup.",
+        eventData
+      );
+      // Respond with 200 to avoid continuous retries for unmatchable events,
+      // but log the issue for investigation.
+      return NextResponse.json(
+        { received: true, message: "User not found." },
+        { status: 200 }
+      );
+    }
+
+    // --- Handle Specific Events ---
+    switch (eventType) {
+      case "charge.success":
+      case "subscription.create": // Handle initial subscription creation webhook
+      case "subscription.payment_success": // Handle recurring payment success
+        console.log("Processing successful payment or subscription creation.");
+
+        const planCode =
+          eventData?.plan?.plan_code ||
+          eventData?.plan_object?.plan_code ||
+          eventData?.subscription?.plan?.plan_code; // Get plan code from various locations
+
+        if (!planCode) {
+          console.error(
+            "Webhook: Missing plan_code for successful payment/subscription event.",
+            eventData
+          );
+          return NextResponse.json(
+            { error: "Missing plan_code." },
+            { status: 400 }
+          );
+        }
+
+        let planInterval =
+          eventData?.plan?.interval ||
+          eventData?.plan_object?.interval ||
+          eventData?.subscription?.plan?.interval;
+
+        if (!planInterval) {
+          // Fallback: Fetch the plan details from Paystack if interval is missing
+          console.warn(
+            `Webhook: Plan interval missing for plan_code ${planCode}. Attempting to fetch from Paystack.`
+          );
+          const plansResponse = await getPlan(planCode); // Use plan code filter if supported by SDK
+          if (plansResponse.status && plansResponse.data) {
+            planInterval = plansResponse.data.interval;
+            console.log(
+              `Webhook: Fetched plan interval ${planInterval} for plan_code ${planCode}.`
+            );
+          } else {
+            console.error(
+              `Webhook: Could not fetch plan details for plan_code ${planCode}.`,
+              plansResponse
+            );
+            return NextResponse.json(
+              { error: "Could not determine plan interval." },
+              { status: 400 }
+            );
           }
         }
-      }
 
-      if (!planInterval) {
-        console.error(
-          `Webhook: Could not determine plan interval for plan_code ${planCode}.`,
-          event.data
+        // Ensure planInterval is one of the allowed enum values
+        const validIntervals = [
+          "hourly",
+          "daily",
+          "weekly",
+          "monthly",
+          "quarterly",
+          "biannually",
+          "annually",
+        ];
+        if (!validIntervals.includes(planInterval.toLowerCase())) {
+          console.error(
+            `Webhook: Invalid plan interval received: ${planInterval}`
+          );
+          return NextResponse.json(
+            { error: "Invalid plan interval." },
+            { status: 400 }
+          );
+        }
+
+        // Calculate new expiry date
+        // IMPORTANT: This simplified calculation from the current date might lead to drift if webhooks are delayed.
+        // A more robust method would involve fetching the user's current subscription expiry from Appwrite
+        // and extending from there, or using the `next_payment_date` from the Paystack event data if available.
+        const newExpiryDate = calculateExpiryDate(
+          eventData.paid_at || eventData.created_at,
+          planInterval.toLowerCase()
         );
-        return NextResponse.json(
-          { error: "Could not determine plan interval." },
-          { status: 400 }
+
+        await appwriteUpdateUserSubscription(userId, {
+          planCode,
+          paystackSubscriptionCode:
+            paystackSubscriptionCode ||
+            eventData?.subscription?.subscription_code,
+          subscriptionStatus: "active",
+          subscriptionExpiry: newExpiryDate,
+          // Optionally store other relevant data like Paystack customer ID if available
+          paystackCustomerId:
+            eventData?.customer?.customer_code ||
+            String(eventData?.customer?.id || ""),
+        });
+
+        console.log(
+          `Webhook: Successfully updated subscription for user ${userId}. New expiry: ${newExpiryDate.toISOString()}`
         );
-      }
+        break;
 
-      // At this point, you should have userId and planInterval.
-      // You need to fetch the *current* subscriptionExpiry from Appwrite for this user.
-      // This part requires an Appwrite SDK call to get user preferences/data.
-      // For this example, we'll simulate it. In a real scenario, you'd fetch this.
-      // const currentUserData = await appwriteGetUserPreferences(userId);
-      // const currentExpiryString = currentUserData?.prefs?.subscriptionExpiry;
-      // if (!currentExpiryString) {
-      //   console.error(`Webhook: Could not find current subscriptionExpiry for user ${userId}.`);
-      //   return NextResponse.json({ error: "User subscription data not found." }, { status: 404 });
-      // }
-      // const currentExpiryDate = new Date(currentExpiryString);
+      case "subscription.disable":
+        console.log("Processing subscription disable event.");
+        // Update user status to inactive or disabled
+        await appwriteUpdateUserSubscription(userId, {
+          subscriptionStatus: "inactive",
+          // Optionally clear or update other subscription-related fields
+          planCode: "", // Clear plan code or set to a default 'inactive' plan
+          subscriptionExpiry: new Date(), // Set expiry to now or a past date
+          // Keep paystackSubscriptionCode for reference if needed
+        });
+        console.log(
+          `Webhook: Successfully disabled subscription for user ${userId}.`
+        );
+        break;
 
-      // For the purpose of this example, let's assume the renewal means extending from *now*
-      // if the old expiry is in the past, or from the *old expiry* if it's in the future.
-      // Paystack usually charges on the due date.
-      // A safer approach for renewals is to take the *next_payment_date* from the subscription event if available,
-      // or calculate based on the *last_payment_date* + interval.
-      // For simplicity here, we'll extend from the current date of the webhook event.
-      // A more robust solution would involve fetching the user's current expiry from Appwrite.
+      case "subscription.enable":
+        console.log("Processing subscription enable event.");
+        // Update user status to active
+        // You might need to fetch subscription details from Paystack here
+        // to get the plan and next payment date for accurate expiry calculation.
+        // For simplicity, setting to active without updating expiry for now.
+        // A more robust implementation would fetch subscription details.
 
-      // Let's assume the webhook means the user just paid for the *next* period.
-      // The new expiry should be calculated from the *start of this new period*.
-      // Paystack's `transactionData.paid_at` or `event.data.created_at` could be a reference.
-      // Or, if the subscription object in the event has `next_payment_date`, that's even better.
+          const isEligibleForTwoMonthFreeOffer = true;
+        let paystackSubscriptionStartDate = new Date();
+        if (true || isEligibleForTwoMonthFreeOffer) {
+          const twoMonthsFromNow = new Date();
+          twoMonthsFromNow.setMonth(twoMonthsFromNow.getMonth() + 2);
+          paystackSubscriptionStartDate = twoMonthsFromNow;
+        }
 
-      // Simplified: Calculate new expiry from today + interval.
-      // IMPORTANT: This simplification might lead to drift if webhooks are delayed.
-      // A more robust method:
-      // 1. Get the user's current `subscriptionExpiry` from Appwrite.
-      // 2. If `currentExpiry` > `now`, newExpiry = `currentExpiry` + interval.
-      // 3. If `currentExpiry` <= `now` (lapsed), newExpiry = `now` + interval.
-      // For this example, we'll use the simpler `now + interval`.
-      const newExpiryDate = calculateExpiryDate(
-        new Date(),
-        planInterval as any
-      );
+        await appwriteUpdateUserSubscription(userId, {
+          planCode: planCode,
+          subscriptionStatus: "active",
+          subscriptionExpiry: paystackSubscriptionStartDate,
+          // Consider fetching planCode and calculating subscriptionExpiry here
+        });
+        console.log(
+          `Webhook: Successfully enabled subscription for user ${userId}.`
+        );
+        break;
 
-      await appwriteUpdateUserSubscription(userId, {
-        planCode,
-        paystackSubscriptionCode,
-        subscriptionStatus: "active",
-        subscriptionExpiry: newExpiryDate,
-      });
+      case "subscription.cancel":
+        console.log("Processing subscription cancel event.");
+        // Update user status to cancelled
+        await appwriteUpdateUserSubscription(userId, {
+          subscriptionStatus: "cancelled",
+          // Optionally clear or update other subscription-related fields
+          planCode: "", // Clear plan code or set to a default 'cancelled' plan
+          subscriptionExpiry: new Date(), // Set expiry to now or the cancellation date
+          // Keep paystackSubscriptionCode for reference if needed
+        });
+        console.log(
+          `Webhook: Successfully cancelled subscription for user ${userId}.`
+        );
+        break;
 
-      console.log(
-        `Webhook: Successfully updated subscription for user ${userId}. New expiry: ${newExpiryDate.toISOString()}`
-      );
-    } else {
-      console.log("Received Paystack event (unhandled):", event.event);
+      // Add cases for other relevant events like:
+      // case "invoice.create":
+      // case "invoice.update":
+      // case "invoice.payment_failed":
+      // case "subscription.notif": // For subscription notifications (e.g., about to expire)
+      // case "subscription.expiring_cards": // For expiring cards on subscriptions
+
+      default:
+        console.log(`Received unhandled Paystack event: ${eventType}`);
+        break;
     }
 
     return NextResponse.json({ received: true }, { status: 200 });

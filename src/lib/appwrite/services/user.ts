@@ -17,7 +17,7 @@ export const updateUserSubscriptionStatus = async (
     paystackSubscriptionToken?: string | null;
     paystackSubscriptionCode?: string | null; // Make explicitly optional or nullable
     // Add any other relevant fields you store
-  },
+  }
 ) => {
   console.log(`Updating subscription for user ${userId}:`, subscriptionData);
   try {
@@ -29,7 +29,7 @@ export const updateUserSubscriptionStatus = async (
 
     // Filter out undefined/null values before sending to Appwrite if necessary
     const filteredData = Object.fromEntries(
-      Object.entries(dataToUpdate).filter(([_, v]) => v != null),
+      Object.entries(dataToUpdate).filter(([_, v]) => v != null)
     );
 
     const updatedUser = await users.updatePrefs(userId, filteredData);
@@ -41,7 +41,7 @@ export const updateUserSubscriptionStatus = async (
   } catch (error: any) {
     console.error(
       `Failed to update subscription status for user ${userId}:`,
-      error,
+      error
     );
     // Check for specific Appwrite errors if needed
     if (error.response) {

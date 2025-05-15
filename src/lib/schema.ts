@@ -62,7 +62,7 @@ export const businessSchema = z.object({
   status: z.enum(["active", "disabled"]).default("disabled"),
 
   // Fields for filtering based on FiltersPanel
-  priceIndicator: z.string().optional(), // Stores "$10", "$100", etc.
+  maxPrice: z.number().optional(), // Stores "10", "100" in USD.
   // open_now: z.boolean().optional().default(false), // Requires logic to determine based on BusinessHours
   onSiteParking: z.boolean().optional().default(false),
   garageParking: z.boolean().optional().default(false),

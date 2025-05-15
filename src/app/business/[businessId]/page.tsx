@@ -727,10 +727,10 @@ export default function BusinessPage() {
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm text-gray-700">
                 {/* Price Indicator */}
-                {business.priceIndicator && (
+                {business.maxPrice && (
                   <div className="flex items-center gap-2">
                     <span className="font-medium w-28">Price Range:</span>
-                    <span>{business.priceIndicator} (Max)</span>
+                    <span>{business.maxPrice} (Max)</span>
                   </div>
                 )}
 
