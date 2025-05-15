@@ -80,15 +80,21 @@ const ServicesNearYou = () => {
     );
   }
 
+  if (!businesses) {
+    return (
+      null
+    );
+  }
+
   return (
     <div className="bg-gray-50 py-16">
       <div className="md:container px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto">
         <h2 className="text-lg md:text-2xl font-semibold text-center text-gray-800 mb-8">
           Services Near You
         </h2>
-        <div className="grid grid-cols-1 l:grid-cols-2 gap-6">
+        {/* <div className="grid grid-cols-1 l:grid-cols-2 gap-6">
           <MapPlaceholder businesses={businesses} />
-        </div>
+        </div> */}
         <div className="grid grid-cols-1 l:grid-cols-2 gap-2 md:gap-6">
           {businesses?.map((business: Business) => (
             <ListingCard

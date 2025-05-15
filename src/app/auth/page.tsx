@@ -838,7 +838,7 @@ function LandingPage() {
                   key={index}
                   className="flex flex-col items-center p-4 rounded-lg bg-muted/40"
                 >
-                  <div className="text-4xl mb-3 p-3 bg-primary/10 rounded-full text-white">
+                  <div className="text-4xl mb-3 p-3 bg-primary/10 rounded-full text-black">
                     {step.icon}
                   </div>
                   <h3 className="text-xl font-semibold mb-1">{step.title}</h3>

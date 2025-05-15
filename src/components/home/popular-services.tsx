@@ -7,7 +7,7 @@ const PopularServices = async () => {
   let error: any;
 
   const { businesses } = await trpc.listBusinesses({
-    limit: 4,
+    limit: 6,
     sortBy: "rating",
   });
 
