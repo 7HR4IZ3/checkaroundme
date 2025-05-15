@@ -143,8 +143,6 @@ export function createPaystackProcedures(
           const user = await AuthService.getCurrentUser();
           if (!user) throw new Error("Unauthenticated user");
 
-          console.log(user.user.prefs);
-
           if (user.user.prefs.subscriptionStatus === "active") {
             return {
               success: true,

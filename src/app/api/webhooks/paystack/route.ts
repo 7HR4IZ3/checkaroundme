@@ -6,6 +6,7 @@ import { getPlan, listPlans } from "@/lib/paystack";
 import { IPlan } from "paystack-sdk/dist/plan";
 import { users } from "@/lib/appwrite"; // Import Appwrite users service
 import { Query } from "node-appwrite"; // Import Query for Appwrite queries
+import { PaymentTransactionService } from "@/lib/appwrite"; // Import PaymentTransactionService
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 
@@ -202,6 +203,36 @@ export async function POST(req: NextRequest) {
         console.log(
           `Webhook: Successfully updated subscription for user ${userId}. New expiry: ${newExpiryDate.toISOString()}`
         );
+
+        try {
+          const transactionData = {
+            userId: userId,
+            providerTransactionId: eventData.reference,
+            date: eventData.paid_at || eventData.created_at, // Use paid_at if available, otherwise created_at
+            amount: eventData.amount, // Amount is in kobo
+            currency: eventData.currency,
+            description:
+              eventType === "charge.success"
+                ? "One-time payment"
+                : "Subscription payment", // Simple description based on event type
+            status: "succeeded" as const, // Cast to the specific enum value
+            provider: "paystack" as const, // Cast to the specific enum value
+            invoiceUrl: eventData.invoice_url, // Check if this exists in webhook data
+          };
+          await PaymentTransactionService.createPaymentTransaction(
+            transactionData
+          );
+          console.log(
+            `Webhook: Successfully recorded payment transaction for user ${userId}. Reference: ${eventData.reference}`
+          );
+        } catch (transactionError) {
+          console.error(
+            `Webhook: Failed to record payment transaction for user ${userId}. Reference: ${eventData.reference}`,
+            transactionError
+          );
+          // Decide how to handle this error - maybe log and continue, or return an error response.
+          // For now, just log and continue processing the webhook.
+        }
         break;
 
       case "subscription.disable":

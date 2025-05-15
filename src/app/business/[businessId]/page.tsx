@@ -640,85 +640,93 @@ export default function BusinessPage() {
             <Separator />
 
             {/* Photos & Videos */}
-            <section>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Photos & Videos</h2>
-                {imageUrls.length > 5 && (
-                  <Button
-                    variant="link"
-                    className="text-sm"
-                    onClick={() => {
-                      setCurrentImageIndex(0);
-                      setIsImageModalOpen(true);
-                    }}
-                  >
-                    See all {imageUrls.length} photos{" "}
-                    <ChevronRight className="ml-1 h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-              <Carousel
-                opts={{
-                  align: "start",
-                  loop: true,
-                }}
-                className="w-full"
-              >
-                <CarouselContent>
-                  {imageUrls.map((imgSrc, index) => (
-                    <CarouselItem
-                      key={index}
-                      className="basis-1/2 sm:basis-1/3 lg:basis-1/4"
-                    >
-                      <div
-                        className="aspect-square relative bg-muted rounded-md overflow-hidden cursor-pointer"
+            {imageUrls.length > 0 && (
+              <>
+                <section>
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-semibold">Photos & Videos</h2>
+                    {imageUrls.length > 5 && (
+                      <Button
+                        variant="link"
+                        className="text-sm"
                         onClick={() => {
-                          setCurrentImageIndex(index);
+                          setCurrentImageIndex(0);
                           setIsImageModalOpen(true);
                         }}
                       >
-                        {/* Use next/image for optimized images */}
-                        <Image
-                          src={imgSrc}
-                          alt={`Business photo ${index + 1}`}
-                          fill
-                          style={{
-                            objectFit: "cover",
-                            viewTransitionName: `business-${businessId}-image`,
-                          }}
-                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                          priority={index < 3}
-                        />
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2" />
-                <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2" />
-              </Carousel>
-            </section>
+                        See all {imageUrls.length} photos{" "}
+                        <ChevronRight className="ml-1 h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <Carousel
+                    opts={{
+                      align: "start",
+                      loop: true,
+                    }}
+                    className="w-full"
+                  >
+                    <CarouselContent>
+                      {imageUrls.map((imgSrc, index) => (
+                        <CarouselItem
+                          key={index}
+                          className="basis-1/2 sm:basis-1/3 lg:basis-1/4"
+                        >
+                          <div
+                            className="aspect-square relative bg-muted rounded-md overflow-hidden cursor-pointer"
+                            onClick={() => {
+                              setCurrentImageIndex(index);
+                              setIsImageModalOpen(true);
+                            }}
+                          >
+                            {/* Use next/image for optimized images */}
+                            <Image
+                              src={imgSrc}
+                              alt={`Business photo ${index + 1}`}
+                              fill
+                              style={{
+                                objectFit: "cover",
+                                viewTransitionName: `business-${businessId}-image`,
+                              }}
+                              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                              priority={index < 3}
+                            />
+                          </div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2" />
+                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2" />
+                  </Carousel>
+                </section>
 
-            <Separator />
+                <Separator />
+              </>
+            )}
 
             {/* Service Offered */}
-            <section>
-              <div className="flex items-center gap-2 mb-4">
-                <h2 className="text-xl font-semibold">Service Offered</h2>
-                {business.verificationStatus === "verified" && (
-                  <div className="flex items-center gap-1 text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
-                    <CheckCircle className="w-3 h-3" />
-                    <span>Verified Business</span>
+            {business.services?.length ? (
+              <>
+                <section>
+                  <div className="flex items-center gap-2 mb-4">
+                    <h2 className="text-xl font-semibold">Service Offered</h2>
+                    {business.verificationStatus === "verified" && (
+                      <div className="flex items-center gap-1 text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
+                        <CheckCircle className="w-3 h-3" />
+                        <span>Verified Business</span>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm text-gray-700">
-                {(business.services ?? []).map((service) => (
-                  <p key={service}>{service}</p>
-                ))}
-              </div>
-            </section>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm text-gray-700">
+                    {(business.services ?? []).map((service) => (
+                      <p key={service}>{service}</p>
+                    ))}
+                  </div>
+                </section>
 
-            <Separator />
+                <Separator />
+              </>
+            ) : null}
 
             {/* Amenities & Details */}
             <section>
@@ -730,7 +738,7 @@ export default function BusinessPage() {
                 {business.maxPrice && (
                   <div className="flex items-center gap-2">
                     <span className="font-medium w-28">Price Range:</span>
-                    <span>{business.maxPrice} (Max)</span>
+                    <span>NGN {business.maxPrice} (Maximum Price)</span>
                   </div>
                 )}
 

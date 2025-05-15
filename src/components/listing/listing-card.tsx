@@ -20,9 +20,11 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
   hideButton = false,
 }) => {
   const auth = useAuth();
-  const { data: image, isLoading } = trpc.getBusinessImage.useQuery({
+  const { data: image, isLoading, isError } = trpc.getBusinessImage.useQuery({
     businessId: business.$id,
   });
+
+  console.log(image, isLoading, isError)
 
   // const updateBusinessMutation = trpc.updateBusiness.useMutation();
 
@@ -75,11 +77,11 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
   return (
     <div className="container bg-white rounded-lg shadow-xs overflow-hidden flex flex-row p-2 relative md:h-auto gap-2">
       <div className="w-1/2 md:w-1/3 lg:w-[10vw] relative">
-        {isLoading || !image ? (
+        {isLoading ? (
           <Skeleton />
         ) : (
           <Image
-            src={image.imageUrl}
+            src={image ? image.imageUrl : "/images/no-image.jpg"}
             alt={business.name}
             fill
             className="rounded-xl bg-gray-200 object-cover" // Background while loading

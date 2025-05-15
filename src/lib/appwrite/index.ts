@@ -241,8 +241,8 @@ export const UserService = {
   async getUserSubscription(userId: string): Promise<UserSubscription> {
     try {
       const user = await users.get(userId);
-      // Assuming subscription data is stored under 'subscription' key in prefs
-      const subscriptionPrefs = (user.prefs as any)?.subscription || {};
+      const subscriptionPrefs = user.prefs;
+      console.log(subscriptionPrefs)
       return userSubscriptionSchema.parse(subscriptionPrefs);
     } catch (error) {
       console.error(`Get user subscription error for ${userId}:`, error);

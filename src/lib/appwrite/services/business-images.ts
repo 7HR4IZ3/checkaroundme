@@ -1,4 +1,4 @@
-import { ID, Query, Storage } from "node-appwrite";
+import { ID, Models, Query, Storage } from "node-appwrite";
 
 import { BusinessImage } from "../../schema"; // Corrected schema import path
 
@@ -43,7 +43,7 @@ export const BusinessImagesService = {
           },
         );
 
-        images.push(image as unknown as BusinessImage);
+        images.push(image as Models.Document & BusinessImage);
       }
 
       return images;
@@ -103,7 +103,7 @@ export const BusinessImagesService = {
       // Upload file to storage
       await storage.createFile(BUSINESS_IMAGES_BUCKET_ID, newImage.$id, file);
 
-      return newImage as unknown as BusinessImage;
+      return newImage as Models.Document & BusinessImage;
     } catch (error) {
       console.error("Upload business image error:", error);
       throw error;
@@ -133,7 +133,7 @@ export const BusinessImagesService = {
   },
 
   // Get business images
-  async getBusinessImage(businessId: string): Promise<BusinessImage> {
+  async getBusinessImage(businessId: string): Promise<BusinessImage | null> {
     try {
       const result = await databases.listDocuments(
         DATABASE_ID,
@@ -142,10 +142,10 @@ export const BusinessImagesService = {
       );
 
       if (result.documents.length < 1) {
-        throw new Error("No primary business image");
+        return null;
       }
 
-      return result.documents[0] as unknown as BusinessImage;
+      return result.documents[0] as Models.Document & BusinessImage;
     } catch (error) {
       console.error("Get business images error:", error);
       throw error;
@@ -160,7 +160,7 @@ export const BusinessImagesService = {
         [Query.equal("businessId", businessId)],
       );
 
-      return result.documents as unknown as BusinessImage[];
+      return result.documents as (Models.Document & BusinessImage)[];
     } catch (error) {
       console.error("Get business images error:", error);
       throw error;

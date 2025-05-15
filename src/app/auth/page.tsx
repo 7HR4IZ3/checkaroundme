@@ -37,6 +37,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
   const [captchaToken, setCaptchaToken] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(true);
 
+  const utils = trpc.useUtils();
   const login = trpc.login.useMutation();
   const googleLogin = trpc.loginWithGoogle.useMutation();
 
@@ -61,6 +62,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
       console.log("Login result:", result);
 
       if (result.success) {
+        utils.getCurrentUser.refetch();
         const nextUrl = searchParams.get("next");
         if (nextUrl && nextUrl.startsWith("/")) {
           router.push(nextUrl);
@@ -321,6 +323,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
   const [captchaToken, setCaptchaToken] = useState("");
   const [captchaError, setCaptchaError] = useState("");
 
+  const utils = trpc.useUtils();
   const login = trpc.login.useMutation();
   const register = trpc.register.useMutation();
   const googleLogin = trpc.loginWithGoogle.useMutation();
@@ -359,6 +362,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
       });
 
       if (result.success) {
+        utils.getCurrentUser.refetch();
         const nextUrl = searchParams.get("next");
         if (nextUrl && nextUrl.startsWith("/")) {
           router.push(nextUrl);
