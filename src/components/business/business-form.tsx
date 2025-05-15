@@ -357,7 +357,13 @@ export default function BusinessForm({
         if (response.ok) {
           const result: BusinessImage[] = await response.json();
           // Update form state
-          setValue("images", [...businessImages, ...result]);
+          setValue("images", [
+            ...businessImages,
+            ...result.map((image) => ({
+              ...image,
+              createdAt: new Date(image.createdAt),
+            })),
+          ]);
         }
       } catch (err) {
         console.error("Failed to upload image", err);
