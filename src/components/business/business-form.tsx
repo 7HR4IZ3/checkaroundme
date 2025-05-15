@@ -163,7 +163,7 @@ export default function BusinessForm({
       on_site_parking: false,
       garage_parking: false,
       wifi: false,
-      agreedToTerms: false,
+      agreedToTerms: !!businessId,
     },
   });
 
