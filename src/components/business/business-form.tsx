@@ -376,12 +376,7 @@ export default function BusinessForm({
   const handleToggleBusinessStatus = (status: string) => {
     if (!user || !businessId) return;
     const newStatus = status === "active" ? "disabled" : "active";
-    updateBusinessMutation.mutate({
-      businessId,
-      data: {
-        status: newStatus,
-      },
-    });
+    setValue("status", newStatus);
   };
 
   const onSubmitRHF = async (data: BusinessFormValues) => {
