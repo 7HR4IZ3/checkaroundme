@@ -530,7 +530,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
                 href="/terms-of-service"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white hover:underline"
+                className="text-black hover:underline"
               >
                 Terms of Service
               </Link>{" "}
@@ -539,7 +539,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
                 href="/privacy-policy"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white hover:underline"
+                className="text-black hover:underline"
               >
                 Privacy Policy
               </Link>
