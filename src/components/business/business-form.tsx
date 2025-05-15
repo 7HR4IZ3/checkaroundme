@@ -175,6 +175,7 @@ export default function BusinessForm({
     setValue,
     watch,
     control,
+    setError
   } = form;
 
   const status = watch("status");
