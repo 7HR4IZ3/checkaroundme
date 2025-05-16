@@ -118,7 +118,7 @@ const CategoryNav: React.FC<CategoryNavProps> = ({
 
   return (
     <nav className="container bg-white border-b border-gray-200 py-3">
-      <div className="w-screen mx-auto flex items-center justify-between">
+      <div className="w-screen mx-auto flex items-center justify-between md:justify-center">
         <div className="flex items-center space-x-2 md:space-x-3 overflow-x-auto whitespace-nowrap hide-scrollbar">
           {categories.slice(0, displayCount).map((category) => {
             const isSelected = selectedCategory === category.name;
