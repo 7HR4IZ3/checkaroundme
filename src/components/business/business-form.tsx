@@ -158,7 +158,7 @@ export default function BusinessForm({
       },
       images: [],
       email: "",
-      website: "https://",
+      website: "",
       maxPrice: undefined,
       on_site_parking: false,
       garage_parking: false,
@@ -241,7 +241,7 @@ export default function BusinessForm({
         services: initialData.services ?? [],
         paymentOptions: initialData.paymentOptions ?? [],
         email: initialData.email ?? "",
-        website: initialData.website ?? "https://",
+        website: initialData.website ?? "",
         city: initialData.city ?? "",
         country: initialData.country ?? "", // This will be the name, need to map to ISO code
         state: initialData.state ?? "", // This will be the name, need to map to ISO code
@@ -302,7 +302,7 @@ export default function BusinessForm({
 
   // --- Handlers ---
   const handleBusinessWebsite = (value: string) => {
-    if (!value.startsWith("https://")) {
+    if (value && !value.startsWith("https://")) {
       setValue("website", "https://" + value);
     } else {
       setValue("website", value);
@@ -613,7 +613,7 @@ export default function BusinessForm({
             type="url"
             {...register("website")}
             onChange={(e) => handleBusinessWebsite(e.target.value)} // Keep custom handler for prefix
-            placeholder="https://example.com"
+            placeholder="https://checkaroundme.com"
             className="mt-2"
           />
           {errors.website && (
