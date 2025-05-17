@@ -23,7 +23,7 @@ const useGeolocation = (): GeolocationState => {
   } = trpc.getGeolocation.useQuery(void 0, {
     enabled: Boolean(
       (!loading && (!latitude || !longitude) && error && error.code !== 1) ||
-        (permissionDeniedOccurred && !isModalOpen),
+        (permissionDeniedOccurred && !isModalOpen)
     ),
   });
 

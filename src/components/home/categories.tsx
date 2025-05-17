@@ -44,7 +44,9 @@ export default async function Categories() {
                 className="pl-2 md:pl-4 basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6"
               >
                 <Link
-                  href={`/listings?categories=${category.name}`}
+                  href={`/listings?categories=${encodeURIComponent(
+                    category.name
+                  )}`}
                   className="flex flex-col items-center text-center cursor-pointer group"
                 >
                   <div className="w-[25vw] h-[25vw] md:w-[10rem] md:h-[10rem] rounded-full p-1 bg-gradient-to-br from-[#F3B53F] via-[#FF4D00] to-[#AE06C9] transition duration-200">
