@@ -7,6 +7,7 @@ import { trpc } from "@/lib/trpc/client";
 import Loading from "../ui/loading";
 
 export default function AuthProvider({ children }: { children: ReactNode }) {
+  const utils = trpc.useUtils();
   const { data: currentUser, isLoading: loadingCurrentUser } =
     trpc.getCurrentUser.useQuery();
 
@@ -57,12 +58,15 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const refresh = () => {
+    utils.getCurrentUser.refetch();
+  }
+
   return (
     <AuthContext.Provider
       // @ts-ignore
       value={{
-        // login,
-        logout,
+        logout, refresh,
         user: user?.user ?? null,
         profile: user?.profile ?? null,
         isLoading: loadingCurrentUser,

@@ -46,6 +46,19 @@ function getHaversineDistance(
   return R * c; // Distance in km
 }
 
+function sanitizeInputs(data: { [key: string]: any }) {
+  const keys = Object.keys(data);
+  const output: { [key: string]: any } = {};
+
+  for (const key of keys) {
+    if (data[key] !== undefined) {
+      output[key] = data[key];
+    }
+  }
+
+  return output;
+}
+
 // Helper function to check if a business is currently open
 // Assumes BusinessHoursService.getBusinessHours(businessId) exists and returns BusinessHours or null
 async function checkOpenNow(
@@ -277,7 +290,8 @@ export const BusinessService = {
       images?: BusinessImage[];
     }
   ): Promise<Business | null> {
-    const { hours, images, ...businessData } = data;
+    const { hours, images, ...businessData } = sanitizeInputs(data);
+
     try {
       const updatedBusinessDoc = await databases.updateDocument(
         DATABASE_ID,

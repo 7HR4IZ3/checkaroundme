@@ -16,7 +16,7 @@ type UnAuthenticated = {
 };
 
 type AuthContextType = {
-  // login: any;
+  refresh: () => void
   logout: any;
   isLoading: boolean;
 } & (Authenticated | UnAuthenticated);
@@ -25,9 +25,9 @@ export const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   user: null,
   profile: null,
-  // login: null,
   logout: null,
   isLoading: true,
+  refresh: () => null
 });
 
 export const useAuth = () => useContext(AuthContext);

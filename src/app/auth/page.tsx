@@ -25,6 +25,7 @@ import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 function LoginForm({ onToggle }: { onToggle: () => void }) {
+  const auth = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
@@ -62,7 +63,8 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
       console.log("Login result:", result);
 
       if (result.success) {
-        utils.getCurrentUser.refetch();
+        auth.refresh();
+
         const nextUrl = searchParams.get("next");
         if (nextUrl && nextUrl.startsWith("/")) {
           router.push(nextUrl);
@@ -307,6 +309,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
 }
 
 function SignUpForm({ onToggle }: { onToggle: () => void }) {
+  const auth = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [fullName, setFullName] = useState("");
@@ -362,7 +365,8 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
       });
 
       if (result.success) {
-        utils.getCurrentUser.refetch();
+        auth.refresh();
+
         const nextUrl = searchParams.get("next");
         if (nextUrl && nextUrl.startsWith("/")) {
           router.push(nextUrl);

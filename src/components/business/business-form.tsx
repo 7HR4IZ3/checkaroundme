@@ -224,6 +224,7 @@ export default function BusinessForm({
   // Update useEffect to use reset for initial data
   useEffect(() => {
     if (initialData) {
+      console.log(initialData)
       reset({
         name: initialData.name ?? "",
         about: initialData.about ?? "",
@@ -399,6 +400,7 @@ export default function BusinessForm({
       addressLine1: data.addressLine1,
       addressLine2: data.addressLine2,
       city: data.city,
+      state: data.state,
       country: data.country,
       phoneCountryCode: data.phoneCountryCode,
       phoneNumber: data.phoneNumber,
@@ -414,6 +416,8 @@ export default function BusinessForm({
       garage_parking: data.garage_parking,
       wifi: data.wifi,
     };
+
+    console.log(formData);
 
     await onSubmit(formData);
   };
