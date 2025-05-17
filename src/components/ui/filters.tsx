@@ -1,4 +1,3 @@
-// src/components/FiltersPanel.tsx
 "use client";
 
 import { useState } from "react";
@@ -14,7 +13,7 @@ interface CheckboxOption {
 }
 
 const featureOptions: CheckboxOption[] = [
-  { id: "open_now", label: "Open Right Now" },
+  // { id: "open_now", label: "Open Right Now" },
   { id: "on_site_parking", label: "On-Site Parking" },
   { id: "garage_parking", label: "Garage Parking" },
   { id: "wifi", label: "Wifi" },
@@ -22,19 +21,19 @@ const featureOptions: CheckboxOption[] = [
   { id: "cash", label: "Accepts Cash" },
 ];
 
-const distanceOptions: CheckboxOption[] = [
-  // { id: "birds_eye", label: "Bird's Eye View" },
-  { id: "within_2km", label: "Within 2km" },
-  { id: "within_5km", label: "Within 5km" },
-  { id: "within_6km", label: "Within 6km" }, // Added 6km as it's in the design
-  { id: "within_10km", label: "Within 10km" },
-  { id: "across_city", label: "Across the City" },
-];
+// const distanceOptions: CheckboxOption[] = [
+//   // { id: "birds_eye", label: "Bird's Eye View" },
+//   { id: "within_2km", label: "Within 2km" },
+//   { id: "within_5km", label: "Within 5km" },
+//   { id: "within_6km", label: "Within 6km" }, // Added 6km as it's in the design
+//   { id: "within_10km", label: "Within 10km" },
+//   { id: "across_city", label: "Across the City" },
+// ];
 
 export interface Filters {
   price: string | undefined; // Change type to undefined to match TRPC input
   features: string[];
-  distances: string[];
+  // distances: string[];
 }
 
 interface FiltersPanelProps {
@@ -64,15 +63,15 @@ export function FiltersPanel({
     return initialState;
   });
 
-  const [selectedDistances, setSelectedDistances] = useState<
-    Record<string, boolean>
-  >(() => {
-    const initialState: Record<string, boolean> = {};
-    distanceOptions.forEach((option) => {
-      initialState[option.id] = initialFilters.distances.includes(option.id);
-    });
-    return initialState;
-  });
+  // const [selectedDistances, setSelectedDistances] = useState<
+  //   Record<string, boolean>
+  // >(() => {
+  //   const initialState: Record<string, boolean> = {};
+  //   distanceOptions.forEach((option) => {
+  //     initialState[option.id] = initialFilters.distances.includes(option.id);
+  //   });
+  //   return initialState;
+  // });
 
   // Handlers for updating state
   const handleFeatureChange = (
@@ -84,14 +83,14 @@ export function FiltersPanel({
     }
   };
 
-  const handleDistanceChange = (
-    distanceId: string,
-    checked: boolean | "indeterminate",
-  ) => {
-    if (typeof checked === "boolean") {
-      setSelectedDistances((prev) => ({ ...prev, [distanceId]: checked }));
-    }
-  };
+  // const handleDistanceChange = (
+  //   distanceId: string,
+  //   checked: boolean | "indeterminate",
+  // ) => {
+  //   if (typeof checked === "boolean") {
+  //     setSelectedDistances((prev) => ({ ...prev, [distanceId]: checked }));
+  //   }
+  // };
 
   const handleReset = () => {
     // Reset to default states (or initial filters if preferred, but design implies reset to a specific default)
@@ -104,13 +103,13 @@ export function FiltersPanel({
       bank_transfers: false,
       cash: false,
     });
-    setSelectedDistances({
-      within_2km: true,
-      within_5km: false,
-      within_6km: false,
-      within_10km: false,
-      across_city: false,
-    });
+    // setSelectedDistances({
+    //   within_2km: true,
+    //   within_5km: false,
+    //   within_6km: false,
+    //   within_10km: false,
+    //   across_city: false,
+    // });
   };
 
   const handleConfirm = () => {
@@ -119,9 +118,9 @@ export function FiltersPanel({
       features: Object.keys(selectedFeatures).filter(
         (key) => selectedFeatures[key],
       ), // Get array of selected feature IDs
-      distances: Object.keys(selectedDistances).filter(
-        (key) => selectedDistances[key],
-      ), // Get array of selected distance IDs
+      // distances: Object.keys(selectedDistances).filter(
+      //   (key) => selectedDistances[key],
+      // ), // Get array of selected distance IDs
     };
     onApplyFilters(filtersToApply);
     onClose(); // Close panel after applying
@@ -182,7 +181,7 @@ export function FiltersPanel({
         </div>
       </div>
       {/* Distance Section */}
-      <div className="space-y-2">
+      {/* <div className="space-y-2">
         <Label className="text-base font-medium">Distance</Label>
         <div className="space-y-3">
           {distanceOptions.map((distance) => (
@@ -204,7 +203,7 @@ export function FiltersPanel({
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
       {/* Action Buttons */}
       <div className="flex items-center justify-between gap-4 pt-4">
         <Button
