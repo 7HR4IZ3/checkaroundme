@@ -1,6 +1,12 @@
 import { Paystack } from "paystack-sdk";
 
-const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
+let PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
+
+if (process.env.NODE_ENV === "development") {
+  PAYSTACK_SECRET_KEY = process.env.PAYSTACK_TEST_SECRET_KEY;
+} else {
+  PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
+}
 
 if (!PAYSTACK_SECRET_KEY) {
   console.error(

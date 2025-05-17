@@ -199,6 +199,9 @@ export function createPaystackProcedures(
             );
           }
 
+          const existingSubsription = await psListSubscriptions();
+          console.log(existingSubsription);
+
           let paystackSubscriptionStartDate = new Date();
           if (true || isEligibleForTwoMonthFreeOffer) {
             const twoMonthsFromNow = new Date();

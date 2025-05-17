@@ -1,0 +1,32 @@
+# Test info
+
+- Name: basic test
+- Location: /Users/thraize/Documents/Programming/checkaroundme/e2e/example.spec.ts:3:5
+
+# Error details
+
+```
+Error: browserType.launch: Executable doesn't exist at /Users/thraize/Library/Caches/ms-playwright/firefox-1482/firefox/Nightly.app/Contents/MacOS/firefox
+╔═════════════════════════════════════════════════════════════════════════╗
+║ Looks like Playwright Test or Playwright was just installed or updated. ║
+║ Please run the following command to download new browsers:              ║
+║                                                                         ║
+║     npx playwright install                                              ║
+║                                                                         ║
+║ <3 Playwright Team                                                      ║
+╚═════════════════════════════════════════════════════════════════════════╝
+```
+
+# Test source
+
+```ts
+  1 | import { test, expect } from "@playwright/test";
+  2 |
+> 3 | test("basic test", async ({ page }) => {
+    |     ^ Error: browserType.launch: Executable doesn't exist at /Users/thraize/Library/Caches/ms-playwright/firefox-1482/firefox/Nightly.app/Contents/MacOS/firefox
+  4 |   await page.goto("/");
+  5 |   // Replace with a relevant selector for your landing page
+  6 |   await expect(page.locator("body")).toContainText("checkaroundme");
+  7 | });
+  8 |
+```
