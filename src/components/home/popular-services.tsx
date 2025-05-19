@@ -34,7 +34,7 @@ const PopularServices = async () => {
           <h2 className="ext-lg md:text-2xl font-semibold text-gray-800 mb-8 text-center">
             Popular Services
           </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             {[...Array(6)].map((_, i) => (
               <ListingCardSkeleton key={i} />
             ))}
@@ -50,7 +50,7 @@ const PopularServices = async () => {
         <h2 className="ext-lg md:text-2xl font-semibold text-gray-800 mb-8 text-center">
           Popular Services
         </h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {businesses.map((business) => (
             <Suspense key={business.$id} fallback={<ListingCardSkeleton />}>
               <ListingCard hideButton={true} business={business} />

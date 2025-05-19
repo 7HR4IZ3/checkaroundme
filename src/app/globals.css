@@ -171,3 +171,12 @@ body {
 [view-transition-name] {
   view-transition-name: initial;
 }
+
+/* Overide the default height for NextJS Image */
+.listing-card img {
+  height: 100% !important;
+  width: auto !important;
+  scale: 0.8;
+  max-height: 100%;
+  min-width: 10vw;
+}

@@ -10,7 +10,11 @@ const handler = (request: NextRequest) => {
     endpoint: "/api/trpc",
     req: request,
     router: appRouter,
-    createContext: createTRPCContext,
+    createContext: cache(() =>
+      createTRPCContext({
+        headers: request.headers,
+      })
+    ),
   });
 };
 

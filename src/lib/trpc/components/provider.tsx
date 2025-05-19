@@ -19,11 +19,13 @@ function getQueryClient() {
 }
 
 function getUrl() {
-  const base = (() => {
-    if (typeof window !== "undefined") return "";
-    if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-    return "http://localhost:3000";
-  })();
+  const base =
+    typeof window !== "undefined"
+      ? ""
+      : process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : "http://localhost:3000";
+
   return `${base}/api/trpc`;
 }
 
@@ -34,10 +36,10 @@ export function TrpcProvider({ children }: { children: React.ReactNode }) {
       links: [
         httpBatchLink({
           transformer: superjson,
-          url: "/api/trpc",
+          url: getUrl(),
         }),
       ],
-    }),
+    })
   );
 
   return (

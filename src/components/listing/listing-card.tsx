@@ -28,8 +28,6 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
     businessId: business.$id,
   });
 
-  console.log(image, isLoading, isError);
-
   // const updateBusinessMutation = trpc.updateBusiness.useMutation();
 
   // useEffect(() => {
@@ -79,26 +77,24 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
   // }, [business]);
 
   return (
-    <div className="container bg-white rounded-lg shadow-xs overflow-hidden flex flex-row p-2 relative md:h-auto gap-2">
+    <div className="container bg-white rounded-lg shadow-xs overflow-hidden flex flex-row p-2 relative md:h-auto gap-2 listing-card">
       <div className="w-1/2 md:w-1/3 lg:w-[10vw] relative">
         {isLoading ? (
           <Skeleton />
         ) : (
-          <div className="w-auto h-auto">
-            <Image
-              src={image ? image.imageUrl : "/images/no-image.jpg"}
-              alt={business.name} fill
-              className="rounded-xl bg-gray-200 object-cover"
-              style={{
-                viewTransitionName:
-                  `business-${business.$id}-image`,
-                inset: "auto",
-              }}
-            />
-          </div>
+          <Image
+            src={image ? image.imageUrl : "/images/no-image.jpg"}
+            alt={business.name}
+            fill
+            className="rounded-xl bg-gray-200 object-cover"
+            style={{
+              viewTransitionName: `business-${business.$id}-image`,
+              inset: "auto",
+            }}
+          />
         )}
       </div>
-      <div className="flex-grow px-4 py-1 md:py-4 flex flex-col justify-between">
+      <div className="w-1/2 md:w-2/3 px-4 py-1 md:py-4 flex flex-col lg:flex-grow justify-between">
         <div className="flex flex-col justify-between gap-1 md:gap-2">
           <div className="flex p-0 justify-between items-start">
             <Link href={`/business/${business.$id}`}>
