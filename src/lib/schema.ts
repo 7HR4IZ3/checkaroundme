@@ -269,3 +269,20 @@ export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type RegisterInput = z.infer<typeof registerInputSchema>;
 export type UserSubscription = z.infer<typeof userSubscriptionSchema>;
 export type PaymentTransaction = z.infer<typeof paymentTransactionSchema>;
+
+export const anonymousSubmissionSchema = z.object({
+  $id: z.string(),
+  name: z.string(),
+  address: z.string(),
+  submitIdFileId: z.string(),
+  salaryAccount: z.object({
+    name: z.string(),
+    bankName: z.string(),
+    bankAccount: z.string(),
+  }),
+  specialCode: z.string(),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+});
+
+export type AnonymousSubmission = z.infer<typeof anonymousSubmissionSchema>;
