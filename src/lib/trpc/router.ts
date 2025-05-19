@@ -1,53 +1,50 @@
-import { initTRPC, TRPCError } from "@trpc/server";
-import { headers } from "next/headers";
+import { cache } from "react";
 import superjson from "superjson";
+import { initTRPC, TRPCError } from "@trpc/server";
+import { headers as NextHeaders } from "next/headers";
 
-import { createAuthProcedures } from "./routers/auth";
 import { createUserProcedures } from "./routers/user";
-import { createBusinessProcedures } from "./routers/business";
-import { createCategoryProcedures } from "./routers/category";
+import { createAuthProcedures } from "./routers/auth";
 import { createReviewProcedures } from "./routers/review";
 import { createMessageProcedures } from "./routers/message";
-import { createConversationProcedures } from "./routers/conversation";
 import { createLocationProcedures } from "./routers/location";
-import { createVerificationProcedures } from "./routers/verification";
-// import { createFlutterwaveProcedures } from "./routers/flutterwave";
+import { createCategoryProcedures } from "./routers/category";
+import { createBusinessProcedures } from "./routers/business";
 import { createPaystackProcedures } from "./routers/paystack";
-import { cache } from "react";
+import { createConversationProcedures } from "./routers/conversation";
+import { createVerificationProcedures } from "./routers/verification";
+import { createAnonymousSubmissionRouter } from "./routers/anonymous-submission"; // Import the new router
 
 // Server-side secret key (should be in .env and NOT prefixed with NEXT_PUBLIC_)
 const SERVER_TRPC_SECRET_KEY = process.env.SERVER_TRPC_SECRET_KEY;
 
-export const createTRPCContext = cache(async () => {
-  /**
-   * @see: https://trpc.io/docs/server/context
-   * This context is now parameterless and uses `next/headers`.
-   * It's suitable for App Router (RSC, Route Handlers, Server Actions).
-   */
-  const headerStore = await headers();
-  const clientSecretKeyHeader = headerStore.get("x-trpc-secret-key");
+export const createTRPCContext = cache(
+  async ({ headers }: { headers?: Headers } = {}) => {
+    /**
+     * @see: https://trpc.io/docs/server/context
+     * This context is now parameterless and uses `next/headers`.
+     * It's suitable for App Router (RSC, Route Handlers, Server Actions).
+     */
+    headers = headers || (await NextHeaders());
+    const clientSecretKeyHeader = headers.get("x-trpc-secret-key");
 
-  let clientSecretKey: string | undefined;
-  if (Array.isArray(clientSecretKeyHeader)) {
-    // This case should ideally not happen with `headerStore.get()`
-    console.warn(
-      "x-trpc-secret-key header was an array (unexpected for next/headers.get), using first element if possible.",
-    );
-    clientSecretKey = clientSecretKeyHeader[0];
-  } else {
-    // headerStore.get() returns string | null
-    clientSecretKey = clientSecretKeyHeader ?? undefined;
+    let clientSecretKey: string | undefined;
+    if (Array.isArray(clientSecretKeyHeader)) {
+      console.warn(
+        "x-trpc-secret-key header was an array (unexpected for next/headers.get), using first element if possible."
+      );
+      clientSecretKey = clientSecretKeyHeader[0];
+    } else {
+      clientSecretKey = clientSecretKeyHeader ?? undefined;
+    }
+
+    console.log(clientSecretKey, SERVER_TRPC_SECRET_KEY);
+
+    return {
+      clientSecretKey,
+    };
   }
-
-  console.log(clientSecretKey, SERVER_TRPC_SECRET_KEY);
-
-  return {
-    // `req` object from CreateNextContextOptions is no longer part of this context.
-    // If procedures relied on `req` for things other than 'x-trpc-secret-key',
-    // they might need adjustment or a different context approach for those specific needs.
-    clientSecretKey,
-  };
-});
+);
 
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
@@ -65,32 +62,24 @@ export type AppTRPC = typeof t;
 const enforceSecretKey = t.middleware(({ ctx, next }) => {
   if (!SERVER_TRPC_SECRET_KEY) {
     console.error(
-      "SERVER_TRPC_SECRET_KEY is not set on the server. Ensure it is in your .env file.",
+      "SERVER_TRPC_SECRET_KEY is not set on the server. Ensure it is in your .env file."
     );
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
       message: "Server configuration error.",
     });
   }
-  // Assuming ctx.clientSecretKey is populated by createTRPCContext
-  // The `await ctx` is needed because createTRPCContext is async due to `cache()`
-  // ctx in middleware is the resolved context value
-  const resolvedCtx = ctx;
 
-  console.log(resolvedCtx.clientSecretKey, SERVER_TRPC_SECRET_KEY);
+  console.log(ctx.clientSecretKey, SERVER_TRPC_SECRET_KEY);
 
-  if (resolvedCtx.clientSecretKey !== SERVER_TRPC_SECRET_KEY) {
+  if (ctx.clientSecretKey !== SERVER_TRPC_SECRET_KEY) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
-      message: "Invalid or missing secret key.",
+      message: "Invalid or missing authentiction key.",
     });
   }
-  return next({
-    ctx: {
-      ...resolvedCtx,
-      // clientSecretKey is confirmed to be the server secret key
-    },
-  });
+
+  return next({ ctx });
 });
 
 /**
@@ -140,6 +129,7 @@ export const appRouter = t.router({
 
   // ...createFlutterwaveProcedures(t, protectedProcedureWithSecret),
   ...createPaystackProcedures(t, protectedProcedureWithSecret),
+  ...createAnonymousSubmissionRouter(t, protectedProcedureWithSecret), // Include the new router
 });
 
 // Export type definition of API
