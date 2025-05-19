@@ -1269,11 +1269,11 @@ export const AnonymousSubmissionService = {
 };
 
 function generateSpecialCode(name: string) {
-  const start_section = name.split(" ")[0].substring(5);
+  const start_section = name.split(" ")[0].substring(0, 5);
   const end_section = Array.from({ length: 5 })
     .map(() => Math.round(Math.random() * 9))
     .join("");
-  return `${start_section}_${end_section}`;
+  return `${start_section}_${end_section}`.toUpperCase();
 }
 
 // Export client and services for direct use in components when needed
