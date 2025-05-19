@@ -62,7 +62,7 @@ export default function AnonymousSubmissionsPage() {
   if (loading) {
     return (
       <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-4">Anonymous Submissions</h1>
+        <h1 className="text-2xl font-bold mb-4">Submissions</h1>
         <p>Loading submissions...</p>
       </div>
     );
@@ -71,7 +71,7 @@ export default function AnonymousSubmissionsPage() {
   if (error) {
     return (
       <div className="container mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-4">Anonymous Submissions</h1>
+        <h1 className="text-2xl font-bold mb-4">Submissions</h1>
         <p className="text-red-500">Error loading submissions: {error}</p>
       </div>
     );
@@ -79,7 +79,7 @@ export default function AnonymousSubmissionsPage() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Anonymous Submissions</h1>
+      <h1 className="text-2xl font-bold mb-4">Submissions</h1>
       {submissions.length === 0 ? (
         <p>No submissions found.</p>
       ) : (
@@ -100,7 +100,7 @@ export default function AnonymousSubmissionsPage() {
                 <td className="py-2 px-4 border-b">{submission.specialCode}</td>
                 <td className="py-2 px-4 border-b">
                   <a
-                    href={`/verification/${submission.$id}`}
+                    href={`/admin/submissions/${submission.$id}`}
                     className="text-blue-500 hover:underline"
                   >
                     View Verification
