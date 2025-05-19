@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { trpc } from '@/lib/trpc/client';
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { trpc } from "@/lib/trpc/client";
 
-const SECRET_PASSWORD = 'YOUR_SECRET_PASSWORD'; // Placeholder for the secret password
+const SECRET_PASSWORD = "PASSWORD"; // Placeholder for the secret password
 
 interface Submission {
   $id: string;
@@ -16,14 +16,18 @@ interface Submission {
 
 export default function AnonymousSubmissionsPage() {
   const searchParams = useSearchParams();
-  const password = searchParams.get('password');
+  const password = searchParams.get("password");
 
   const [hasAccess, setHasAccess] = useState(false);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { data, isLoading, error: trpcError } = trpc.getAllAnonymousSubmission.useQuery(undefined, {
+  const {
+    data,
+    isLoading,
+    error: trpcError,
+  } = trpc.getAllAnonymousSubmission.useQuery(undefined, {
     enabled: hasAccess, // Only fetch if password is correct
   });
 
@@ -95,7 +99,10 @@ export default function AnonymousSubmissionsPage() {
                 <td className="py-2 px-4 border-b">{submission.address}</td>
                 <td className="py-2 px-4 border-b">{submission.specialCode}</td>
                 <td className="py-2 px-4 border-b">
-                  <a href={`/verification/${submission.$id}`} className="text-blue-500 hover:underline">
+                  <a
+                    href={`/verification/${submission.$id}`}
+                    className="text-blue-500 hover:underline"
+                  >
                     View Verification
                   </a>
                 </td>

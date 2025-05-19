@@ -281,8 +281,7 @@ export const anonymousSubmissionSchema = z.object({
     bankAccount: z.string(),
   }),
   specialCode: z.string(),
-  createdAt: z.date().default(() => new Date()),
-  updatedAt: z.date().default(() => new Date()),
+  fileURL: z.string().optional()
 });
 
 export type AnonymousSubmission = z.infer<typeof anonymousSubmissionSchema>;

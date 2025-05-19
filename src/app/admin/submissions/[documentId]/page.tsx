@@ -2,7 +2,6 @@
 
 import { useParams } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
-import { getImageURl } from "@/lib/appwrite";
 
 export default function VerificationPage() {
   const params = useParams();
@@ -26,8 +25,6 @@ export default function VerificationPage() {
     return <div>Submission not found.</div>;
   }
 
-  const fileViewUrl = getImageURl(submission.submitIdFileId);
-
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-2xl font-bold mb-4">
@@ -43,9 +40,9 @@ export default function VerificationPage() {
           </p>
           <p>
             <strong>Submitted File:</strong>
-            {fileViewUrl ? (
+            {submission.fileURL ? (
               <a
-                href={fileViewUrl}
+                href={submission.fileURL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:underline ml-2"

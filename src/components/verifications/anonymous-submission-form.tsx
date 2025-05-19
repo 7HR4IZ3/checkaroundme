@@ -19,12 +19,18 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc/client"; // Import trpc client
 
-type AnonymousSubmissionFormValues = z.infer<typeof anonymousSubmissionSchema>;
+const anonymousSubmissionFormSchema = anonymousSubmissionSchema.omit({
+  $id: true,
+});
+
+type AnonymousSubmissionFormValues = z.infer<
+  typeof anonymousSubmissionFormSchema
+>;
 
 const AnonymousSubmissionForm = () => {
   const router = useRouter();
   const form = useForm({
-    resolver: zodResolver(anonymousSubmissionSchema),
+    resolver: zodResolver(anonymousSubmissionFormSchema),
     defaultValues: {
       name: "",
       address: "",
@@ -134,7 +140,7 @@ const AnonymousSubmissionForm = () => {
 
       // 4. After successful submission, redirect the user to a verification page URL
       //    that includes the unique ID of the newly created document.
-      router.push(`/verification/${newSubmission.$id}`);
+      router.push(`/admin/submissions/${newSubmission.$id}`);
 
       toast.success("Anonymous submission successful!");
     } catch (error: any) {
@@ -145,9 +151,14 @@ const AnonymousSubmissionForm = () => {
     }
   };
 
+  console.log(form.formState.errors);
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form
+        onSubmit={form.handleSubmit(onSubmit, console.log)}
+        className="space-y-8"
+      >
         <FormField
           control={form.control}
           name="name"

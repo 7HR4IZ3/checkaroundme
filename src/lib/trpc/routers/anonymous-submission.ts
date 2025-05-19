@@ -11,9 +11,7 @@ export const createAnonymousSubmissionRouter = (
     createAnonymousSubmission: protectedProcedure
       .input(
         anonymousSubmissionSchema.omit({
-          $id: true,
-          createdAt: true,
-          updatedAt: true,
+          $id: true
         })
       )
       .mutation(async ({ input }) => {

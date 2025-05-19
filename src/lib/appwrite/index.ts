@@ -34,6 +34,7 @@ import { AuthService } from "./services/auth";
 import { createAdminClient } from "./admin";
 import { createSessionClient } from "./session";
 import axios, { AxiosError } from "axios"; // Keep axios here as BusinessService still needs it
+import { randomInt, randomUUID } from "crypto";
 
 // Appwrite configuration
 const client = new Client();
@@ -1213,9 +1214,8 @@ export const AnonymousSubmissionService = {
         ID.unique(),
         {
           ...data,
+          specialCode: generateSpecialCode(data.name),
           salaryAccount: JSON.stringify(data.salaryAccount),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
         }
       );
       return newSubmission as unknown as AnonymousSubmission;
@@ -1235,6 +1235,7 @@ export const AnonymousSubmissionService = {
       );
       return {
         ...submission,
+        fileURL: getImageURl(submission.submitIdFileId),
         salaryAccount: JSON.parse(submission.salaryAccount),
       } as unknown as AnonymousSubmission;
     } catch (error) {
@@ -1266,6 +1267,14 @@ export const AnonymousSubmissionService = {
     }
   },
 };
+
+function generateSpecialCode(name: string) {
+  const start_section = name.split(" ")[0].substring(5);
+  const end_section = Array.from({ length: 5 })
+    .map(() => Math.round(Math.random() * 9))
+    .join("");
+  return `${start_section}_${end_section}`;
+}
 
 // Export client and services for direct use in components when needed
 export { client, databases, storage, avatars, users, account };
