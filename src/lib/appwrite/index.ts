@@ -11,6 +11,7 @@ import {
   Users,
   Role,
   Account,
+  Messaging, // Add Messaging SDK
 } from "node-appwrite";
 import { cookies } from "next/headers";
 import {
@@ -27,6 +28,7 @@ import {
   userSubscriptionSchema,
   PaymentTransaction,
   AnonymousSubmission,
+  Notification,
 } from "../schema";
 
 // Import AuthService to get the current authenticated user for verification
@@ -51,6 +53,7 @@ const databases = new Databases(client);
 const storage = new Storage(client);
 const avatars = new Avatars(client);
 const account = new Account(client);
+const messaging = new Messaging(client);
 
 // Database constants
 export const DATABASE_ID = process.env.APPWRITE_DATABASE_ID!;
@@ -67,6 +70,7 @@ export const AUTH_SESSIONS_COLLECTION_ID = "auth_sessions";
 export const PAYMENT_TRANSACTIONS_COLLECTION_ID = "payment_transactions";
 export const MAILING_LIST_COLLECTION_ID = "mailing_list";
 export const ANONYMOUS_SUBMISSIONS_COLLECTION_ID = "anonymous_submissions";
+export const NOTIFICATIONS_COLLECTION_ID = "notifications";
 
 export const BUSINESS_IMAGES_BUCKET_ID = "67fc0ef9000e1bba4e5d";
 export const MESSAGE_IMAGES_BUCKET_ID = "67fc0ef9000e1bba4e5d";
@@ -1275,6 +1279,122 @@ function generateSpecialCode(name: string) {
     .join("");
   return `${start_section}_${end_section}`.toUpperCase();
 }
+
+// Notification Service
+export const NotificationService = {
+  async createNotification(
+    userId: string,
+    data: {
+      title: string;
+      body: string;
+      type: "message" | "review" | "system" | string;
+      data?: Record<string, any>;
+    }
+  ): Promise<void> {
+    try {
+      await databases.createDocument(
+        DATABASE_ID,
+        NOTIFICATIONS_COLLECTION_ID,
+        ID.unique(),
+        {
+          userId,
+          title: data.title,
+          body: data.body,
+          type: data.type,
+          data: data.data ? JSON.stringify(data.data) : null,
+          isRead: false,
+          createdAt: new Date().toISOString(),
+        }
+      );
+
+      // Send push notification if device tokens are available
+      const user = await users.get(userId);
+      if (user.prefs?.deviceTokens) {
+        await messaging.createPush(
+          "notification",
+          data.title,
+          data.body,
+          [],
+          [],
+          [],
+          data.data
+        );
+      }
+    } catch (error) {
+      console.error("Create notification error:", error);
+      throw error;
+    }
+  },
+
+  async getUserNotifications(
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<{
+    notifications: Notification[];
+    total: number;
+  }> {
+    try {
+      const user = await AuthService.getCurrentUser();
+      if (!user) throw new Error("Unautenticated user");
+
+      const result = await databases.listDocuments(
+        DATABASE_ID,
+        NOTIFICATIONS_COLLECTION_ID,
+        [
+          Query.equal("userId", user.user.$id),
+          Query.orderDesc("createdAt"),
+          Query.limit(limit),
+          Query.offset(offset),
+        ]
+      );
+
+      return {
+        notifications: result.documents.map((doc) => ({
+          ...doc,
+          data: doc.data ? JSON.parse(doc.data) : null,
+        })) as unknown as Notification[],
+        total: result.total,
+      };
+    } catch (error) {
+      console.error("Get user notifications error:", error);
+      throw error;
+    }
+  },
+
+  async markAsRead(notificationId: string): Promise<void> {
+    try {
+      await databases.updateDocument(
+        DATABASE_ID,
+        NOTIFICATIONS_COLLECTION_ID,
+        notificationId,
+        {
+          isRead: true,
+          updatedAt: new Date().toISOString(),
+        }
+      );
+    } catch (error) {
+      console.error("Mark notification as read error:", error);
+      throw error;
+    }
+  },
+
+  async registerDeviceToken(token: string): Promise<void> {
+    try {
+      const user = await AuthService.getCurrentUser();
+      if (!user) throw new Error("Unautenticated user");
+
+      const currentTokens = user.user.prefs?.deviceTokens || [];
+      if (!currentTokens.includes(token)) {
+        await users.updatePrefs(user.user.$id, {
+          deviceTokens: [...currentTokens, token],
+        });
+      }
+    } catch (error) {
+      console.error("Register device token error:", error);
+      throw error;
+    }
+  },
+};
 
 // Export client and services for direct use in components when needed
 export { client, databases, storage, avatars, users, account };

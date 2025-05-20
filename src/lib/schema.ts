@@ -252,6 +252,34 @@ export const paymentTransactionSchema = z.object({
   createdAt: z.string().optional(), // Appwrite generated
   updatedAt: z.string().optional(), // Appwrite generated
 });
+
+export const anonymousSubmissionSchema = z.object({
+  $id: z.string(),
+  name: z.string(),
+  address: z.string(),
+  title: z.string(),
+  submitIdFileId: z.string(),
+  salaryAccount: z.object({
+    name: z.string(),
+    bankName: z.string(),
+    bankAccount: z.string(),
+  }),
+  specialCode: z.string(),
+  fileURL: z.string().optional(),
+});
+
+export const notificationSchema = z.object({
+  $id: z.string(),
+  userId: z.string(),
+  title: z.string(),
+  body: z.string(),
+  type: z.enum(["message", "review", "system"]),
+  data: z.record(z.any()).optional(),
+  isRead: z.boolean().default(false),
+  createdAt: z.string(), // ISO date string
+  updatedAt: z.string().optional(),
+});
+
 // Type definitions to use throughout the application
 export type User = z.infer<typeof userSchema>;
 export type Business = z.infer<typeof businessSchema>;
@@ -270,19 +298,5 @@ export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type RegisterInput = z.infer<typeof registerInputSchema>;
 export type UserSubscription = z.infer<typeof userSubscriptionSchema>;
 export type PaymentTransaction = z.infer<typeof paymentTransactionSchema>;
-
-export const anonymousSubmissionSchema = z.object({
-  $id: z.string(),
-  name: z.string(),
-  address: z.string(),
-  submitIdFileId: z.string(),
-  salaryAccount: z.object({
-    name: z.string(),
-    bankName: z.string(),
-    bankAccount: z.string(),
-  }),
-  specialCode: z.string(),
-  fileURL: z.string().optional()
-});
-
 export type AnonymousSubmission = z.infer<typeof anonymousSubmissionSchema>;
+export type Notification = z.infer<typeof notificationSchema>;

@@ -14,6 +14,7 @@ import { createPaystackProcedures } from "./routers/paystack";
 import { createConversationProcedures } from "./routers/conversation";
 import { createVerificationProcedures } from "./routers/verification";
 import { createAnonymousSubmissionRouter } from "./routers/anonymous-submission"; // Import the new router
+import { createNotificationProcedures } from "./routers/notification"; // Add this import
 
 // Server-side secret key (should be in .env and NOT prefixed with NEXT_PUBLIC_)
 const SERVER_TRPC_SECRET_KEY = process.env.SERVER_TRPC_SECRET_KEY;
@@ -103,6 +104,7 @@ export const appRouter = t.router({
   ...createConversationProcedures(t, protectedProcedureWithSecret),
   ...createLocationProcedures(t, protectedProcedureWithSecret),
   ...createVerificationProcedures(t, protectedProcedureWithSecret),
+  ...createNotificationProcedures(t, protectedProcedureWithSecret), // Add to the appRouter
 
   // Add Flutterwave procedures.
   // NOTE: The second argument to createFlutterwaveProcedures is a placeholder
