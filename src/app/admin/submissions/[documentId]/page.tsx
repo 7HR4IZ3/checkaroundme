@@ -28,7 +28,7 @@ export default function VerificationPage() {
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-2xl font-bold mb-4">
-        Submission Verification
+        Submission Verification ({ submission.title }})
       </h1>
       <div className="bg-white shadow-md rounded-lg p-6">
         <div className="mb-4">
