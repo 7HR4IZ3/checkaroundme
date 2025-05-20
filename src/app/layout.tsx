@@ -16,6 +16,8 @@ import { SubscriptionBanner } from "@/components/ui/subscription-banner"; // Imp
 
 import { Analytics } from "@vercel/analytics/react";
 import { HydrateClient } from "@/lib/trpc/server";
+import PWAProvider from "@/lib/pwa/provider";
+import type { Metadata } from "next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,7 +31,7 @@ const geistMono = Geist_Mono({
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Checkaroundme - Discover Local Businesses",
   description:
     "Find and connect with amazing local businesses in your community.",
@@ -83,8 +85,8 @@ export default function RootLayout({
       <head>
         {process.env.NODE_ENV === "development" && (
           <script
-            crossOrigin="anonymous"
-            src="//unpkg.com/react-scan/dist/auto.global.js"
+          crossOrigin="anonymous"
+          src="//unpkg.com/react-scan/dist/auto.global.js"
           />
         )}
       </head>
@@ -98,6 +100,7 @@ export default function RootLayout({
             </Suspense>
           </HydrateClient>
         </TrpcProvider>
+        <PWAProvider />
         {process.env.NODE_ENV !== "development" && (
           <Analytics mode="production" />
         )}

@@ -5,6 +5,7 @@ import SuperJSON from "superjson";
 import { TRPCError } from "@trpc/server";
 
 import type { AppTRPC } from "../router"; // Import the AppTRPC type
+import { MailingListService } from "@/lib/appwrite";
 
 export function createAuthProcedures(
   t: AppTRPC,
@@ -65,6 +66,16 @@ export function createAuthProcedures(
           input.name,
           input.phone,
         );
+
+        // Handle mailing list opt-in
+        if (input.optInMailingList) {
+          try {
+            await MailingListService.addEmail(input.email);
+          } catch (error) {
+            console.error("Error subscribing user to mailing list:", error);
+            // Optionally throw an error or log, but don't block registration
+          }
+        }
 
         if (input.login) {
           return await AuthService.login(input.email, input.password);

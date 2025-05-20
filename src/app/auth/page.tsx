@@ -317,6 +317,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [optInMailingList, setOptInMailingList] = useState(false); // New state for mailing list opt-in
 
   const [fullNameError, setFullNameError] = useState("");
   const [emailError, setEmailError] = useState("");
@@ -362,6 +363,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
         captchaToken,
         login: true,
         referralCode: searchParams.get("ref") || undefined,
+        optInMailingList: optInMailingList, // Add mailing list opt-in state (backend TRPC router src/lib/trpc/routers/auth.ts might need update)
       });
 
       if (result.success) {
@@ -550,9 +552,25 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
             </span>
           </Label>
         </div>
+
         {termsError && (
           <p className="text-red-500 text-sm mt-1">{termsError}</p>
         )}
+
+        {/* Mailing List Opt-in Checkbox */}
+        <div className="flex items-center space-x-2 pt-2">
+          <Checkbox
+            id="optInMailingList"
+            checked={optInMailingList}
+            onCheckedChange={(checked) => setOptInMailingList(checked === true)}
+          />
+          <Label
+            htmlFor="optInMailingList"
+            className="text-sm text-muted-foreground font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            Opt in to mailing list
+          </Label>
+        </div>
 
         <div className="p-3 mt-4 flex flex-col items-center justify-center">
           <GoogleReCaptchaCheckbox onChange={setCaptchaToken} />

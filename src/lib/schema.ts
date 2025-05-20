@@ -222,6 +222,7 @@ export const registerInputSchema = z.object({
   captchaToken: z.string().min(1, "Captcha is required"),
   login: z.boolean().optional().default(true),
   referralCode: z.string().optional(),
+  optInMailingList: z.boolean().optional().default(false), // Added mailing list opt-in
 });
 
 // User Subscription Schema (for Appwrite User Prefs)
