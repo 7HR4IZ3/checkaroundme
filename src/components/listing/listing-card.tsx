@@ -77,7 +77,7 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
   // }, [business]);
 
   return (
-    <div className="container bg-white rounded-lg shadow-xs overflow-hidden flex flex-col md:flex-row p-2 relative h-auto md:h-[17vh] gap-2 listing-card">
+    <div className="container bg-white rounded-xl shadow-xs overflow-hidden flex flex-col md:flex-row p-2 relative h-auto md:h-[17vh] gap-2 listing-card max-h-[15rem]">
       <div className="w-full h-100 md:w-1/3 md:h-full relative">
         {isLoading ? (
           <Skeleton className="w-full h-full" />
@@ -93,7 +93,7 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
                 inset: "auto",
               }}
             />
-            <div className="absolute inset-0 bg-black opacity-40 md:hidden"></div>{" "}
+            <div className="absolute inset-0 bg-black opacity-40 md:hidden rounded-xl"></div>{" "}
             {/* Content container for mobile overlay */}
             <div className="absolute inset-0 p-4 flex flex-col justify-between md:hidden">
               {/* Top section: Name, Address, Category, Rating */}
