@@ -571,11 +571,9 @@ export default function BusinessPage() {
                     <span>Verified</span>
                   </div>
                 )}
-                {business.category.map((cat) => (
-                  <Badge key={cat} variant="outline">
-                    {cat}
+                <Badge key={cat} variant="outline">
+                    {business.category}
                   </Badge>
-                ))}
               </div>
               <div className="flex items-center gap-2 text-sm mb-4">
                 {/* Compute isOpen and hoursToday from openingHours */}
