@@ -571,7 +571,7 @@ export default function BusinessPage() {
                     <span>Verified</span>
                   </div>
                 )}
-                <Badge key={cat} variant="outline">
+                <Badge variant="outline">
                     {business.category}
                   </Badge>
               </div>
