@@ -193,7 +193,7 @@ export function UserBusinesses() {
                     </Badge>
                   </CardTitle>
                   <CardDescription className="truncate">
-                    {business.category.join(", ") || "No category"}
+                    {business.category}
                   </CardDescription>
                 </div>
               </div>
