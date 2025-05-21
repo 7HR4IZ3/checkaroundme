@@ -76,8 +76,8 @@ export default function Home() {
 
     // Main category
     if (selectedCategory)
-      params.set("categories", encodeURIComponent(selectedCategory));
-    else params.delete("categories");
+      params.set("category", encodeURIComponent(selectedCategory));
+    else params.delete("category");
 
     // Query and Location
     if (queryParam) params.set("query", queryParam);
@@ -201,10 +201,10 @@ export default function Home() {
     [router, searchParams, limit]
   );
 
-  const combinedCategoriesForQuery = useMemo(() => {
-    const mainCat = selectedCategory ? [selectedCategory] : [];
-    return [...mainCat, ...otherFilterBarCategories];
-  }, [selectedCategory, otherFilterBarCategories]);
+  // const combinedCategoriesForQuery = useMemo(() => {
+  //   const mainCat = selectedCategory ? [selectedCategory] : [];
+  //   return [...mainCat, ...otherFilterBarCategories];
+  // }, [selectedCategory, otherFilterBarCategories]);
 
   const maxDistanceKm = useMemo(() => {
     if (!selectedDistance || selectedDistance === "any") return undefined;
@@ -222,7 +222,7 @@ export default function Home() {
   const { data: list, isLoading: queryIsLoading } =
     trpc.listBusinesses.useQuery(
       {
-        categories: combinedCategoriesForQuery,
+        category: selectedCategory || "",
         query: queryParam,
         location: locationParam,
         limit,

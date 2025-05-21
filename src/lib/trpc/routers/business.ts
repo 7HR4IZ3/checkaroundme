@@ -88,7 +88,7 @@ export function createBusinessProcedures(
     listBusinesses: t.procedure
       .input(
         z.object({
-          categories: z.array(z.string()).optional(),
+          category: z.string().optional(),
           query: z.string().optional(),
           location: z.string().optional(),
           limit: z.number().optional().default(10),
@@ -105,7 +105,7 @@ export function createBusinessProcedures(
       )
       .query(async ({ input }) => {
         const {
-          categories,
+          category,
           query,
           location,
           limit,
@@ -121,7 +121,7 @@ export function createBusinessProcedures(
         } = input;
 
         return await BusinessService.listBusinesses({
-          categories,
+          category,
           query,
           location,
           limit,

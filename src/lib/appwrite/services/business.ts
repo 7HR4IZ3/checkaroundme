@@ -347,7 +347,7 @@ export const BusinessService = {
 
   // List businesses with filtering options
   async listBusinesses({
-    categories = [],
+    category = "",
     query = "",
     location = "",
     limit = 10,
@@ -361,7 +361,7 @@ export const BusinessService = {
     userLongitude, // New filter: number
     maxDistanceKm, // New filter: number (e.g., 5 for 5km)
   }: {
-    categories?: string[];
+    category?: string;
     query?: string;
     location?: string;
     limit?: number;
@@ -377,8 +377,8 @@ export const BusinessService = {
   }): Promise<{ businesses: Business[]; total: number }> {
     const appwriteFilters: string[] = [Query.equal("status", "active")]; // Always filter for active businesses
     try {
-      if (categories.length > 0) {
-        appwriteFilters.push(Query.search("category", categories[0])); // TODO: Refactor to support string rather than array
+      if (category) {
+        appwriteFilters.push(Query.search("category", category));
       }
 
       if (query) {
