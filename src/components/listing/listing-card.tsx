@@ -101,7 +101,7 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
                 <div className="flex flex-wrap justify-between mb-2">
                   {/* Name (Top Left) */}
                   <Link href={`/business/${business.$id}`}>
-                    <h3 className="text-md font-semibold text-white">
+                    <h3 className="text-lg font-semibold text-white">
                       {business.name}
                     </h3>
                   </Link>
