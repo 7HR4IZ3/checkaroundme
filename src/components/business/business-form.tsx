@@ -78,7 +78,7 @@ const businessFormSchema = z.object({
   country: z.string().min(1, "Country is required"),
   phoneCountryCode: z.string().optional(), // Added phone country code field
   phoneNumber: z.string().optional(), // Added phone number field
-  categories: z.array(z.string()).optional(), // Assuming categories can be an array of strings
+  category: (z.string()).optional(), // Assuming categories can be an array of strings
   services: z.array(z.string()).optional(),
   paymentOptions: z.array(z.string()).optional(),
   hours: z
@@ -144,7 +144,7 @@ export default function BusinessForm({
       country: "",
       phoneCountryCode: "+000", // Default value for phone country code
       phoneNumber: "",
-      categories: [],
+      category: "",
       services: [],
       paymentOptions: [],
       hours: {
@@ -175,11 +175,11 @@ export default function BusinessForm({
     setValue,
     watch,
     control,
-    setError
+    setError,
   } = form;
 
   const status = watch("status");
-  const businessCategory = watch("categories")?.[0] ?? "";
+  const businessCategory = watch("category") ?? "";
   const businessImages = watch("images") ?? [];
   const agreedToTerms = watch("agreedToTerms") ?? false;
   const maxPrice = watch("maxPrice");
@@ -224,7 +224,7 @@ export default function BusinessForm({
   // Update useEffect to use reset for initial data
   useEffect(() => {
     if (initialData) {
-      console.log(initialData)
+      console.log(initialData);
       reset({
         name: initialData.name ?? "",
         about: initialData.about ?? "",
@@ -237,7 +237,7 @@ export default function BusinessForm({
         // Assuming initialData.phone is just the number for now, and country code is handled by initialData.country
         phoneCountryCode: initialData.phoneCountryCode ?? "", // Need logic to derive this from initialData.country or initialData.phone
         phoneNumber: initialData.phoneNumber ?? "",
-        categories: initialData.categories ?? [],
+        category: initialData.category ?? [],
         services: initialData.services ?? [],
         paymentOptions: initialData.paymentOptions ?? [],
         email: initialData.email ?? "",
@@ -389,7 +389,10 @@ export default function BusinessForm({
       // Need to handle terms error state separately or add to schema
       console.error("Please accept the terms and conditions.");
       // You might want to set a separate state for terms error or use RHF's setError
-      setError("agreedToTerms", { type: "manual", message: "Please accept the terms and conditions." });
+      setError("agreedToTerms", {
+        type: "manual",
+        message: "Please accept the terms and conditions.",
+      });
       return;
     }
 
@@ -404,7 +407,7 @@ export default function BusinessForm({
       country: data.country,
       phoneCountryCode: data.phoneCountryCode,
       phoneNumber: data.phoneNumber,
-      categories: data.categories,
+      categories: data.category,
       services: data.services,
       paymentOptions: data.paymentOptions,
       hours: data.hours,
@@ -591,7 +594,7 @@ export default function BusinessForm({
       <div className="flex flex-col md:flex-row gap-4 flex-wrap">
         <div className="flex-grow">
           <Label htmlFor="businessEmail" className="font-semibold">
-          <span className="text-destructive">*</span> Business Email
+            <span className="text-destructive">*</span> Business Email
           </Label>
           <Input
             id="businessEmail"
@@ -633,7 +636,7 @@ export default function BusinessForm({
         {/* For simplicity in this diff, I'll keep the current state management and update it later if needed. */}
         <Select
           value={businessCategory}
-          onValueChange={(value) => setValue("categories", [value])}
+          onValueChange={(value) => setValue("category", value)}
         >
           <SelectTrigger id="businessCategory" className="w-full mt-2">
             <SelectValue placeholder="Select category" />
@@ -646,9 +649,9 @@ export default function BusinessForm({
             ))}
           </SelectContent>
         </Select>
-        {errors.categories && (
+        {errors.category && (
           <p className="text-red-500 text-sm mt-1">
-            {errors.categories.message}
+            {errors.category.message}
           </p>
         )}
       </div>
@@ -792,7 +795,9 @@ export default function BusinessForm({
             <span className="text-destructive">*</span>
           </Label>
           {errors.agreedToTerms && (
-            <p className="text-red-500 text-sm mt-1">{errors.agreedToTerms.message}</p>
+            <p className="text-red-500 text-sm mt-1">
+              {errors.agreedToTerms.message}
+            </p>
           )}
         </div>
       )}

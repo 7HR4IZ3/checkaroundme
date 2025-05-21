@@ -52,7 +52,7 @@ export function UserBusinesses() {
     error,
   } = trpc.getBusinessesByUserId.useQuery(
     { userId: auth.isAuthenticated && auth.user ? auth.user.$id : "" },
-    { enabled: !!auth.isAuthenticated && !!auth.user },
+    { enabled: !!auth.isAuthenticated && !!auth.user }
   );
 
   const updateBusinessMutation = trpc.updateBusiness.useMutation({
@@ -64,7 +64,7 @@ export function UserBusinesses() {
         toast.success(
           `Business "${updatedBusiness.name}" ${
             updatedBusiness.status === "active" ? "activated" : "deactivated"
-          } successfully.`,
+          } successfully.`
         );
       setShowStatusConfirmModal(false);
       setSelectedBusinessForStatusChange(null);
@@ -193,7 +193,7 @@ export function UserBusinesses() {
                     </Badge>
                   </CardTitle>
                   <CardDescription className="truncate">
-                    {business.categories.join(", ") || "No category"}
+                    {business.category.join(", ") || "No category"}
                   </CardDescription>
                 </div>
               </div>

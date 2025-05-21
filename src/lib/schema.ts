@@ -37,7 +37,7 @@ export const businessSchema = z.object({
   $id: z.string(),
   name: z.string().min(3, "Business name must be at least 3 characters"),
   about: z.string(),
-  categories: z.array(z.string()),
+  category: z.string(),
   services: z.array(z.string()).optional(),
   verificationStatus: z
     .enum(["pending", "verified", "rejected", "not_submitted"])

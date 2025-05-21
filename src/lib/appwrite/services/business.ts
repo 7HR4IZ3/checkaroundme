@@ -378,7 +378,7 @@ export const BusinessService = {
     const appwriteFilters: string[] = [Query.equal("status", "active")]; // Always filter for active businesses
     try {
       if (categories.length > 0) {
-        appwriteFilters.push(Query.contains("categories", categories));
+        appwriteFilters.push(Query.search("category", categories[0])); // TODO: Refactor to support string rather than array
       }
 
       if (query) {

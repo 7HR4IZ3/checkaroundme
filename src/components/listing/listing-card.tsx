@@ -130,14 +130,9 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
             </span>
           </div>
           <div className="flex flex-wrap gap-2">
-            {business.categories.map((category) => (
-              <span
-                key={category}
-                className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-xs font-medium"
-              >
-                {category}
-              </span>
-            ))}
+            <span className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-xs font-medium">
+              {business.category}
+            </span>
           </div>
           <p className="text-xs leading-relaxed">
             {business.about}..{" "}

@@ -571,7 +571,7 @@ export default function BusinessPage() {
                     <span>Verified</span>
                   </div>
                 )}
-                {business.categories.map((cat) => (
+                {business.category.map((cat) => (
                   <Badge key={cat} variant="outline">
                     {cat}
                   </Badge>
