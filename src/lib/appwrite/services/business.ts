@@ -383,7 +383,18 @@ export const BusinessService = {
 
       if (query) {
         appwriteFilters.push(
-          Query.or([Query.search("name", query), Query.search("about", query)])
+          Query.or([
+            Query.search("name", query),
+            Query.search("about", query),
+            Query.search("category", query),
+            Query.or([
+              Query.search("addressLine1", query),
+              Query.search("addressLine2", query),
+              Query.search("city", query),
+              Query.search("state", query),
+              Query.search("country", query),
+            ])
+          ])
         );
       }
 
