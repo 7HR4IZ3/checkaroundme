@@ -48,7 +48,7 @@ export const BusinessFormHours: React.FC<BusinessFormHoursProps> = ({
       <h3 className="text-lg font-semibold border-b pb-2">Available Hours</h3>
       <div className="space-y-2 text-sm text-muted-foreground mt-2">
         {days.map((day) => {
-          const hours = availableHours[day] || {
+          const hours = availableHours[day as "Mon"] || {
             open: "",
             close: "",
             closed: false,
@@ -107,9 +107,9 @@ export const BusinessFormHours: React.FC<BusinessFormHoursProps> = ({
                   />
                 </span>
               </div>
-              {errors.hours && (errors.hours[day]?.message) && (
+              {errors.hours && errors.hours[day as "Mon"]?.message && (
                 <p className="text-red-500 text-sm mt-1">
-                  {errors.hours[day]?.message}
+                  {errors.hours[day as "Mon"]?.message}
                 </p>
               )}
             </>
