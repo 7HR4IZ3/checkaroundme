@@ -3,7 +3,6 @@
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
-import axios from "axios";
 
 import { FaMapMarkerAlt, FaCommentDots } from "react-icons/fa";
 import RatingStars from "@/components/ui/rating-stars";

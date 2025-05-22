@@ -340,11 +340,13 @@ export const BusinessFormAddress: React.FC<BusinessFormAddressProps> = ({
               placeholder="Enter phone number"
               className="flex-1"
               aria-label="Phone number"
-            />
+            />{errors.about && (
+          <p className="text-red-500 text-sm mt-1">{errors.about.message}</p>
+        )}
           </div>
-          {errors.phoneNumber && (
+          {(errors.phoneNumber || errors.phoneCountryCode) && (
             <p className="text-red-500 text-sm mt-1">
-              {errors.phoneNumber.message}
+              {(errors.phoneNumber || errors.phoneCountryCode)?.message}
             </p>
           )}
         </div>

@@ -24,6 +24,7 @@ export const BusinessFormPayment: React.FC<BusinessFormPaymentProps> = ({
   control,
   setValue,
   watch,
+  errors,
 }) => {
   // Watch the paymentOptions array from RHF
   const paymentOptions = watch("paymentOptions") ?? [];
@@ -91,6 +92,11 @@ export const BusinessFormPayment: React.FC<BusinessFormPaymentProps> = ({
           {/* Add more payment options similarly */}
         </div>
       </div>
+      {errors.paymentOptions && (
+        <p className="text-red-500 text-sm mt-1">
+          {errors.paymentOptions.message}
+        </p>
+      )}
     </div>
   );
 };

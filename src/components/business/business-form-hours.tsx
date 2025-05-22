@@ -21,35 +21,40 @@ interface BusinessFormHoursProps {
   watch: UseFormWatch<BusinessFormValues>;
 }
 
-export const BusinessFormHours: React.FC<BusinessFormHoursProps> = (
-  ({ control, setValue, watch }) => {
-    // Watch the hours object from RHF
-    const availableHours = watch("hours") ?? {};
+export const BusinessFormHours: React.FC<BusinessFormHoursProps> = ({
+  control,
+  setValue,
+  watch,
+  errors,
+}) => {
+  // Watch the hours object from RHF
+  const availableHours = watch("hours") ?? {};
 
-    const updateBusinessHours = useCallback(
-      (
-        day: string,
-        type: "open" | "close" | "closed",
-        value: string | boolean
-      ) => {
-        setValue(`hours.${day}.${type}` as any, value); // Update nested RHF state
-      },
-      [setValue]
-    );
+  const updateBusinessHours = useCallback(
+    (
+      day: string,
+      type: "open" | "close" | "closed",
+      value: string | boolean
+    ) => {
+      setValue(`hours.${day}.${type}` as any, value); // Update nested RHF state
+    },
+    [setValue]
+  );
 
-    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-    return (
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold border-b pb-2">Available Hours</h3>
-        <div className="space-y-2 text-sm text-muted-foreground mt-2">
-          {days.map((day) => {
-            const hours = availableHours[day] || {
-              open: "",
-              close: "",
-              closed: false,
-            }; // Provide default if day is missing
-            return (
+  return (
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold border-b pb-2">Available Hours</h3>
+      <div className="space-y-2 text-sm text-muted-foreground mt-2">
+        {days.map((day) => {
+          const hours = availableHours[day] || {
+            open: "",
+            close: "",
+            closed: false,
+          }; // Provide default if day is missing
+          return (
+            <>
               <div key={day} className="flex items-center gap-2 md:gap-8">
                 <span className="w-1/5 font-medium text-card-foreground">
                   {day}
@@ -102,12 +107,17 @@ export const BusinessFormHours: React.FC<BusinessFormHoursProps> = (
                   />
                 </span>
               </div>
-            );
-          })}
-        </div>
+              {errors.hours && (errors.hours[day]?.message) && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.hours[day]?.message}
+                </p>
+              )}
+            </>
+          );
+        })}
       </div>
-    );
-  }
-);
+    </div>
+  );
+};
 
 BusinessFormHours.displayName = "BusinessFormHours";

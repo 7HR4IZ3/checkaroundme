@@ -78,7 +78,7 @@ const businessFormSchema = z.object({
   country: z.string().min(1, "Country is required"),
   phoneCountryCode: z.string().optional(), // Added phone country code field
   phoneNumber: z.string().optional(), // Added phone number field
-  category: (z.string()).optional(), // Assuming categories can be an array of strings
+  category: z.string().optional(), // Assuming categories can be an array of strings
   services: z.array(z.string()).optional(),
   paymentOptions: z.array(z.string()).optional(),
   hours: z
@@ -105,7 +105,7 @@ const businessFormSchema = z.object({
     )
     .optional(),
   email: z.string().email("Invalid email address"),
-  website: z.string().url("Invalid URL").optional().or(z.literal("https://")), // Allow "https://" or valid URL
+  website: z.string().url("Invalid URL").optional(),
   maxPrice: z.number().optional(),
   on_site_parking: z.boolean().optional(),
   garage_parking: z.boolean().optional(),
@@ -425,6 +425,8 @@ export default function BusinessForm({
     await onSubmit(formData);
   };
 
+  console.log(errors);
+
   return (
     <div className="container mx-auto py-8 px-4 md:px-8 lg:px-16 space-y-8">
       <div className="flex flex-col-reverse gap-4 md:flex-row justify-between items-start">
@@ -577,6 +579,9 @@ export default function BusinessForm({
             />
           </Label>
         </div>
+        {errors.images && (
+          <p className="text-red-500 text-sm mt-1">{errors.images.message}</p>
+        )}
       </div>
 
       {/* --- Business Address Section (Extracted Component) --- */}
@@ -650,9 +655,7 @@ export default function BusinessForm({
           </SelectContent>
         </Select>
         {errors.category && (
-          <p className="text-red-500 text-sm mt-1">
-            {errors.category.message}
-          </p>
+          <p className="text-red-500 text-sm mt-1">{errors.category.message}</p>
         )}
       </div>
 
@@ -754,6 +757,16 @@ export default function BusinessForm({
             <Label htmlFor="wifi">Wifi Available</Label>
           </div>
         </div>
+        {errors.on_site_parking && (
+          <p className="text-red-500 text-sm mt-1">
+            {errors.on_site_parking.message}
+          </p>
+        )}
+        {errors.garage_parking && (
+          <p className="text-red-500 text-sm mt-1">
+            {errors.garage_parking.message}
+          </p>
+        )}
       </div>
 
       {/* --- Available Hours Section (Extracted Component) --- */}
@@ -807,7 +820,10 @@ export default function BusinessForm({
         <Button
           className="rounded-4xl bg-primary"
           onClick={handleSubmit(onSubmitRHF, (event) => {
-            console.log(event);
+            for (const key of Object.keys(errors)) {
+              // @ts-ignore
+              errors[key].message && toast.error(errors[key].message);
+            }
           })}
           disabled={isSubmitting}
         >

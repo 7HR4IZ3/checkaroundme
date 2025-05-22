@@ -32,7 +32,7 @@ const ServicesNearYou = () => {
         !!cordinates.latitude &&
         cordinates.latitude !== null &&
         cordinates.longitude !== null,
-    },
+    }
   );
 
   if (geoError) {
@@ -81,9 +81,7 @@ const ServicesNearYou = () => {
   }
 
   if (!businesses) {
-    return (
-      null
-    );
+    return null;
   }
 
   return (
