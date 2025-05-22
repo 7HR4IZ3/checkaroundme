@@ -99,6 +99,8 @@ export const createBusinessSchema = businessSchema
     reviewCount: true,
     createdAt: true,
     updatedAt: true,
+    ownerId: true,
+    verificationStatus: true,
   })
   .extend({
     hours: z.object({
@@ -114,8 +116,7 @@ export const createBusinessSchema = businessSchema
   });
 
 // Business update schema (partial, omit id, rating, reviewCount, createdAt, updatedAt, ownerId)
-export const updateBusinessSchema = createBusinessSchema
-  .partial();
+export const updateBusinessSchema = createBusinessSchema.partial();
 
 // Review schema
 export const reviewSchema = z.object({

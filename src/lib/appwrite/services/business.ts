@@ -198,6 +198,8 @@ export const BusinessService = {
       // Remove status from data if it was passed, as we're setting it based on subscription
       const { status, ...restOfData } = businessDataWithCoordinates as any;
 
+      console.log(restOfData)
+
       const newBusiness = await databases.createDocument(
         DATABASE_ID,
         BUSINESSES_COLLECTION_ID,

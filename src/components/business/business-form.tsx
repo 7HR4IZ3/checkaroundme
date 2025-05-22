@@ -74,28 +74,24 @@ interface BusinessFormProps {
   isSubmitting: boolean;
 }
 
-const businessFormSchema = createBusinessSchema
-  .extend({
-    status: z.enum(["active", "disabled"]),
-    agreedToTerms: z.boolean().optional(),
-    images: z
-      .array(
-        z.object({
-          $id: z.string(),
-          businessId: z.string().optional(),
-          imageUrl: z.string().url().optional(),
-          title: z.string().optional(),
-          isPrimary: z.boolean().optional(),
-          createdAt: z.date().optional(),
-          uploadedBy: z.string().optional(),
-        })
-      )
-      .optional(),
-  })
-  .omit({
-    ownerId:  true,
-    verificationStatus: true,
-  });
+const businessFormSchema = createBusinessSchema.extend({
+  status: z.enum(["active", "disabled"]),
+  agreedToTerms: z.boolean().optional(),
+  images: z
+    .array(
+      z.object({
+        $id: z.string(),
+        businessId: z.string().optional(),
+        imageUrl: z.string().url().optional(),
+        title: z.string().optional(),
+        isPrimary: z.boolean().optional(),
+        createdAt: z.date().optional(),
+        uploadedBy: z.string().optional(),
+      })
+    )
+    .optional(),
+  website: z.string().url("Invalid URL").optional(),
+});
 //  z.object({
 //   name: z.string().min(1, "Business name is required"),
 //   about: z.string().min(1, "About section is required"),
@@ -135,6 +131,7 @@ const businessFormSchema = createBusinessSchema
 //   .optional(),
 //   email: z.string().email("Invalid email address"),
 //   website: z.string().url("Invalid URL").optional(),
+//
 //   maxPrice: z.number().optional(),
 //   onSiteParking: z.boolean().optional(),
 //   garageParking: z.boolean().optional(),
@@ -206,6 +203,41 @@ export default function BusinessForm({
     control,
     setError,
   } = form;
+
+  // Session Storage Key
+  const sessionStorageKey = "business-form-cache";
+
+  // --- Load form state from sessionStorage on mount (only in create mode) ---
+  useEffect(() => {
+    if (!businessId) {
+      const cachedData = sessionStorage.getItem(sessionStorageKey);
+      if (cachedData) {
+        try {
+          const parsedData = JSON.parse(cachedData);
+          // Use reset to populate the form with cached data
+          reset(parsedData);
+          console.log("Loaded form data from sessionStorage");
+        } catch (error) {
+          console.error("Failed to parse cached form data", error);
+          // Clear invalid cache data
+          sessionStorage.removeItem(sessionStorageKey);
+        }
+      }
+    }
+  }, [businessId, reset, sessionStorageKey]); // Dependencies: businessId to ensure it only runs once based on mode, reset function, and key
+
+  // --- Save form state to sessionStorage on changes ---
+  useEffect(() => {
+    const subscription = watch((value) => {
+      try {
+        sessionStorage.setItem(sessionStorageKey, JSON.stringify(value));
+      } catch (error) {
+        console.error("Failed to save form data to sessionStorage", error);
+        // Handle potential sessionStorage errors (e.g., storage full)
+      }
+    });
+    return () => subscription.unsubscribe(); // Cleanup subscription
+  }, [watch, sessionStorageKey]); // Dependencies: watch function and key
 
   const status = watch("status");
   const businessCategory = watch("category") ?? "";
@@ -451,6 +483,14 @@ export default function BusinessForm({
     };
 
     await onSubmit(formData);
+
+    // Clear cache on successful submission
+    try {
+      sessionStorage.removeItem(sessionStorageKey);
+      console.log("Cleared form data from sessionStorage");
+    } catch (error) {
+      console.error("Failed to clear form data from sessionStorage", error);
+    }
   };
 
   console.log(errors);

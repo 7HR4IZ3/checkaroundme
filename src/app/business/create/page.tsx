@@ -40,8 +40,6 @@ export default function BusinessCreateForm() {
     try {
       const result = await createBusiness.mutateAsync({
         ...formData,
-        ownerId: user.$id,
-        userId: user.$id, // Assuming userId is also needed for creation
         status: businessStatus,
       });
       toast.success("Business Created", {
