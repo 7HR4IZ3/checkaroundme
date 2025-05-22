@@ -33,7 +33,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"; // Added Dialog components
 import { useAuth } from "@/lib/hooks/useClientAuth";
-import { Business, BusinessImage, businessImageSchema } from "@/lib/schema";
+import {
+  Business,
+  BusinessImage,
+  businessImageSchema,
+  createBusinessSchema,
+  daySchema,
+  updateBusinessSchema,
+} from "@/lib/schema";
 import { LoadingSVG } from "@/components/ui/loading";
 import { VerificationUpload } from "@/components/business/verification-upload";
 import { BusinessFormAddress } from "./business-form-address";
@@ -67,51 +74,73 @@ interface BusinessFormProps {
   isSubmitting: boolean;
 }
 
-const businessFormSchema = z.object({
-  name: z.string().min(1, "Business name is required"),
-  about: z.string().min(1, "About section is required"),
-  status: z.enum(["active", "disabled"]).optional(),
-  addressLine1: z.string().min(1, "Address Line 1 is required"),
-  addressLine2: z.string().optional(),
-  state: z.string().optional(),
-  city: z.string().min(1, "City is required"),
-  country: z.string().min(1, "Country is required"),
-  phoneCountryCode: z.string().optional(), // Added phone country code field
-  phoneNumber: z.string().optional(), // Added phone number field
-  category: z.string().optional(), // Assuming categories can be an array of strings
-  services: z.array(z.string()).optional(),
-  paymentOptions: z.array(z.string()).optional(),
-  hours: z
-    .record(
-      z.object({
-        // Assuming hours is a record of day to hour details
-        open: z.string(),
-        close: z.string(),
-        closed: z.boolean(),
-      })
-    )
-    .optional(),
-  images: z
-    .array(
-      z.object({
-        $id: z.string(),
-        businessId: z.string().optional(),
-        imageUrl: z.string().url().optional(),
-        title: z.string().optional(),
-        isPrimary: z.boolean().optional(),
-        createdAt: z.date().optional(),
-        uploadedBy: z.string().optional(),
-      })
-    )
-    .optional(),
-  email: z.string().email("Invalid email address"),
-  website: z.string().url("Invalid URL").optional(),
-  maxPrice: z.number().optional(),
-  on_site_parking: z.boolean().optional(),
-  garage_parking: z.boolean().optional(),
-  wifi: z.boolean().optional(),
-  agreedToTerms: z.boolean().optional(), // Added for terms agreement
-});
+const businessFormSchema = createBusinessSchema
+  .extend({
+    status: z.enum(["active", "disabled"]),
+    agreedToTerms: z.boolean().optional(),
+    images: z
+      .array(
+        z.object({
+          $id: z.string(),
+          businessId: z.string().optional(),
+          imageUrl: z.string().url().optional(),
+          title: z.string().optional(),
+          isPrimary: z.boolean().optional(),
+          createdAt: z.date().optional(),
+          uploadedBy: z.string().optional(),
+        })
+      )
+      .optional(),
+  })
+  .omit({
+    ownerId:  true,
+    verificationStatus: true,
+  });
+//  z.object({
+//   name: z.string().min(1, "Business name is required"),
+//   about: z.string().min(1, "About section is required"),
+//   status: z.enum(["active", "disabled"]).optional(),
+//   addressLine1: z.string().min(1, "Address Line 1 is required"),
+//   addressLine2: z.string().optional(),
+//   state: z.string().optional(),
+//   city: z.string().min(1, "City is required"),
+//   country: z.string().min(1, "Country is required"),
+//   phoneCountryCode: z.string().optional(), // Added phone country code field
+//   phoneNumber: z.string().optional(), // Added phone number field
+//   category: z.string().optional(), // Assuming categories can be an array of strings
+//   services: z.array(z.string()).optional(),
+//   paymentOptions: z.array(z.string()).optional(),
+//   hours: z
+//     .record(
+//       z.object({
+//         // Assuming hours is a record of day to hour details
+//         open: z.string(),
+//         close: z.string(),
+//         closed: z.boolean(),
+//       })
+//     )
+//     .optional(),
+// images: z
+//   .array(
+//     z.object({
+//       $id: z.string(),
+//       businessId: z.string().optional(),
+//       imageUrl: z.string().url().optional(),
+//       title: z.string().optional(),
+//       isPrimary: z.boolean().optional(),
+//       createdAt: z.date().optional(),
+//       uploadedBy: z.string().optional(),
+//     })
+//   )
+//   .optional(),
+//   email: z.string().email("Invalid email address"),
+//   website: z.string().url("Invalid URL").optional(),
+//   maxPrice: z.number().optional(),
+//   onSiteParking: z.boolean().optional(),
+//   garageParking: z.boolean().optional(),
+//   wifi: z.boolean().optional(),
+//   agreedToTerms: z.boolean().optional(), // Added for terms agreement
+// });
 
 export type BusinessFormValues = z.infer<typeof businessFormSchema>;
 
@@ -160,8 +189,8 @@ export default function BusinessForm({
       email: "",
       website: "",
       maxPrice: undefined,
-      on_site_parking: false,
-      garage_parking: false,
+      onSiteParking: false,
+      garageParking: false,
       wifi: false,
       agreedToTerms: !!businessId,
     },
@@ -183,8 +212,8 @@ export default function BusinessForm({
   const businessImages = watch("images") ?? [];
   const agreedToTerms = watch("agreedToTerms") ?? false;
   const maxPrice = watch("maxPrice");
-  const onSiteParking = watch("on_site_parking") ?? false;
-  const garageParking = watch("garage_parking") ?? false;
+  const onSiteParking = watch("onSiteParking") ?? false;
+  const garageParking = watch("garageParking") ?? false;
   const wifi = watch("wifi") ?? false;
 
   const { data: businessCategories } = trpc.getAllCategories.useQuery();
@@ -237,7 +266,7 @@ export default function BusinessForm({
         // Assuming initialData.phone is just the number for now, and country code is handled by initialData.country
         phoneCountryCode: initialData.phoneCountryCode ?? "", // Need logic to derive this from initialData.country or initialData.phone
         phoneNumber: initialData.phoneNumber ?? "",
-        category: initialData.category ?? [],
+        category: initialData.category ?? "",
         services: initialData.services ?? [],
         paymentOptions: initialData.paymentOptions ?? [],
         email: initialData.email ?? "",
@@ -246,8 +275,8 @@ export default function BusinessForm({
         country: initialData.country ?? "", // This will be the name, need to map to ISO code
         state: initialData.state ?? "", // This will be the name, need to map to ISO code
         maxPrice: initialData.maxPrice ?? undefined,
-        on_site_parking: initialData.onSiteParking ?? false,
-        garage_parking: initialData.garageParking ?? false,
+        onSiteParking: initialData.onSiteParking ?? false,
+        garageParking: initialData.garageParking ?? false,
         wifi: initialData.wifi ?? false,
         // Images and hours need special handling as their structure differs slightly
         images:
@@ -397,7 +426,8 @@ export default function BusinessForm({
     }
 
     // Transform data to match the expected onSubmit format
-    const formData = {
+    const formData: z.infer<typeof businessFormSchema> = {
+      status: data.status,
       name: data.name,
       about: data.about,
       addressLine1: data.addressLine1,
@@ -407,20 +437,18 @@ export default function BusinessForm({
       country: data.country,
       phoneCountryCode: data.phoneCountryCode,
       phoneNumber: data.phoneNumber,
-      categories: data.category,
+      category: data.category,
       services: data.services,
       paymentOptions: data.paymentOptions,
       hours: data.hours,
       images: data.images,
       email: data.email,
-      website: data.website === "https://" ? null : data.website,
+      website: data.website,
       maxPrice: data.maxPrice,
-      on_site_parking: data.on_site_parking,
-      garage_parking: data.garage_parking,
+      onSiteParking: data.onSiteParking,
+      garageParking: data.garageParking,
       wifi: data.wifi,
     };
-
-    console.log(formData);
 
     await onSubmit(formData);
   };
@@ -729,7 +757,7 @@ export default function BusinessForm({
               className="data-[state=checked]:bg-primary"
               checked={onSiteParking} // This is now watched from RHF
               onCheckedChange={(checked) =>
-                setValue("on_site_parking", checked as boolean)
+                setValue("onSiteParking", checked as boolean)
               } // Update RHF state
             />
             <Label htmlFor="onSiteParking">On-Site Parking</Label>
@@ -740,7 +768,7 @@ export default function BusinessForm({
               className="data-[state=checked]:bg-primary"
               checked={garageParking} // This is now watched from RHF
               onCheckedChange={(checked) =>
-                setValue("garage_parking", checked as boolean)
+                setValue("garageParking", checked as boolean)
               } // Update RHF state
             />
             <Label htmlFor="garageParking">Garage Parking</Label>
@@ -757,14 +785,14 @@ export default function BusinessForm({
             <Label htmlFor="wifi">Wifi Available</Label>
           </div>
         </div>
-        {errors.on_site_parking && (
+        {errors.onSiteParking && (
           <p className="text-red-500 text-sm mt-1">
-            {errors.on_site_parking.message}
+            {errors.onSiteParking.message}
           </p>
         )}
-        {errors.garage_parking && (
+        {errors.garageParking && (
           <p className="text-red-500 text-sm mt-1">
-            {errors.garage_parking.message}
+            {errors.garageParking.message}
           </p>
         )}
       </div>

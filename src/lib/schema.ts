@@ -58,38 +58,17 @@ export const businessSchema = z.object({
   website: z.string().url().optional().nullable(),
   createdAt: z.date().default(() => new Date()),
   updatedAt: z.date().default(() => new Date()),
-  ownerId: z.string(),
   status: z.enum(["active", "disabled"]).default("disabled"),
 
   // Fields for filtering based on FiltersPanel
   maxPrice: z.number().optional(), // Stores "10", "100" in USD.
-  // open_now: z.boolean().optional().default(false), // Requires logic to determine based on BusinessHours
   onSiteParking: z.boolean().optional(),
   garageParking: z.boolean().optional(),
   wifi: z.boolean().optional(),
+
+  ownerId: z.string(),
   // Note: bank_transfers and cash can be inferred from paymentOptions array
 });
-
-// Business create schema (omit id, rating, reviewCount, createdAt, updatedAt)
-export const createBusinessSchema = businessSchema.omit({
-  $id: true,
-  rating: true,
-  reviewCount: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-// Business update schema (partial, omit id, rating, reviewCount, createdAt, updatedAt, ownerId)
-export const updateBusinessSchema = businessSchema
-  .omit({
-    $id: true,
-    rating: true,
-    reviewCount: true,
-    createdAt: true,
-    updatedAt: true,
-    ownerId: true,
-  })
-  .partial();
 
 // Business Hours schema
 export const businessHoursSchema = z.object({
@@ -111,6 +90,32 @@ export const businessImageSchema = z.object({
   createdAt: z.date().default(() => new Date()),
   uploadedBy: z.string().optional(), // User ID who uploaded
 });
+
+// Business create schema (omit id, rating, reviewCount, createdAt, updatedAt)
+export const createBusinessSchema = businessSchema
+  .omit({
+    $id: true,
+    rating: true,
+    reviewCount: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    hours: z.object({
+      Mon: daySchema,
+      Tue: daySchema,
+      Wed: daySchema,
+      Thu: daySchema,
+      Fri: daySchema,
+      Sat: daySchema,
+      Sun: daySchema,
+    }),
+    images: z.array(businessImageSchema),
+  });
+
+// Business update schema (partial, omit id, rating, reviewCount, createdAt, updatedAt, ownerId)
+export const updateBusinessSchema = createBusinessSchema
+  .partial();
 
 // Review schema
 export const reviewSchema = z.object({

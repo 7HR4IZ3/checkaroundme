@@ -129,15 +129,14 @@ export const BusinessService = {
   async createBusiness(
     data: Omit<
       Business,
-      "$id" | "createdAt" | "updatedAt" | "rating" | "reviewCount" | "status" // Exclude status as it will be set based on subscription
+      "$id" | "createdAt" | "updatedAt" | "rating" | "reviewCount" | "status"
     > & { status?: "active" | "disabled" },
-    userId: string,
     hours: { [key: string]: DaySchema },
     images: BusinessImage[]
   ): Promise<Business> {
     try {
       const auth = await AuthService.getCurrentUser();
-      if (!auth || auth.user.$id !== userId) {
+      if (!auth) {
         throw new Error("Unauthenticated user");
       }
 
@@ -208,14 +207,13 @@ export const BusinessService = {
           status: businessStatus, // Set status based on subscription
           rating: 0,
           reviewCount: 0,
-          ownerId: userId,
+          ownerId: auth.user.$id,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         }
       );
 
       await BusinessHoursService.setBusinessHours(newBusiness.$id, hours);
-
       await BusinessImagesService.uploadTempImagesToBusiness(
         newBusiness.$id,
         images
@@ -393,7 +391,7 @@ export const BusinessService = {
               Query.search("city", query),
               Query.search("state", query),
               Query.search("country", query),
-            ])
+            ]),
           ])
         );
       }

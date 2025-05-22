@@ -23,26 +23,11 @@ export function createBusinessProcedures(
 ) {
   return {
     createBusiness: protectedProcedure
-      .input(
-        createBusinessSchema.extend({
-          userId: z.string(),
-          hours: z.object({
-            Mon: daySchema,
-            Tue: daySchema,
-            Wed: daySchema,
-            Thu: daySchema,
-            Fri: daySchema,
-            Sat: daySchema,
-            Sun: daySchema,
-          }),
-          images: z.array(businessImageSchema),
-        })
-      )
+      .input(createBusinessSchema)
       .mutation(async ({ input }) => {
-        const { userId, hours, images, ...data } = input;
+        const { hours, images, ...data } = input;
         return await BusinessService.createBusiness(
           data,
-          userId,
           hours,
           images
         );
@@ -60,20 +45,7 @@ export function createBusinessProcedures(
       .input(
         z.object({
           businessId: z.string(),
-          data: updateBusinessSchema.extend({
-            hours: z
-              .object({
-                Mon: daySchema,
-                Tue: daySchema,
-                Wed: daySchema,
-                Thu: daySchema,
-                Fri: daySchema,
-                Sat: daySchema,
-                Sun: daySchema,
-              })
-              .optional(),
-            images: z.array(businessImageSchema).optional(),
-          }),
+          data: updateBusinessSchema,
         })
       )
       .mutation(async ({ input }) => {
