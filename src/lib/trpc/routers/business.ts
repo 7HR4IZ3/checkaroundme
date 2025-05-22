@@ -25,12 +25,7 @@ export function createBusinessProcedures(
     createBusiness: protectedProcedure
       .input(createBusinessSchema)
       .mutation(async ({ input }) => {
-        const { hours, images, ...data } = input;
-        return await BusinessService.createBusiness(
-          data,
-          hours,
-          images
-        );
+        return await BusinessService.createBusiness(input);
       }),
 
     getBusinessById: t.procedure

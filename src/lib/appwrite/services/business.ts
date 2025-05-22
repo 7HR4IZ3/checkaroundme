@@ -13,6 +13,7 @@ import {
   Conversation,
   AuthSession,
   DaySchema,
+  createBusinessSchema,
 } from "../../schema"; // Corrected schema import path
 
 import {
@@ -25,6 +26,7 @@ import {
 import { BusinessHoursService } from "./business-hours"; // Assuming BusinessHoursService will be in its own file
 import { BusinessImagesService } from "./business-images"; // Assuming BusinessImagesService will be in its own file
 import { AuthService } from "./auth";
+import { z } from "zod";
 
 // Helper function to calculate Haversine distance between two points
 function getHaversineDistance(
@@ -127,12 +129,7 @@ async function checkOpenNow(
 export const BusinessService = {
   // Create new business
   async createBusiness(
-    data: Omit<
-      Business,
-      "$id" | "createdAt" | "updatedAt" | "rating" | "reviewCount" | "status"
-    > & { status?: "active" | "disabled" },
-    hours: { [key: string]: DaySchema },
-    images: BusinessImage[]
+    data: z.infer<typeof createBusinessSchema>
   ): Promise<Business> {
     try {
       const auth = await AuthService.getCurrentUser();
@@ -196,7 +193,7 @@ export const BusinessService = {
         : data;
 
       // Remove status from data if it was passed, as we're setting it based on subscription
-      const { status, ...restOfData } = businessDataWithCoordinates as any;
+      const { status, hours, images, ...restOfData } = businessDataWithCoordinates;
 
       console.log(restOfData)
 
