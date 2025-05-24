@@ -90,7 +90,7 @@ const businessFormSchema = createBusinessSchema.extend({
       })
     )
     .optional(),
-  website: z.string().url("Invalid URL").optional(),
+  website: z.string().optional(),
 });
 //  z.object({
 //   name: z.string().min(1, "Business name is required"),
