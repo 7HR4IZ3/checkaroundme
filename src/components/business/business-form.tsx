@@ -680,7 +680,7 @@ export default function BusinessForm({
             <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
           )}
         </div>
-        <div className="flex-grow">
+        {/* <div className="flex-grow">
           <Label htmlFor="businessWebsite" className="font-semibold">
             Business Website
           </Label>
@@ -697,7 +697,7 @@ export default function BusinessForm({
               {errors.website.message}
             </p>
           )}
-        </div>
+        </div> */}
       </div>
 
       {/* Business Category */}
