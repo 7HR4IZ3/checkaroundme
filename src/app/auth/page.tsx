@@ -279,7 +279,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
         Forgot your password?{" "}
         <Link
           href="/auth/forgot-password"
-          className="font-medium text-white hover:underline"
+          className="font-medium text-black hover:underline"
         >
           Reset Password
         </Link>

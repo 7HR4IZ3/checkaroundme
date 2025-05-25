@@ -16,7 +16,11 @@ import { calculateExpiryDate } from "@/lib/utils";
 import type { IPlan } from "paystack-sdk/dist/plan";
 import type { AppTRPC } from "../router";
 import { AuthService } from "@/lib/appwrite/services/auth";
-import { Subscription } from "paystack-sdk/dist/subscription";
+import {
+  ListSubscriptions,
+  Subscription,
+} from "paystack-sdk/dist/subscription";
+import { users } from "@/lib/appwrite";
 
 // --- Zod Schemas for Paystack Inputs ---
 
@@ -140,10 +144,10 @@ export function createPaystackProcedures(
       .mutation(async ({ input, ctx }) => {
         try {
           // 0. Check for existing subscription
-          const user = await AuthService.getCurrentUser();
-          if (!user) throw new Error("Unauthenticated user");
+          const auth = await AuthService.getCurrentUser();
+          if (!auth) throw new Error("Unauthenticated user");
 
-          if (user.user.prefs.subscriptionStatus === "active") {
+          if (auth.user.prefs.subscriptionStatus === "active") {
             return {
               success: true,
               message:
@@ -176,8 +180,16 @@ export function createPaystackProcedures(
           const authorizationCode =
             transactionData.authorization?.authorization_code;
           const userId = metadata?.userId;
-          const isEligibleForTwoMonthFreeOffer = metadata?.isEligibleForTwoMonthFreeOffer === true;
+          const isEligibleForTwoMonthFreeOffer =
+            metadata?.isEligibleForTwoMonthFreeOffer === "true";
           const planInterval = metadata?.interval?.toLowerCase();
+
+          console.log(
+            isEligibleForTwoMonthFreeOffer,
+            customerEmail,
+            transactionData,
+            metadata
+          );
 
           if (
             !customerEmail ||
@@ -199,12 +211,18 @@ export function createPaystackProcedures(
             );
           }
 
-          const existingSubsription = await psListSubscriptions();
-          console.log(existingSubsription);
+          await users.updatePrefs(auth.user.$id, {
+            ...auth.user.prefs,
+          });
 
-          let paystackSubscriptionStartDate = new Date();
-          if (true || isEligibleForTwoMonthFreeOffer) {
-            const twoMonthsFromNow = new Date();
+          const existingSubsription = await psListSubscriptions();
+          // @ts-ignore
+          console.log(existingSubsription.data[0].customer);
+
+          // @ts-ignore
+          let paystackSubscriptionStartDate = new Date(transactionData.paid_at);
+          if (isEligibleForTwoMonthFreeOffer) {
+            const twoMonthsFromNow = paystackSubscriptionStartDate;
             twoMonthsFromNow.setMonth(twoMonthsFromNow.getMonth() + 2);
             paystackSubscriptionStartDate = twoMonthsFromNow;
           }
@@ -216,6 +234,13 @@ export function createPaystackProcedures(
             authorization: authorizationCode,
             start_date: paystackSubscriptionStartDate,
           });
+
+          console.log(
+            createSubResponse.status,
+            createSubResponse.message,
+            // @ts-ignore
+            createSubResponse.data
+          );
 
           if (
             !createSubResponse.status ||
@@ -237,15 +262,10 @@ export function createPaystackProcedures(
           const subscriptionData = createSubResponse.data as Subscription;
 
           // 4. Update Appwrite User Document
-          const paystackCustomerId =
-            transactionData.customer?.customer_code ||
-            String(transactionData.customer?.id || "");
+          const paystackCustomerId = String(transactionData.customer.id || ""); //TODO: Wite utility to migrate existing users from "customerCode" to "customerId"
 
           // Ensure planInterval is one of the allowed enum values (already checked if it exists)
           const validIntervals = [
-            "hourly", // Though likely not used for this offer
-            "daily", // Though likely not used for this offer
-            "weekly", // Though likely not used for this offer
             "monthly",
             "quarterly",
             "biannually",
@@ -258,7 +278,7 @@ export function createPaystackProcedures(
           let appwriteExpiryDate: Date;
           const currentDate = new Date();
 
-          if (true || isEligibleForTwoMonthFreeOffer) {
+          if (isEligibleForTwoMonthFreeOffer) {
             // Base expiry is 2 months from now + plan's original interval
             const twoMonthsFromNow = new Date(currentDate);
             twoMonthsFromNow.setMonth(currentDate.getMonth() + 2);
@@ -271,7 +291,8 @@ export function createPaystackProcedures(
             appwriteExpiryDate = calculateExpiryDate(currentDate, planInterval);
           }
 
-          await appwriteUpdateUserSubscription(userId, {
+          await appwriteUpdateUserSubscription(auth.user.$id, {
+            ...auth.user.prefs,
             subscriptionStatus: "active",
             planCode: planCode,
             subscriptionExpiry: appwriteExpiryDate,
@@ -423,6 +444,36 @@ export function createPaystackProcedures(
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: error.message || "Paystack subscription enabling failed.",
+            cause: error,
+          });
+        }
+      }),
+
+    getUserActiveSubscriptions: protectedProcedure
+      .input(z.object({ customer: z.number() }))
+      .query(async ({ input }) => {
+        try {
+          // Fetch all subscriptions for the customer (Paystack customer code or email)
+          const response = await psListSubscriptions({
+            customer: input.customer,
+          });
+          if (!response.status) {
+            throw new Error(
+              response.message || "Failed to list subscriptions."
+            );
+          }
+          const allSubs = (response as ListSubscriptions).data;
+          // Filter for active or non-renewing subscriptions for this customer
+          const filtered = allSubs.filter(
+            (sub) =>
+              sub.customer?.id === input.customer &&
+              (sub.status === "active" || sub.status === "non-renewing")
+          );
+          return filtered;
+        } catch (error: any) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: error.message || "Failed to fetch user subscriptions.",
             cause: error,
           });
         }

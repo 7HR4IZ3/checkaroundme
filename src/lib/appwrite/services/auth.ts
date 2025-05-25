@@ -61,7 +61,7 @@ export const AuthService = {
         cookies.set("cham_appwrite_session", session.secret, {
           secure: process.env.NODE_ENV === "production",
           httpOnly: true,
-          sameSite: "strict",
+          sameSite: "lax",
           path: "/",
           maxAge: 60 * 60 * 24 * 365, // 1 year
         });
@@ -114,7 +114,7 @@ export const AuthService = {
         cookies.set("cham_appwrite_session", session.secret, {
           secure: process.env.NODE_ENV === "production",
           httpOnly: true,
-          sameSite: "strict",
+          sameSite: "lax",
           path: "/",
           maxAge: 60 * 60 * 24 * 365, // 1 year
         });

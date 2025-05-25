@@ -65,8 +65,6 @@ export default function OnboardingSubscriptionPage() {
       description: p.description || `Billed ${p.interval}`,
     })) || [];
 
-  console.log(plans);
-
   const displayedPlans = plans.filter((plan) => {
     if (
       (!process.env.NODE_ENV || process.env.NODE_ENV !== "development") &&
@@ -79,8 +77,6 @@ export default function OnboardingSubscriptionPage() {
       ? plan.interval.toLowerCase() === "annually"
       : plan.interval.toLowerCase() === "monthly";
   });
-
-  console.log(process.env.NODE_ENV, displayedPlans);
 
   useEffect(() => {
     if (displayedPlans.length > 0) {
@@ -133,8 +129,7 @@ export default function OnboardingSubscriptionPage() {
       email: user.email,
       amount: targetPlan.amount,
       currency: targetPlan.currency,
-      plan: targetPlan.plan_code,
-      callback_url: `${window.location.origin}/business/payment-status`,
+      callback_url: `${window.location.origin}/api/paystack/verify`,
       metadata: {
         userId: user.$id,
         planId: targetPlan.id,
