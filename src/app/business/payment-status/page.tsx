@@ -27,7 +27,6 @@ export default function PaymentStatusPage() {
   const renderContent = () => {
     if (!searchParams) return <Loading />;
     if (
-      searchParams.get("success") &&
       user.prefs.subscriptionStatus === "active"
     ) {
       return (
