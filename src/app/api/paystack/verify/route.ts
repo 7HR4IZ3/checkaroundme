@@ -11,7 +11,7 @@ import { SubscriptionCreated } from "paystack-sdk/dist/subscription";
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
-export async function GET(req: NextRequest, res: NextResponse) {
+export async function GET(req: NextRequest) {
   const reference = req.nextUrl.searchParams.get("reference");
   if (!reference) {
     return NextResponse.redirect(
