@@ -26,7 +26,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 function LoginForm({ onToggle }: { onToggle: () => void }) {
   const auth = useAuth();
-  const router = useRouter();
+
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -72,8 +72,6 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
           window.location.assign("/");
         }
       } else {
-        // This block might be reached if the mutation succeeds but the server returns success: false
-        // Handle based on your API's specific error structure if different from mutation error
         toast("Login Failed", { description: "An unexpected error occurred." });
       }
     } catch (error: any) {
@@ -299,7 +297,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
         <Link
           onClick={onToggle}
           href="#!"
-          className="font-medium text-white hover:underline"
+          className="font-medium text-black hover:underline"
         >
           Sign Up
         </Link>
@@ -646,7 +644,7 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
         <Link
           href="#!"
           onClick={onToggle}
-          className="font-medium text-white hover:underline"
+          className="font-medium text-black hover:underline"
         >
           Login
         </Link>

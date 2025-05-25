@@ -68,6 +68,7 @@ export const businessSchema = z.object({
 
   ownerId: z.string(),
   // Note: bank_transfers and cash can be inferred from paymentOptions array
+  referralCode: z.string().optional(), // <-- Add this line
 });
 
 // Business Hours schema

@@ -91,6 +91,7 @@ const businessFormSchema = createBusinessSchema.extend({
     )
     .optional(),
   website: z.string().optional(),
+  referralCode: z.string().optional(), // <-- Add this line
 });
 //  z.object({
 //   name: z.string().min(1, "Business name is required"),
@@ -247,6 +248,7 @@ export default function BusinessForm({
   const onSiteParking = watch("onSiteParking") ?? false;
   const garageParking = watch("garageParking") ?? false;
   const wifi = watch("wifi") ?? false;
+  const referralCode = watch("referralCode") ?? ""; // <-- Add this line
 
   const { data: businessCategories } = trpc.getAllCategories.useQuery();
   const { data: tempBusinessImages, isLoading: isLoadingTempImages } =
@@ -333,6 +335,7 @@ export default function BusinessForm({
           Sat: { open: "09:00", close: "18:00", closed: false },
           Sun: { open: "09:00", close: "18:00", closed: true },
         },
+        referralCode: initialData.referralCode ?? "", // <-- Add this line
       });
     }
   }, [initialData, reset]);
@@ -480,6 +483,7 @@ export default function BusinessForm({
       onSiteParking: data.onSiteParking,
       garageParking: data.garageParking,
       wifi: data.wifi,
+      referralCode: data.referralCode, // <-- Add this line
     };
 
     await onSubmit(formData);
@@ -847,6 +851,24 @@ export default function BusinessForm({
         watch={watch}
         // No longer passing individual hours state/handlers
       />
+
+      {/* Referral Code Section */}
+      <div className="md:w-1/2">
+        <Label htmlFor="referralCode" className="font-semibold">
+          Referral Code
+        </Label>
+        <Input
+          id="referralCode"
+          {...register("referralCode")}
+          placeholder="Enter referral code (optional)"
+          className="mt-2"
+        />
+        {errors.referralCode && (
+          <p className="text-red-500 text-sm mt-1">
+            {errors.referralCode.message}
+          </p>
+        )}
+      </div>
 
       {/* Terms and Conditions Checkbox (only in create mode) */}
       {!businessId && (
