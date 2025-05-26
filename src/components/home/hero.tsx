@@ -19,7 +19,7 @@ const Hero: React.FC<HeroProps> = ({ title, subtitles, button }) => {
   button ??= { text: "EXPLORE", onclick: () => router.push("/listings") };
 
   return (
-    <div className="relative bg-gray-800 text-white overflow-hidden m-6 md:m-0 rounded-lg h-[30vh] md:h-[40vh]">
+    <div className="relative bg-gray-800 text-white overflow-hidden m-6 md:m-0 rounded-lg h-[30vh] md:h-[50vh]">
       {/* Background Image */}
       <Image
         src="/images/hero-bg.jpg"

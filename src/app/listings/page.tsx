@@ -268,57 +268,66 @@ export default function Home() {
         selectedCategory={selectedCategory}
         onChangeCategory={onChangeCategory}
       />
-      <div className="container flex flex-row mx-auto md:gap-8 px-4 py-8 min-h-[70vh]">
-        <div className="w-auto flex flex-col gap-4">
-          <h1 className="text-lg md:text-2xl font-semibold text-gray-800">
-            {selectedCategory || "All Businesses"} near{" "}
-            {locationParam || "your current location"}
-          </h1>
-          <FilterSortBar
-            selectedCategories={otherFilterBarCategories}
-            onChangeCategories={onChangeOtherFilterBarCategories}
-            onOpenFiltersPanel={onOpenFiltersPanel}
-            locations={locations}
-            selectedLocation={locationParam}
-            onChangeLocation={onChangeLocation}
-            openNow={openNow}
-            onToggleOpenNow={onToggleOpenNow}
-            selectedDistance={selectedDistance}
-            onChangeDistance={onChangeDistance}
-            sortBy={sortBy}
-            onSortByChange={onSortByChange}
-          />
-          <div className="space-y-6">
-            {isLoading ? (
-              <Loading />
-            ) : geoError && !userLatitude ? (
-              <div className="text-center text-gray-500">
-                Could not determine your location. Please enable location
-                services or select a location manually.
-              </div>
-            ) : !list || list.businesses.length === 0 ? (
-              <div className="text-center text-gray-500">
-                No businesses found matching your criteria.
-              </div>
-            ) : (
-              list.businesses.map((business, index) => (
-                <ListingCard key={business.$id || index} business={business} />
-              ))
-            )}
+      <div className="container mx-auto px-4">
+        <div className="grid md:grid-cols-3 lg:grid-cols-8 gap-8">
+          {/* Main content - Takes 2/3 on tablet, 5/8 on desktop */}
+          <div className="md:col-span-2 lg:col-span-5 py-8 space-y-4">
+            <h1 className="text-lg md:text-2xl font-semibold text-gray-800">
+              {selectedCategory || "All Businesses"} near{" "}
+              {locationParam || "your current location"}
+            </h1>
+            <FilterSortBar
+              selectedCategories={otherFilterBarCategories}
+              onChangeCategories={onChangeOtherFilterBarCategories}
+              onOpenFiltersPanel={onOpenFiltersPanel}
+              locations={locations}
+              selectedLocation={locationParam}
+              onChangeLocation={onChangeLocation}
+              openNow={openNow}
+              onToggleOpenNow={onToggleOpenNow}
+              selectedDistance={selectedDistance}
+              onChangeDistance={onChangeDistance}
+              sortBy={sortBy}
+              onSortByChange={onSortByChange}
+            />
+            <div className="space-y-6">
+              {isLoading ? (
+                <Loading />
+              ) : geoError && !userLatitude ? (
+                <div className="text-center text-gray-500">
+                  Could not determine your location. Please enable location
+                  services or select a location manually.
+                </div>
+              ) : !list || list.businesses.length === 0 ? (
+                <div className="text-center text-gray-500">
+                  No businesses found matching your criteria.
+                </div>
+              ) : (
+                list.businesses.map((business, index) => (
+                  <ListingCard
+                    key={business.$id || index}
+                    business={business}
+                  />
+                ))
+              )}
+            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={onPageChange}
+            />
           </div>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={onPageChange}
-          />
-        </div>
-        <div className="flex-col flex-grow hidden md:flex h-screen items-center justify-center">
-          <div className="h-[calc(80vh-80px)] w-full">
-            <MapPlaceholder businesses={list?.businesses || []} />
+
+          {/* Map section - Takes 1/3 on tablet, 3/8 on desktop */}
+          <div className="hidden md:block md:col-span-1 lg:col-span-3">
+            <div className="sticky top-8 h-[calc(100vh-8rem)]">
+              <MapPlaceholder businesses={list?.businesses || []} />
+            </div>
           </div>
         </div>
       </div>
 
+      {/* Filters panel remains unchanged */}
       {filtersPanelOpen && (
         <div className="fixed inset-0 z-50 flex justify-end bg-black/30">
           <div className="h-full bg-white w-full max-w-xs animate-in fade-in slide-in-from-left overflow-auto">

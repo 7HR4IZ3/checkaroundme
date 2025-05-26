@@ -76,17 +76,17 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
   // }, [business]);
 
   return (
-    <div className="container bg-white rounded-xl shadow-xs overflow-hidden flex flex-col md:flex-row p-2 relative h-[55vh] md:h-[17vh] gap-2">
-      <div className="w-full h-100 md:w-1/3 md:h-full relative">
+    <div className="container bg-white rounded-xl shadow-md overflow-hidden flex flex-col md:flex-row p-4 relative gap-4">
+      <div className="relative w-full aspect-video md:aspect-auto md:w-48 shrink-0">
         {isLoading ? (
-          <Skeleton className="w-full h-full" />
+          <Skeleton className="w-full h-full rounded-lg" />
         ) : (
           <>
             <Image
               src={image ? image.imageUrl : "/images/no-image.jpg"}
               alt={business.name}
               fill
-              className="rounded-xl bg-gray-200 object-cover"
+              className="rounded-lg bg-gray-200 object-cover"
               style={{
                 viewTransitionName: `business-${business.$id}-image`,
                 inset: "auto",
@@ -183,45 +183,79 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
           </>
         )}
       </div>
-      {/* Content for larger screens */}
-      <div className="hidden md:flex flex-col justify-between gap-1 md:gap-2">
-        <div className="flex p-0 justify-between items-start">
-          <Link href={`/business/${business.$id}`}>
-            <h3
-              className="text-md md:text-xl font-semibold text-gray-800"
-              style={{ viewTransitionName: `business-${business.$id}-name` }}
-            >
-              {business.name}
-            </h3>
-          </Link>
-          <div className="flex items-center text-xs w-30">
-            <FaMapMarkerAlt className="mr-1" />
-            <span className="text-xs">
-              {business.addressLine1}, {business.city}{" "}
-            </span>
+
+      {/* Desktop content */}
+      <div className="hidden md:flex flex-1 flex-col gap-6">
+        {/* Main info column */}
+        <div className="flex flex-col flex-1 gap-3 py-2">
+          <div className="flex justify-between items-start gap-4">
+            <Link href={`/business/${business.$id}`} className="shrink-0">
+              <h3
+                className="text-xl font-semibold text-gray-900 hover:text-primary transition-colors"
+                style={{ viewTransitionName: `business-${business.$id}-name` }}
+              >
+                {business.name}
+              </h3>
+            </Link>
+            <div className="flex items-center text-sm text-gray-600 shrink-0">
+              <FaMapMarkerAlt className="mr-1.5" />
+              <span>
+                {business.addressLine1}, {business.city}
+              </span>
+            </div>
           </div>
+
+          <div className="flex items-center gap-3">
+            <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
+              {business.category}
+            </span>
+            <div className="flex items-center h-5">
+              <RatingStars rating={business.rating} starSize={16} />
+              <span className="text-sm font-medium text-gray-700 ml-2">
+                {business.rating.toFixed(1)}
+              </span>
+              <span className="text-sm text-gray-500 ml-1">
+                ({business.reviewCount}{" "}
+                {business.reviewCount === 1 ? "review" : "reviews"})
+              </span>
+            </div>
+          </div>
+
+          <p className="text-sm leading-relaxed text-gray-600 line-clamp-2">
+            {business.about}
+          </p>
         </div>
-        <div className="flex items-center h-5">
-          <span className="hidden md:block">
-            <RatingStars rating={business.rating} starSize={16} />
-          </span>
-          <span className="block md:hidden">
-            <RatingStars rating={business.rating} starSize={12} />
-          </span>
-          <span className="text-xs font-bold text-gray-600 m-2">
-            {business.rating.toFixed(1)}
-          </span>
-          <span className="text-xs font-bold text-gray-600">
-            ({business.reviewCount}{" "}
-            {business.reviewCount === 1 ? "review" : "reviews"})
-          </span>
+
+        {/* Actions column */}
+        <div className="flex flex-row items-end gap-3 pl-6 border-l border-gray-100">
+          {(business.phoneCountryCode || "") + (business.phoneNumber || "") && (
+            <Button
+              className="text-primary hover:text-primary/80"
+              variant="ghost"
+              size="icon"
+            >
+              <Link
+                href={`tel:${
+                  (business.phoneCountryCode || "") +
+                  (business.phoneNumber || "")
+                }`}
+              >
+                <PhoneCallIcon className="h-5 w-5" />
+              </Link>
+            </Button>
+          )}
+          {!hideButton && auth.isAuthenticated && (
+            <Button
+              size="sm"
+              className="bg-primary text-white hover:bg-primary/90"
+              onClick={() =>
+                redirect(`/messages?recipient=${business.ownerId}`)
+              }
+            >
+              <FaCommentDots className="mr-2" /> Message
+            </Button>
+          )}
         </div>
-        <div className="flex flex-wrap gap-2">
-          <span className="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-xs font-medium">
-            {business.category}
-          </span>
-        </div>
-        <p className="text-xs leading-relaxed">{business.about}.. </p>
       </div>
     </div>
   );

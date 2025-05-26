@@ -84,6 +84,22 @@ const ServicesNearYou = () => {
     return null;
   }
 
+  // Add this block for "No services found"
+  if (Array.isArray(businesses) && businesses.length === 0) {
+    return (
+      <div className="bg-gray-50 py-16">
+        <div className="md:container px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto">
+          <h2 className="text-lg md:text-2xl font-semibold text-center text-gray-800 mb-8">
+            Services Near You
+          </h2>
+          <div className="text-center text-gray-500">
+            <p>No services found near your location.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-gray-50 py-16">
       <div className="md:container px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto">
