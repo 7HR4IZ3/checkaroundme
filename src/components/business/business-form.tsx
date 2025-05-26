@@ -248,7 +248,6 @@ export default function BusinessForm({
   const onSiteParking = watch("onSiteParking") ?? false;
   const garageParking = watch("garageParking") ?? false;
   const wifi = watch("wifi") ?? false;
-  const referralCode = watch("referralCode") ?? ""; // <-- Add this line
 
   const { data: businessCategories } = trpc.getAllCategories.useQuery();
   const { data: tempBusinessImages, isLoading: isLoadingTempImages } =
@@ -447,7 +446,7 @@ export default function BusinessForm({
   };
 
   const onSubmitRHF = async (data: BusinessFormValues) => {
-    console.log("Handling submit!");
+    console.log("Handling submit!", data);
     if (!businessId && !agreedToTerms) {
       // Only set terms error in create mode
       // Need to handle terms error state separately or add to schema
@@ -497,7 +496,7 @@ export default function BusinessForm({
     }
   };
 
-  console.log(errors);
+  console.log(form.getValues(), errors);
 
   return (
     <div className="container mx-auto py-8 px-4 md:px-8 lg:px-16 space-y-8">
