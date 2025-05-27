@@ -42,6 +42,8 @@ import {
   ChevronRight,
   Power,
   PowerOff,
+  Check,
+  Copy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -61,6 +63,8 @@ import { ReviewCard } from "@/components/ui/review-card";
 import { toast } from "sonner";
 import MapPlaceholder from "@/components/map/placeholder";
 import Link from "next/link";
+import { Input } from "@/components/ui/input";
+import { FaFacebook, FaTwitter, FaWhatsapp } from "react-icons/fa";
 
 // Helper component for star ratings
 const StarRating = ({ rating, count }: { rating: number; count?: number }) => {
@@ -193,6 +197,8 @@ export default function BusinessPage() {
   const [targetStatus, setTargetStatus] = useState<
     "active" | "disabled" | null
   >(null);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   // tRPC mutations
   const updateBusinessMutation = trpc.updateBusiness.useMutation({
@@ -488,6 +494,33 @@ export default function BusinessPage() {
     });
   };
 
+  const handleCopyLink = async () => {
+    const url = window.location.href;
+    try {
+      await navigator.clipboard.writeText(url);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+      toast.success("Link copied to clipboard!");
+    } catch (err) {
+      toast.error("Failed to copy link");
+    }
+  };
+
+  const shareToSocial = (platform: string) => {
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent(
+      `Check out ${business.name} on CheckAroundMe!`
+    );
+
+    const urls = {
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+      twitter: `https://twitter.com/intent/tweet?url=${url}&text=${text}`,
+      whatsapp: `https://wa.me/?text=${text}%20${url}`,
+    };
+
+    window.open(urls[platform as keyof typeof urls], "_blank");
+  };
+
   return (
     <>
       <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -527,7 +560,7 @@ export default function BusinessPage() {
                   <Button
                     size="sm"
                     variant={
-                      business.status === "active" ? "destructive" : "default"
+                      business.status === "active" ? "destructive" : "outline"
                     }
                     className="ml-2 flex items-center gap-1"
                     onClick={handleToggleBusinessStatus}
@@ -556,13 +589,13 @@ export default function BusinessPage() {
                     count={business.reviewCount}
                   />
                 </div>
-                <Badge
+                {/* <Badge
                   variant={
                     business.status === "active" ? "default" : "secondary"
                   }
                 >
                   Status: {business.status === "active" ? "Active" : "Inactive"}
-                </Badge>
+                </Badge> */}
               </div>
               <div className="flex items-center gap-1 mb-2 text-sm">
                 {business.verificationStatus === "verified" && (
@@ -571,9 +604,7 @@ export default function BusinessPage() {
                     <span>Verified</span>
                   </div>
                 )}
-                <Badge variant="outline">
-                    {business.category}
-                  </Badge>
+                <Badge variant="outline">{business.category}</Badge>
               </div>
               <div className="flex items-center gap-2 text-sm mb-4">
                 {/* Compute isOpen and hoursToday from openingHours */}
@@ -629,7 +660,10 @@ export default function BusinessPage() {
                     )}
                   </Button>
                 )}
-                <Button variant="outline">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsShareModalOpen(true)}
+                >
                   <Share2 className="mr-2 h-4 w-4" /> Share
                 </Button>
               </div>
@@ -1257,6 +1291,65 @@ export default function BusinessPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Share Modal */}
+      <Dialog open={isShareModalOpen} onOpenChange={setIsShareModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Share this business</DialogTitle>
+            <DialogDescription>
+              Share this business with your friends and network
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center space-x-2">
+            <Input
+              readOnly
+              value={typeof window !== "undefined" ? window.location.href : ""}
+              className="flex-1"
+            />
+            <Button size="sm" onClick={handleCopyLink}>
+              {isCopied ? (
+                <Check className="h-4 w-4" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+          <div className="flex justify-center gap-4 py-4">
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-full w-12 h-12"
+              onClick={() => shareToSocial("facebook")}
+            >
+              <FaFacebook className="h-6 w-6 text-blue-600" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-full w-12 h-12"
+              onClick={() => shareToSocial("twitter")}
+            >
+              <FaTwitter className="h-6 w-6 text-blue-400" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-full w-12 h-12"
+              onClick={() => shareToSocial("whatsapp")}
+            >
+              <FaWhatsapp className="h-6 w-6 text-green-400" />
+            </Button>
+          </div>
+          <DialogFooter className="sm:justify-start">
+            <DialogClose asChild>
+              <Button type="button" variant="secondary" className="text-white">
+                Close
+              </Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
