@@ -919,51 +919,51 @@ function AuthPageInner() {
   if (auth.isAuthenticated) return redirect("/");
 
   return (
-    <div className="flex flex-col p-8 gap-6 bg-background">
-      <div className="my-auto">
-        <Link href="/">
-          <Image
-            src="/images/logo.png"
-            alt="Checkaroundme"
-            width={200}
-            height={40}
-          />
-        </Link>
-      </div>
-      <div className="flex flex-row h-[80vh]">
-        <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 lg:p-16">
-          <div className="space-y-6">
-            <GoogleReCaptchaProvider
-              type="v2-checkbox"
-              siteKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
-            >
+    <GoogleReCaptchaProvider
+      type="v2-checkbox"
+      siteKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
+    >
+      <div className="flex flex-col p-8 gap-6 bg-background">
+        <div className="my-auto">
+          <Link href="/">
+            <Image
+              src="/images/logo.png"
+              alt="Checkaroundme"
+              width={200}
+              height={40}
+            />
+          </Link>
+        </div>
+        <div className="flex flex-row lg:min-h-[80vh]">
+          <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 lg:p-16">
+            <div className="space-y-6">
               {isLogin ? (
                 <LoginForm onToggle={() => setIsLogin(false)} />
               ) : (
                 <SignUpForm onToggle={() => setIsLogin(true)} />
               )}
-            </GoogleReCaptchaProvider>
+            </div>
+          </div>
+
+          <div className="hidden md:block md:w-1/2 relative">
+            {isLogin ? (
+              <Image
+                className="rounded-xl"
+                src="/images/signin-placeholder.jpg"
+                alt="Mechanic working on car engine"
+                style={{ objectFit: "cover" }}
+                fill
+                priority
+              />
+            ) : (
+              <div className="overflow-y h-full">
+                <LandingPage />
+              </div>
+            )}
           </div>
         </div>
-
-        <div className="hidden md:block md:w-1/2 relative">
-          {isLogin ? (
-            <Image
-              className="rounded-xl"
-              src="/images/signin-placeholder.jpg"
-              alt="Mechanic working on car engine"
-              style={{ objectFit: "cover" }}
-              fill
-              priority
-            />
-          ) : (
-            <div className="overflow-y h-full">
-              <LandingPage />
-            </div>
-          )}
-        </div>
       </div>
-    </div>
+    </GoogleReCaptchaProvider>
   );
 }
 
