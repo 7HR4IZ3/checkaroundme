@@ -82,10 +82,6 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
         {isLoading ? (
           <Skeleton className="w-full h-full rounded-lg" />
         ) : (
-          <div
-            className="w-full h-full"
-            onClick={() => router.push(`/business/${business.$id}`)}
-          >
             <Image
               src={image ? image.imageUrl : "/images/no-image.jpg"}
               alt={business.name}
@@ -95,6 +91,7 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
                 viewTransitionName: `business-${business.$id}-image`,
                 inset: "auto",
               }}
+              onClick={() => router.push(`/business/${business.$id}`)}
             />
             <div className="absolute inset-0 bg-black opacity-40 md:hidden rounded-xl"></div>{" "}
             {/* Content container for mobile overlay */}
@@ -184,7 +181,6 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
                 </div>
               </div>
             </div>
-          </div>
         )}
       </div>
 
