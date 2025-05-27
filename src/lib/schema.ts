@@ -55,7 +55,7 @@ export const businessSchema = z.object({
   phoneCountryCode: z.string().optional(),
   phoneNumber: z.string().optional(),
   email: z.string().email().optional(),
-  website: z.string().url().optional().nullable(),
+  website: z.string().optional().nullable(),
   createdAt: z.date().default(() => new Date()),
   updatedAt: z.date().default(() => new Date()),
   status: z.enum(["active", "disabled"]).default("disabled"),
