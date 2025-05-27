@@ -11,7 +11,7 @@ import { Business } from "@/lib/schema";
 import { trpc } from "@/lib/trpc/client";
 import { Skeleton } from "../ui/skeleton";
 import { useAuth } from "@/lib/hooks/useClientAuth";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { PhoneCallIcon } from "lucide-react";
 
 const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
@@ -19,6 +19,7 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
   hideButton = false,
 }) => {
   const auth = useAuth();
+  const router = useRouter();
   const {
     data: image,
     isLoading,
@@ -77,11 +78,14 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
 
   return (
     <div className="container bg-white rounded-xl shadow-md overflow-hidden flex flex-col md:flex-row p-4 relative gap-4">
-      <div className="relative w-full aspect-video md:aspect-auto md:w-48 shrink-0">
+      <div className="relative w-full aspect-video md:aspect-auto md:w-48 shrink-0 h-[50vh] md:h-auto">
         {isLoading ? (
           <Skeleton className="w-full h-full rounded-lg" />
         ) : (
-          <>
+          <div
+            className="w-full h-full"
+            onClick={() => router.push(`/business/${business.$id}`)}
+          >
             <Image
               src={image ? image.imageUrl : "/images/no-image.jpg"}
               alt={business.name}
@@ -180,7 +184,7 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
                 </div>
               </div>
             </div>
-          </>
+          </div>
         )}
       </div>
 
