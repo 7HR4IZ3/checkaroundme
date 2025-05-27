@@ -150,7 +150,7 @@ export default function BusinessForm({
   isSubmitting,
 }: BusinessFormProps) {
   const { user, isAuthenticated } = useAuth();
-  if (!businessId && !isAuthenticated) return redirect("/auth");
+  if (!businessId && !isAuthenticated) return redirect("/auth?next=" + window.location.pathname);
 
   trpc.getCountries.usePrefetchQuery();
 

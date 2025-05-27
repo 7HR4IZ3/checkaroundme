@@ -112,7 +112,7 @@ function ProfileOverviewSection() {
             <p className="text-sm text-muted-foreground mt-1">
               Member since:{" "}
               {new Date(
-                appwriteUser.$createdAt || Date.now(),
+                appwriteUser.$createdAt || Date.now()
               ).toLocaleDateString()}
             </p>
           </div>
@@ -153,7 +153,7 @@ function EditProfileSection() {
       setName(auth.profile.fullName || auth.user.name || "");
       setPhone(auth.profile.phone || auth.user.phone || "");
       setAvatarPreview(
-        auth.profile.avatarUrl || auth.user.prefs?.avatarUrl || null,
+        auth.profile.avatarUrl || auth.user.prefs?.avatarUrl || null
       );
     }
   }, [auth.isAuthenticated, auth.user, auth.profile]);
@@ -235,7 +235,7 @@ function EditProfileSection() {
       const result = await response.json();
       if (!response.ok)
         throw new Error(
-          result.error?.message || result.details || "Avatar upload failed",
+          result.error?.message || result.details || "Avatar upload failed"
         );
 
       toast.success("Avatar updated successfully!");
@@ -572,7 +572,7 @@ function SecuritySection() {
       } else {
         toast.error(
           data.message ||
-            "Failed to change password. Please check your current password.",
+            "Failed to change password. Please check your current password."
         );
       }
     },
@@ -778,7 +778,7 @@ function BillingSection() {
     {
       enabled: !!auth.isAuthenticated,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
-    },
+    }
   );
 
   const handleManageSubscription = () =>
@@ -821,8 +821,8 @@ function BillingSection() {
                     subscriptionData.status === "active"
                       ? "bg-green-100 text-green-700"
                       : subscriptionData.status === "past_due"
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-yellow-100 text-yellow-700"
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-yellow-100 text-yellow-700"
                   }`}
                 >
                   {subscriptionData.status || "N/A"}
@@ -955,7 +955,7 @@ export default function ProfilePage() {
 
   if (!auth.isAuthenticated) {
     if (typeof window !== "undefined") {
-      redirect("/auth");
+      redirect("/auth?next=" + window.location.pathname);
     }
     return null; // Or a redirect component if preferred server-side
   }

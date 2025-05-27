@@ -19,16 +19,14 @@ export default function PaymentStatusPage() {
   const router = useRouter();
 
   if (!isAuthenticated) {
-    return router.push("/auth");
+    return router.push("/auth?next=" + window.location.pathname);
   }
 
   const searchParams = useSearchParams();
 
   const renderContent = () => {
     if (!searchParams) return <Loading />;
-    if (
-      user.prefs.subscriptionStatus === "active"
-    ) {
+    if (user.prefs.subscriptionStatus === "active") {
       return (
         <>
           <p className="text-green-600">

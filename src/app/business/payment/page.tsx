@@ -26,7 +26,7 @@ export default function OnboardingSubscriptionPage() {
 
   useEffect(() => {
     if (isAuthenticated === false) {
-      router.push("/auth");
+      router.push("/auth?next=" + window.location.pathname);
     } else if (user?.prefs.subscriptionStatus === "active") {
       router.back();
     }

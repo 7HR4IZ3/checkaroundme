@@ -195,7 +195,12 @@ const AboutUsPage = () => {
             community and be part of the future of service.
           </p>
           <div className="flex justify-center mt-8">
-            <Button size="lg" onClick={() => router.push("/auth")}>
+            <Button
+              size="lg"
+              onClick={() =>
+                router.push("/auth?next=" + window.location.pathname)
+              }
+            >
               Get Started
             </Button>
           </div>

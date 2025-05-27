@@ -64,7 +64,7 @@ function ResetPasswordForm() {
         toast("Password Reset Successful", {
           description: "You can now login with your new password.",
         });
-        router.push("/auth"); // Redirect to login page
+        router.push("/auth?next=" + window.location.pathname); // Redirect to login page
       } else {
         toast("Reset Failed", {
           description: result.message || "Could not reset password.",

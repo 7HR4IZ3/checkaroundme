@@ -20,7 +20,8 @@ export default function BusinessCreateForm() {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
 
-  if (!isAuthenticated) return redirect("/auth");
+  if (!isAuthenticated)
+    return redirect("/auth?next=" + window.location.pathname);
 
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [newlyCreatedBusinessId, setNewlyCreatedBusinessId] = useState<
