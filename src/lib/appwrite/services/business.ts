@@ -627,4 +627,30 @@ export const BusinessService = {
       throw error;
     }
   },
+
+  async activateBusinessesByUserId(userId: string): Promise<number> {
+    try {
+      const { documents: businesses } = await databases.listDocuments(
+        DATABASE_ID,
+        BUSINESSES_COLLECTION_ID,
+        [Query.equal("ownerId", userId)]
+      );
+      let activatedCount = 0;
+      for (const business of businesses) {
+        if (business.status !== "active") {
+          await databases.updateDocument(
+            DATABASE_ID,
+            BUSINESSES_COLLECTION_ID,
+            business.$id,
+            { status: "active", updatedAt: new Date().toISOString() }
+          );
+          activatedCount++;
+        }
+      }
+      return activatedCount;
+    } catch (error) {
+      console.error("Error activating businesses for user:", error);
+      throw error;
+    }
+  },
 };

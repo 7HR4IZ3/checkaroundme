@@ -28,54 +28,6 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
     businessId: business.$id,
   });
 
-  // const updateBusinessMutation = trpc.updateBusiness.useMutation();
-
-  // useEffect(() => {
-  //   if (!business.coordinates) {
-  //     const address = `${business.addressLine1} ${business.city} ${
-  //       business.state || ""
-  //     } ${business.country || ""} ${business.postalCode || ""}`;
-  //     axios
-  //       .get("https://nominatim.openstreetmap.org/search", {
-  //         params: {
-  //           q: address,
-  //           format: "json",
-  //           limit: 1,
-  //         },
-  //         headers: {
-  //           "User-Agent": "CheckAroundMe/1.0 (contact@checkaroundme.com)", // Replace with your app name and contact
-  //         },
-  //       })
-  //       .then((response) => {
-  //         if (response.data && response.data.length > 0) {
-  //           const result = response.data[0];
-  //           const newCoordinates = {
-  //             latitude: parseFloat(result.lat),
-  //             longitude: parseFloat(result.lon),
-  //           };
-  //           console.log(
-  //             `Client-side geocoded address "${address}" to`,
-  //             newCoordinates
-  //           );
-  //           // Update the business in the background
-  //           updateBusinessMutation.mutate({
-  //             businessId: business.$id,
-  //             data: {
-  //               coordinates: newCoordinates,
-  //             },
-  //           });
-  //         } else {
-  //           console.warn(
-  //             `Client-side geocoding failed for address: "${address}". No results found.`
-  //           );
-  //         }
-  //       })
-  //       .catch((error) => {
-  //         console.error("Client-side geocoding error:", error);
-  //       });
-  //   }
-  // }, [business]);
-
   return (
     <div className="container bg-white rounded-xl shadow-md overflow-hidden flex flex-col md:flex-row relative gap-4 h-auto">
       <div className="relative w-full aspect-video md:aspect-auto md:w-48 shrink-0">

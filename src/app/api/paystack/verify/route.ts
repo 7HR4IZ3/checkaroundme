@@ -10,6 +10,7 @@ import { AuthService } from "@/lib/appwrite/services/auth";
 import { SubscriptionCreated } from "paystack-sdk/dist/subscription";
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { BusinessService } from "@/lib/appwrite/services/business";
 
 export async function GET(req: NextRequest) {
   const reference = req.nextUrl.searchParams.get("reference");
@@ -135,6 +136,8 @@ export async function GET(req: NextRequest) {
       paystackSubscriptionToken: subscriptionData.email_token,
       paystackSubscriptionCode: subscriptionData.subscription_code,
     });
+
+    await BusinessService.activateBusinessesByUserId(auth.user.$id);
 
     // 6. Redirect to payment status page
     return NextResponse.redirect(
