@@ -96,7 +96,10 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
             />
             <div className="absolute inset-0 bg-black opacity-40 md:hidden rounded-xl"></div>{" "}
             {/* Content container for mobile overlay */}
-            <div className="absolute inset-0 p-4 flex flex-col justify-between md:hidden">
+            <div
+              className="absolute inset-0 p-4 flex flex-col justify-between md:hidden"
+              onClick={() => router.push(`/business/${business.$id}`)}
+            >
               {/* Top section: Name, Address, Category, Rating */}
               <div className="flex flex-col">
                 <div className="flex flex-wrap justify-between mb-2">
