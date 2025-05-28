@@ -82,6 +82,7 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
         {isLoading ? (
           <Skeleton className="w-full h-full rounded-lg" />
         ) : (
+          <>
             <Image
               src={image ? image.imageUrl : "/images/no-image.jpg"}
               alt={business.name}
@@ -181,6 +182,7 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
                 </div>
               </div>
             </div>
+          </>
         )}
       </div>
 
