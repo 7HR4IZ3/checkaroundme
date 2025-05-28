@@ -147,9 +147,9 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
               <div className="flex flex-col justify-end mt-2 gap-4">
                 {/* Description (Bottom Left within overlay) */}
                 <p className="text-xs leading-relaxed text-white">
-                  {business.about.length <= 200
+                  {business.about.length <= 100
                     ? business.about
-                    : `${business.about.substring(0, 200)}...`}
+                    : `${business.about.substring(0, 100)}...`}
                 </p>
                 {/* Added justify-end for right alignment */}
                 <div className="flex flex-row justify-between gap-2">
@@ -226,9 +226,9 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
           </div>
 
           <p className="text-sm leading-relaxed text-gray-600 line-clamp-2">
-            {business.about.length <= 200
+            {business.about.length <= 100
               ? business.about
-              : `${business.about.substring(0, 200)}...`}
+              : `${business.about.substring(0, 100)}...`}
           </p>
         </div>
 
