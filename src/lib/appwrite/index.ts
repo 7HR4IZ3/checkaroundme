@@ -1237,11 +1237,25 @@ export const AnonymousSubmissionService = {
         ANONYMOUS_SUBMISSIONS_COLLECTION_ID,
         submissionId
       );
+      let businessCount = 0;
+      try {
+        const businessResult = await databases.listDocuments(
+          DATABASE_ID,
+          BUSINESSES_COLLECTION_ID,
+          [Query.equal("referralCode", submission.specialCode)]
+        );
+        businessCount = businessResult.total;
+      } catch {
+        businessCount = 0;
+      }
       return {
         ...submission,
+        businessCount,
         fileURL: getImageURl(submission.submitIdFileId),
         salaryAccount: JSON.parse(submission.salaryAccount),
-      } as unknown as AnonymousSubmission;
+      } as unknown as AnonymousSubmission & {
+        businessCount: number;
+      };
     } catch (error) {
       console.error(
         `Get anonymous submission error for ${submissionId}:`,

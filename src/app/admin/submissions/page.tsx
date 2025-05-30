@@ -36,6 +36,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { toast } from "sonner";
+import { DataTable } from "@/components/ui/data-table"; // Add this import
 
 const SECRET_PASSWORD = "PASSWORD";
 
@@ -71,6 +72,16 @@ const SubmissionDialog = ({
             <div>
               <h3 className="font-semibold">Special Code</h3>
               <p>{submission.specialCode}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold">Businesses Registered</h3>
+              <p>
+                {typeof submission.businessCount === "number" ? (
+                  submission.businessCount
+                ) : (
+                  <span className="text-muted-foreground">...</span>
+                )}
+              </p>
             </div>
             <div className="col-span-2">
               <h3 className="font-semibold">Address</h3>
@@ -218,6 +229,97 @@ export default function AnonymousSubmissionsPage() {
     }
   };
 
+  // Define columns for DataTable
+  const columns = [
+    {
+      id: "select",
+      header: ({ table }: any) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (paginatedData?.items.length === selectedSubmissions.size &&
+              paginatedData?.items.length > 0)
+          }
+          onCheckedChange={toggleAll}
+          className="h-6 w-6"
+        />
+      ),
+      cell: ({ row }: any) => (
+        <Checkbox
+          checked={selectedSubmissions.has(row.original.$id)}
+          onCheckedChange={() => toggleSubmission(row.original.$id)}
+          className="h-6 w-6"
+        />
+      ),
+      size: 48,
+      enableSorting: false,
+    },
+    {
+      accessorKey: "name",
+      header: "Name",
+      cell: ({ row }: any) => row.original.name,
+    },
+    {
+      accessorKey: "address",
+      header: "Address",
+      cell: ({ row }: any) => row.original.address,
+    },
+    {
+      accessorKey: "specialCode",
+      header: "Special Code",
+      cell: ({ row }: any) => row.original.specialCode,
+    },
+    {
+      accessorKey: "salaryAccount.bankName",
+      header: "Bank",
+      cell: ({ row }: any) => row.original.salaryAccount.bankName,
+    },
+    {
+      id: "businessCount",
+      header: "Businesses Registered",
+      cell: ({ row }: any) =>
+        typeof row.original.businessCount === "number" ? (
+          row.original.businessCount
+        ) : (
+          <span className="text-muted-foreground">...</span>
+        ),
+      size: 80,
+    },
+    {
+      id: "actions",
+      header: "",
+      cell: ({ row }: any) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={() => handleAction("view", row.original)}
+            >
+              View Details
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => handleAction("edit", row.original)}
+            >
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => handleAction("delete", row.original)}
+              className="text-red-600"
+            >
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+      size: 48,
+      enableSorting: false,
+    },
+  ];
+
   if (!hasAccess) {
     return (
       <div className="container mx-auto p-4">
@@ -269,109 +371,18 @@ export default function AnonymousSubmissionsPage() {
         </div>
       </div>
 
+      {/* Replace Table with DataTable */}
       <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-12 flex items-center justify-center">
-                <Checkbox
-                  checked={
-                    paginatedData?.items.length === selectedSubmissions.size &&
-                    paginatedData?.items.length > 0
-                  }
-                  onCheckedChange={toggleAll}
-                  className="h-6 w-6"
-                />
-              </TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Address</TableHead>
-              <TableHead>Special Code</TableHead>
-              <TableHead>Bank</TableHead>
-              <TableHead className="text-center">
-                Businesses Registered
-              </TableHead>
-              <TableHead className="w-12"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedData?.items.map((submission) => (
-              <TableRow
-                key={submission.$id}
-                className="cursor-pointer"
-                onClick={() => {
-                  setSelectedSubmission(submission);
-                  setDialogMode("view");
-                  setDialogOpen(true);
-                }}
-              >
-                <TableCell
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleSubmission(submission.$id);
-                  }}
-                  tabIndex={0}
-                  aria-label={
-                    selectedSubmissions.has(submission.$id)
-                      ? "Deselect row"
-                      : "Select row"
-                  }
-                  role="checkbox"
-                  aria-checked={selectedSubmissions.has(submission.$id)}
-                  className="flex items-center justify-center"
-                >
-                  <Checkbox
-                    checked={selectedSubmissions.has(submission.$id)}
-                    tabIndex={-1}
-                    aria-label={
-                      selectedSubmissions.has(submission.$id)
-                        ? "Deselect row"
-                        : "Select row"
-                    }
-                    className="h-6 w-6"
-                  />
-                </TableCell>
-                <TableCell>{submission.name}</TableCell>
-                <TableCell>{submission.address}</TableCell>
-                <TableCell>{submission.specialCode}</TableCell>
-                <TableCell>{submission.salaryAccount.bankName}</TableCell>
-                <TableCell className="flex items-center justify-center h-full text-center">
-                  {typeof submission.businessCount === "number" ? (
-                    submission.businessCount
-                  ) : (
-                    <span className="text-muted-foreground">...</span>
-                  )}
-                </TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => handleAction("view", submission)}
-                      >
-                        View Details
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleAction("edit", submission)}
-                      >
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleAction("delete", submission)}
-                        className="text-red-600"
-                      >
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <DataTable
+          columns={columns}
+          data={paginatedData?.items || []}
+          onRowClick={(row: any) => {
+            setSelectedSubmission(row.original);
+            setDialogMode("view");
+            setDialogOpen(true);
+          }}
+          rowKey="$id"
+        />
       </div>
 
       {paginatedData && paginatedData.pageCount > 1 && (

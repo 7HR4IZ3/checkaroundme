@@ -273,6 +273,7 @@ export const anonymousSubmissionSchema = z.object({
   }),
   specialCode: z.string(),
   fileURL: z.string().optional(),
+  businessCount: z.number().optional(),
 });
 
 export const notificationSchema = z.object({
