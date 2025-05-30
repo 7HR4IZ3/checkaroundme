@@ -1345,69 +1345,84 @@ function generateSpecialCode(name: string) {
 
 // Notification Service
 export const NotificationService = {
-  // async createNotification(
-  //   userId: string,
-  //   data: {
-  //     title: string;
-  //     body: string;
-  //     type: "message" | "review" | "system" | string;
-  //     data?: Record<string, any>;
-  //   }
-  // ): Promise<void> {
-  //   try {
-  //     await databases.createDocument(
-  //       DATABASE_ID,
-  //       NOTIFICATIONS_COLLECTION_ID,
-  //       ID.unique(),
-  //       {
-  //         userId,
-  //         title: data.title,
-  //         body: data.body,
-  //         type: data.type,
-  //         data: data.data ? JSON.stringify(data.data) : null,
-  //         isRead: false,
-  //         createdAt: new Date().toISOString(),
-  //       }
-  //     );
+  async createNotification(
+    userId: string,
+    data: {
+      title: string;
+      body: string;
+      type: "message" | "review" | "system" | string;
+      data?: Record<string, any>;
+    }
+  ): Promise<void> {
+    try {
+      await databases.createDocument(
+        DATABASE_ID,
+        NOTIFICATIONS_COLLECTION_ID,
+        ID.unique(),
+        {
+          userId,
+          title: data.title,
+          body: data.body,
+          type: data.type,
+          data: data.data ? JSON.stringify(data.data) : null,
+          isRead: false,
+          createdAt: new Date().toISOString(),
+        }
+      );
 
-  //     // Send push notification if device tokens are available
-  //     const user = await users.get(userId);
-  //     if (user.prefs?.deviceTokens) {
-  //       await messaging.createPush(
-  //         "notification",
-  //         data.title,
-  //   notifications: Notification[];
-  //   total: number;
-  // }> {
-  //   try {
-  //     const user = await AuthService.getCurrentUser();
-  //     if (!user) throw new Error("Unautenticated user");
+      // Send push notification if device tokens are available
+      const user = await users.get(userId);
+      if (user.prefs?.deviceTokens) {
+        await messaging.createPush(
+          "notification",
+          data.title,
+          data.body,
+          [],
+          [],
+          [],
+          data.data
+        );
+      }
+    } catch (error) {
+      console.error("Create notification error:", error);
+      throw error;
+    }
+  },
 
-  //     const result = await databases.listDocuments(
-  //       DATABASE_ID,
-  //       NOTIFICATIONS_COLLECTION_ID,
-  //       [
-  //         Query.equal("userId", user.user.$id),
-  //         Query.orderDesc("createdAt"),
-  //         Query.limit(limit),
-  //         Query.offset(offset),
-  //       ]
-  //     );
+  async getUserNotifications(
+    limit: number = 20,
+    offset: number = 0
+  ): Promise<{
+    notifications: Notification[];
+    total: number;
+  }> {
+    try {
+      const user = await AuthService.getCurrentUser();
+      if (!user) throw new Error("Unautenticated user");
 
-  //     return {
-  //       notifications: result.documents.map((doc) => ({
-  //         ...doc,
-  //         data: doc.data ? JSON.parse(doc.data) : null,
-  //       })) as unknown as Notification[],
-  //       total: result.total,
-  //     };
-  //   } catch (error) {
-  //     console.error("Get user notifications error:", error);
-  //     throw error;
-  //   }
-  // },
+      const result = await databases.listDocuments(
+        DATABASE_ID,
+        NOTIFICATIONS_COLLECTION_ID,
+        [
+          Query.equal("userId", user.user.$id),
+          Query.orderDesc("createdAt"),
+          Query.limit(limit),
+          Query.offset(offset),
+        ]
+      );
 
-  // TODO: Fix this
+      return {
+        notifications: result.documents.map((doc) => ({
+          ...doc,
+          data: doc.data ? JSON.parse(doc.data) : null,
+        })) as unknown as Notification[],
+        total: result.total,
+      };
+    } catch (error) {
+      console.error("Get user notifications error:", error);
+      throw error;
+    }
+  },
 
   async markAsRead(notificationId: string): Promise<void> {
     try {

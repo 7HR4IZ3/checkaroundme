@@ -4,7 +4,14 @@ import React, { useState, useCallback, useMemo, useEffect } from "react";
 import CategoryNav from "@/components/listing/category-nav";
 import FilterSortBar from "@/components/listing/filter-sort-bar";
 import ListingCard from "@/components/listing/listing-card";
-import Pagination from "@/components/ui/pagination";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import MapPlaceholder from "@/components/map/placeholder";
 import { trpc } from "@/lib/trpc/client";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -262,6 +269,11 @@ export default function Home() {
     return Math.max(1, Math.ceil((list.total || 0) / limit));
   }, [isLoading, list, limit]);
 
+  // Add for showing range info
+  const totalEntries = list?.total || 0;
+  const showingFrom = totalEntries === 0 ? 0 : (currentPage - 1) * limit + 1;
+  const showingTo = Math.min(currentPage * limit, totalEntries);
+
   return (
     <>
       <CategoryNav
@@ -311,11 +323,50 @@ export default function Home() {
                 ))
               )}
             </div>
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={onPageChange}
-            />
+            {/* Updated Pagination Section */}
+            {totalPages > 1 && (
+              <div className="mt-4 flex items-center justify-between">
+                <div className="text-sm text-muted-foreground">
+                  Showing {showingFrom} to {showingTo} of {totalEntries} entries
+                </div>
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => onPageChange(currentPage - 1)}
+                        // Disable if on first page
+                        className={
+                          currentPage === 1
+                            ? "pointer-events-none opacity-50"
+                            : ""
+                        }
+                      />
+                    </PaginationItem>
+                    {Array.from({ length: totalPages }).map((_, i) => (
+                      <PaginationItem key={i + 1}>
+                        <PaginationLink
+                          onClick={() => onPageChange(i + 1)}
+                          isActive={currentPage === i + 1}
+                        >
+                          {i + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => onPageChange(currentPage + 1)}
+                        // Disable if on last page
+                        className={
+                          currentPage === totalPages
+                            ? "pointer-events-none opacity-50"
+                            : ""
+                        }
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
           </div>
 
           {/* Map section - Takes 1/3 on tablet, 3/8 on desktop */}
