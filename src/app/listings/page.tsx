@@ -32,7 +32,7 @@ export default function Home() {
   } = useGeolocation();
 
   // Parse main category from URL
-  const categoryParam = searchParams.get("categories");
+  const categoryParam = searchParams.get("category");
   const selectedCategory =
     categoryParam && categoryParam.length > 0
       ? decodeURIComponent(categoryParam)
@@ -156,7 +156,7 @@ export default function Home() {
   const onChangeCategory = useCallback(
     (category: string | null) => {
       updateUrlAndResetOffset({
-        categories: category ? encodeURIComponent(category) : null,
+        category: category ? encodeURIComponent(category) : null,
       });
     },
     [updateUrlAndResetOffset]
@@ -333,12 +333,10 @@ export default function Home() {
                   <PaginationContent>
                     <PaginationItem>
                       <PaginationPrevious
-                        onClick={() => onPageChange(currentPage - 1)}
-                        // Disable if on first page
-                        className={
-                          currentPage === 1
-                            ? "pointer-events-none opacity-50"
-                            : ""
+                        aria-disabled={currentPage === 1}
+                        onClick={() =>
+                          currentPage >= 1 &&
+                          onPageChange(currentPage + 1)
                         }
                       />
                     </PaginationItem>
@@ -354,12 +352,10 @@ export default function Home() {
                     ))}
                     <PaginationItem>
                       <PaginationNext
-                        onClick={() => onPageChange(currentPage + 1)}
-                        // Disable if on last page
-                        className={
-                          currentPage === totalPages
-                            ? "pointer-events-none opacity-50"
-                            : ""
+                        aria-disabled={currentPage === totalPages}
+                        onClick={() =>
+                          currentPage < totalPages &&
+                          onPageChange(currentPage + 1)
                         }
                       />
                     </PaginationItem>

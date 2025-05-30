@@ -258,7 +258,11 @@ export default function AnonymousSubmissionsPage() {
       cell: ({ row }: any) => (
         <Checkbox
           checked={selectedSubmissions.has(row.original.$id)}
-          onCheckedChange={() => toggleSubmission(row.original.$id)}
+          onCheckedChange={(v) => {
+            v; // keep Radix happy
+            toggleSubmission(row.original.$id);
+          }}
+          onClick={(e) => e.stopPropagation()}
           className="h-6 w-6"
         />
       ),

@@ -96,7 +96,7 @@ export const createAnonymousSubmissionRouter = (
       .input(z.object({ ids: z.array(z.string().min(1)) }))
       .mutation(async ({ input }) => {
         try {
-          await Promise.allSettled(
+          const results = await Promise.allSettled(
             input.ids.map((id) =>
               databases.deleteDocument(
                 DATABASE_ID,
@@ -105,6 +105,11 @@ export const createAnonymousSubmissionRouter = (
               )
             )
           );
+          const failed = results.filter((r) => r.status === "rejected");
+          if (failed.length) {
+            console.error(`${failed.length} deletions failed`, failed);
+            throw new Error("Some submissions could not be deleted.");
+          }
           return { success: true };
         } catch (error) {
           console.error("Batch delete error:", error);

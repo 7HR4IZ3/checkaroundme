@@ -44,7 +44,7 @@ export default async function Categories() {
                 className="pl-2 md:pl-4 basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6"
               >
                 <Link
-                  href={`/listings?categories=${encodeURIComponent(
+                  href={`/listings?category=${encodeURIComponent(
                     category.name
                   )}`}
                   className="flex flex-col items-center text-center cursor-pointer group"

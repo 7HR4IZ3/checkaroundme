@@ -57,6 +57,7 @@ function PaginationLink({
         }),
         className
       )}
+      onClick={(e) => e.preventDefault()}
       {...props}
     ></a>
   );
