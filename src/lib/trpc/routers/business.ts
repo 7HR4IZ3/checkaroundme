@@ -220,5 +220,13 @@ export function createBusinessProcedures(
       .query(async ({ input }) => {
         return await BusinessService.getBusinessesByUserId(input.userId);
       }),
+
+    getBusinessCountByReferralCode: t.procedure
+      .input(z.object({ referralCode: z.string() }))
+      .query(async ({ input }) => {
+        return await BusinessService.getBusinessCountByReferralCode(
+          input.referralCode
+        );
+      }),
   };
 }

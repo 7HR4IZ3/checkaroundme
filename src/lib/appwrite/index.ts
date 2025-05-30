@@ -1251,20 +1251,50 @@ export const AnonymousSubmissionService = {
     }
   },
 
-  async getAllAnonymousSubmissions(): Promise<AnonymousSubmission[]> {
+  async getAllAnonymousSubmissions(opts?: { page?: number; perPage?: number }) {
     try {
+      const page = opts?.page || 1;
+      const perPage = opts?.perPage || 10;
+      const offset = (page - 1) * perPage;
       const result = await databases.listDocuments(
         DATABASE_ID,
         ANONYMOUS_SUBMISSIONS_COLLECTION_ID,
         [
-          // Add any necessary queries here, e.g., Query.limit(100)
-          // For now, fetching all, but consider pagination for large datasets
+          Query.orderDesc("$createdAt"),
+          Query.limit(perPage),
+          Query.offset(offset),
         ]
       );
-      return result.documents.map((submission) => ({
-        ...submission,
-        salaryAccount: JSON.parse(submission.salaryAccount),
-      })) as unknown as AnonymousSubmission[];
+      // Fetch business counts for all special codes in parallel
+      const items = await Promise.all(
+        result.documents.map(async (submission) => {
+          let businessCount = 0;
+          try {
+            const businessResult = await databases.listDocuments(
+              DATABASE_ID,
+              BUSINESSES_COLLECTION_ID,
+              [Query.equal("referralCode", submission.specialCode)]
+            );
+            businessCount = businessResult.total;
+          } catch {
+            businessCount = 0;
+          }
+          return {
+            ...submission,
+            salaryAccount: JSON.parse(submission.salaryAccount),
+            businessCount,
+          } as unknown as AnonymousSubmission & {
+            businessCount: number;
+          };
+        })
+      );
+      return {
+        items,
+        total: result.total,
+        page,
+        perPage,
+        pageCount: Math.ceil(result.total / perPage),
+      };
     } catch (error) {
       console.error("Error fetching all anonymous submissions:", error);
       throw error;
@@ -1282,84 +1312,69 @@ function generateSpecialCode(name: string) {
 
 // Notification Service
 export const NotificationService = {
-  async createNotification(
-    userId: string,
-    data: {
-      title: string;
-      body: string;
-      type: "message" | "review" | "system" | string;
-      data?: Record<string, any>;
-    }
-  ): Promise<void> {
-    try {
-      await databases.createDocument(
-        DATABASE_ID,
-        NOTIFICATIONS_COLLECTION_ID,
-        ID.unique(),
-        {
-          userId,
-          title: data.title,
-          body: data.body,
-          type: data.type,
-          data: data.data ? JSON.stringify(data.data) : null,
-          isRead: false,
-          createdAt: new Date().toISOString(),
-        }
-      );
+  // async createNotification(
+  //   userId: string,
+  //   data: {
+  //     title: string;
+  //     body: string;
+  //     type: "message" | "review" | "system" | string;
+  //     data?: Record<string, any>;
+  //   }
+  // ): Promise<void> {
+  //   try {
+  //     await databases.createDocument(
+  //       DATABASE_ID,
+  //       NOTIFICATIONS_COLLECTION_ID,
+  //       ID.unique(),
+  //       {
+  //         userId,
+  //         title: data.title,
+  //         body: data.body,
+  //         type: data.type,
+  //         data: data.data ? JSON.stringify(data.data) : null,
+  //         isRead: false,
+  //         createdAt: new Date().toISOString(),
+  //       }
+  //     );
 
-      // Send push notification if device tokens are available
-      const user = await users.get(userId);
-      if (user.prefs?.deviceTokens) {
-        await messaging.createPush(
-          "notification",
-          data.title,
-          data.body,
-          [],
-          [],
-          [],
-          data.data
-        );
-      }
-    } catch (error) {
-      console.error("Create notification error:", error);
-      throw error;
-    }
-  },
+  //     // Send push notification if device tokens are available
+  //     const user = await users.get(userId);
+  //     if (user.prefs?.deviceTokens) {
+  //       await messaging.createPush(
+  //         "notification",
+  //         data.title,
+  //   notifications: Notification[];
+  //   total: number;
+  // }> {
+  //   try {
+  //     const user = await AuthService.getCurrentUser();
+  //     if (!user) throw new Error("Unautenticated user");
 
-  async getUserNotifications(
-    limit: number = 20,
-    offset: number = 0
-  ): Promise<{
-    notifications: Notification[];
-    total: number;
-  }> {
-    try {
-      const user = await AuthService.getCurrentUser();
-      if (!user) throw new Error("Unautenticated user");
+  //     const result = await databases.listDocuments(
+  //       DATABASE_ID,
+  //       NOTIFICATIONS_COLLECTION_ID,
+  //       [
+  //         Query.equal("userId", user.user.$id),
+  //         Query.orderDesc("createdAt"),
+  //         Query.limit(limit),
+  //         Query.offset(offset),
+  //       ]
+  //     );
 
-      const result = await databases.listDocuments(
-        DATABASE_ID,
-        NOTIFICATIONS_COLLECTION_ID,
-        [
-          Query.equal("userId", user.user.$id),
-          Query.orderDesc("createdAt"),
-          Query.limit(limit),
-          Query.offset(offset),
-        ]
-      );
+  //     return {
+  //       notifications: result.documents.map((doc) => ({
+  //         ...doc,
+  //         data: doc.data ? JSON.parse(doc.data) : null,
+  //       })) as unknown as Notification[],
+  //       total: result.total,
+  //     };
+  //   } catch (error) {
+  //     console.error("Get user notifications error:", error);
+  //     throw error;
+  //   }
+  // },
 
-      return {
-        notifications: result.documents.map((doc) => ({
-          ...doc,
-          data: doc.data ? JSON.parse(doc.data) : null,
-        })) as unknown as Notification[],
-        total: result.total,
-      };
-    } catch (error) {
-      console.error("Get user notifications error:", error);
-      throw error;
-    }
-  },
+  // TODO: Fix this
 
   async markAsRead(notificationId: string): Promise<void> {
     try {

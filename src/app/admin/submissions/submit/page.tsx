@@ -2,8 +2,8 @@ import AnonymousSubmissionForm from "@/components/verifications/anonymous-submis
 
 export default function SubmitPage() {
   return (
-    <div className="flex justify-center items-center min-h-screen p-4">
-      <div className="w-full max-w-md">
+    <div className="container mx-auto py-8 px-4">
+      <div className="max-w-2xl mx-auto">
         <AnonymousSubmissionForm />
       </div>
     </div>

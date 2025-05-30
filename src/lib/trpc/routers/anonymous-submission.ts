@@ -1,7 +1,13 @@
 import { z } from "zod";
 import { AppTRPC } from "../router";
-import { AnonymousSubmissionService } from "@/lib/appwrite";
-import { anonymousSubmissionSchema } from "@/lib/schema";
+import {
+  ANONYMOUS_SUBMISSIONS_COLLECTION_ID,
+  AnonymousSubmissionService,
+  DATABASE_ID,
+  databases,
+} from "@/lib/appwrite";
+import { AnonymousSubmission, anonymousSubmissionSchema } from "@/lib/schema";
+import { Query } from "node-appwrite";
 
 export const createAnonymousSubmissionRouter = (
   t: AppTRPC,
@@ -11,7 +17,7 @@ export const createAnonymousSubmissionRouter = (
     createAnonymousSubmission: protectedProcedure
       .input(
         anonymousSubmissionSchema.omit({
-          $id: true
+          $id: true,
         })
       )
       .mutation(async ({ input }) => {
@@ -45,16 +51,60 @@ export const createAnonymousSubmissionRouter = (
           throw new Error("Failed to fetch anonymous submission.");
         }
       }),
-   getAllAnonymousSubmission: protectedProcedure
-     .query(async () => {
-       try {
-         const submissions =
-           await AnonymousSubmissionService.getAllAnonymousSubmissions(); // Assuming this method exists
-         return submissions;
-       } catch (error) {
-         console.error("Error fetching all anonymous submissions:", error);
-         throw new Error("Failed to fetch all anonymous submissions.");
-       }
-     }),
- };
+    getAllAnonymousSubmission: protectedProcedure
+      .input(
+        z
+          .object({
+            page: z.number().min(1).default(1),
+            perPage: z.number().min(1).max(100).default(10),
+          })
+          .optional()
+      )
+      .query(async ({ input }) => {
+        try {
+          const page = input?.page || 1;
+          const perPage = input?.perPage || 10;
+          // Use the service method and pass pagination params
+          return await AnonymousSubmissionService.getAllAnonymousSubmissions({
+            page,
+            perPage,
+          });
+        } catch (error) {
+          console.error("Error fetching all anonymous submissions:", error);
+          throw new Error("Failed to fetch all anonymous submissions.");
+        }
+      }),
+    deleteAnonymousSubmission: protectedProcedure
+      .input(z.object({ id: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        try {
+          await databases.deleteDocument(
+            DATABASE_ID,
+            ANONYMOUS_SUBMISSIONS_COLLECTION_ID,
+            input.id
+          );
+          return { success: true };
+        } catch (error) {
+          console.error("Delete error:", error);
+          throw new Error("Failed to delete submission.");
+        }
+      }),
+    deleteAnonymousSubmissions: protectedProcedure
+      .input(z.object({ ids: z.array(z.string().min(1)) }))
+      .mutation(async ({ input }) => {
+        try {
+          for (const id of input.ids) {
+            await databases.deleteDocument(
+              DATABASE_ID,
+              ANONYMOUS_SUBMISSIONS_COLLECTION_ID,
+              id
+            );
+          }
+          return { success: true };
+        } catch (error) {
+          console.error("Batch delete error:", error);
+          throw new Error("Failed to delete submissions.");
+        }
+      }),
+  };
 };

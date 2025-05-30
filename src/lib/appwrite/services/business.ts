@@ -193,9 +193,10 @@ export const BusinessService = {
         : data;
 
       // Remove status from data if it was passed, as we're setting it based on subscription
-      const { status, hours, images, ...restOfData } = businessDataWithCoordinates;
+      const { status, hours, images, ...restOfData } =
+        businessDataWithCoordinates;
 
-      console.log(restOfData)
+      console.log(restOfData);
 
       const newBusiness = await databases.createDocument(
         DATABASE_ID,
@@ -651,6 +652,20 @@ export const BusinessService = {
     } catch (error) {
       console.error("Error activating businesses for user:", error);
       throw error;
+    }
+  },
+
+  async getBusinessCountByReferralCode(referralCode: string): Promise<number> {
+    try {
+      const result = await databases.listDocuments(
+        DATABASE_ID,
+        BUSINESSES_COLLECTION_ID,
+        [Query.equal("referralCode", referralCode)]
+      );
+      return result.total;
+    } catch (error) {
+      console.error("Error getting business count by referral code:", error);
+      return 0;
     }
   },
 };
