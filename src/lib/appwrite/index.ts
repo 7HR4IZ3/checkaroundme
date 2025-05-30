@@ -1237,11 +1237,25 @@ export const AnonymousSubmissionService = {
         ANONYMOUS_SUBMISSIONS_COLLECTION_ID,
         submissionId
       );
+      let businessCount = 0;
+      try {
+        const businessResult = await databases.listDocuments(
+          DATABASE_ID,
+          BUSINESSES_COLLECTION_ID,
+          [Query.equal("referralCode", submission.specialCode)]
+        );
+        businessCount = businessResult.total;
+      } catch {
+        businessCount = 0;
+      }
       return {
         ...submission,
+        businessCount,
         fileURL: getImageURl(submission.submitIdFileId),
         salaryAccount: JSON.parse(submission.salaryAccount),
-      } as unknown as AnonymousSubmission;
+      } as unknown as AnonymousSubmission & {
+        businessCount: number;
+      };
     } catch (error) {
       console.error(
         `Get anonymous submission error for ${submissionId}:`,
@@ -1251,11 +1265,17 @@ export const AnonymousSubmissionService = {
     }
   },
 
-  async getAllAnonymousSubmissions(opts?: { page?: number; perPage?: number }) {
+  async getAllAnonymousSubmissions(opts?: {
+    page?: number;
+    perPage?: number;
+    filter?: string;
+  }) {
     try {
       const page = opts?.page || 1;
       const perPage = opts?.perPage || 10;
       const offset = (page - 1) * perPage;
+      const filter = opts?.filter?.trim().toLowerCase();
+
       const result = await databases.listDocuments(
         DATABASE_ID,
         ANONYMOUS_SUBMISSIONS_COLLECTION_ID,
@@ -1265,8 +1285,9 @@ export const AnonymousSubmissionService = {
           Query.offset(offset),
         ]
       );
+
       // Fetch business counts for all special codes in parallel
-      const items = await Promise.all(
+      let items = await Promise.all(
         result.documents.map(async (submission) => {
           let businessCount = 0;
           try {
@@ -1288,12 +1309,24 @@ export const AnonymousSubmissionService = {
           };
         })
       );
+
+      // Apply filter client-side (case-insensitive, partial match)
+      if (filter) {
+        items = items.filter((item) => {
+          return (
+            item.name?.toLowerCase().includes(filter) ||
+            item.address?.toLowerCase().includes(filter) ||
+            item.specialCode?.toLowerCase().includes(filter)
+          );
+        });
+      }
+
       return {
         items,
-        total: result.total,
+        total: filter ? items.length : result.total,
         page,
         perPage,
-        pageCount: Math.ceil(result.total / perPage),
+        pageCount: Math.ceil((filter ? items.length : result.total) / perPage),
       };
     } catch (error) {
       console.error("Error fetching all anonymous submissions:", error);

@@ -36,6 +36,8 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { toast } from "sonner";
+import { DataTable } from "@/components/ui/data-table"; // Add this import
+import { Input } from "@/components/ui/input"; // Add this import
 
 const SECRET_PASSWORD = "PASSWORD";
 
@@ -71,6 +73,16 @@ const SubmissionDialog = ({
             <div>
               <h3 className="font-semibold">Special Code</h3>
               <p>{submission.specialCode}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold">Businesses Registered</h3>
+              <p>
+                {typeof submission.businessCount === "number" ? (
+                  submission.businessCount
+                ) : (
+                  <span className="text-muted-foreground">...</span>
+                )}
+              </p>
             </div>
             <div className="col-span-2">
               <h3 className="font-semibold">Address</h3>
@@ -117,6 +129,11 @@ export default function AnonymousSubmissionsPage() {
   const [dialogMode, setDialogMode] = useState<"view" | "edit">("view");
   const [batchDeleting, setBatchDeleting] = useState(false);
 
+  // Filtering and sorting state
+  const [filter, setFilter] = useState("");
+  const [sortBy, setSortBy] = useState<string>("$createdAt");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+
   const utils = trpc.useUtils();
   const {
     data: paginatedData,
@@ -124,7 +141,11 @@ export default function AnonymousSubmissionsPage() {
     error: trpcError,
     refetch,
   } = trpc.getAllAnonymousSubmission.useQuery(
-    { page: currentPage, perPage },
+    {
+      page: currentPage,
+      perPage,
+      // filter is now local, do not send to backend
+    },
     { enabled: hasAccess }
   );
 
@@ -218,6 +239,178 @@ export default function AnonymousSubmissionsPage() {
     }
   };
 
+  // Define columns for DataTable
+  const columns = [
+    {
+      id: "select",
+      header: ({ table }: any) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (paginatedData?.items.length === selectedSubmissions.size &&
+              paginatedData?.items.length > 0)
+          }
+          onCheckedChange={toggleAll}
+          className="h-6 w-6"
+        />
+      ),
+      cell: ({ row }: any) => (
+        <Checkbox
+          checked={selectedSubmissions.has(row.original.$id)}
+          onCheckedChange={() => toggleSubmission(row.original.$id)}
+          className="h-6 w-6"
+        />
+      ),
+      size: 48,
+      enableSorting: false,
+    },
+    {
+      accessorKey: "name",
+      header: ({ column }: any) => (
+        <span
+          className="cursor-pointer select-none"
+          onClick={() => {
+            if (sortBy === "name") {
+              setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+            } else {
+              setSortBy("name");
+              setSortDirection("asc");
+            }
+          }}
+        >
+          Name
+          {sortBy === "name" && (sortDirection === "asc" ? " ▲" : " ▼")}
+        </span>
+      ),
+      cell: ({ row }: any) => row.original.name,
+      enableSorting: true,
+    },
+    {
+      accessorKey: "address",
+      header: ({ column }: any) => (
+        <span
+          className="cursor-pointer select-none"
+          onClick={() => {
+            if (sortBy === "address") {
+              setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+            } else {
+              setSortBy("address");
+              setSortDirection("asc");
+            }
+          }}
+        >
+          Address
+          {sortBy === "address" && (sortDirection === "asc" ? " ▲" : " ▼")}
+        </span>
+      ),
+      cell: ({ row }: any) => row.original.address,
+      enableSorting: true,
+    },
+    {
+      accessorKey: "specialCode",
+      header: ({ column }: any) => (
+        <span
+          className="cursor-pointer select-none"
+          onClick={() => {
+            if (sortBy === "specialCode") {
+              setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+            } else {
+              setSortBy("specialCode");
+              setSortDirection("asc");
+            }
+          }}
+        >
+          Special Code
+          {sortBy === "specialCode" && (sortDirection === "asc" ? " ▲" : " ▼")}
+        </span>
+      ),
+      cell: ({ row }: any) => row.original.specialCode,
+      enableSorting: true,
+    },
+    {
+      accessorKey: "salaryAccount.bankName",
+      header: ({ column }: any) => (
+        <span
+          className="cursor-pointer select-none"
+          onClick={() => {
+            if (sortBy === "bankName") {
+              setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+            } else {
+              setSortBy("bankName");
+              setSortDirection("asc");
+            }
+          }}
+        >
+          Bank
+          {sortBy === "bankName" && (sortDirection === "asc" ? " ▲" : " ▼")}
+        </span>
+      ),
+      cell: ({ row }: any) => row.original.salaryAccount.bankName,
+      enableSorting: true,
+    },
+    {
+      id: "businessCount",
+      header: ({ column }: any) => (
+        <span
+          className="cursor-pointer select-none"
+          onClick={() => {
+            if (sortBy === "businessCount") {
+              setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+            } else {
+              setSortBy("businessCount");
+              setSortDirection("asc");
+            }
+          }}
+        >
+          Businesses Registered
+          {sortBy === "businessCount" &&
+            (sortDirection === "asc" ? " ▲" : " ▼")}
+        </span>
+      ),
+      cell: ({ row }: any) =>
+        typeof row.original.businessCount === "number" ? (
+          row.original.businessCount
+        ) : (
+          <span className="text-muted-foreground">...</span>
+        ),
+      size: 80,
+      enableSorting: true,
+    },
+    {
+      id: "actions",
+      header: "",
+      cell: ({ row }: any) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={() => handleAction("view", row.original)}
+            >
+              View Details
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => handleAction("edit", row.original)}
+            >
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => handleAction("delete", row.original)}
+              className="text-red-600"
+            >
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+      size: 48,
+      enableSorting: false,
+    },
+  ];
+
   if (!hasAccess) {
     return (
       <div className="container mx-auto p-4">
@@ -227,7 +420,7 @@ export default function AnonymousSubmissionsPage() {
     );
   }
 
-  if (isLoading) {
+  if (isLoading && !filter) {
     return (
       <div className="container mx-auto p-4">
         <h1 className="text-2xl font-bold mb-4">Loading submissions...</h1>
@@ -246,11 +439,62 @@ export default function AnonymousSubmissionsPage() {
     );
   }
 
+  // Client-side filtering and sorting for current page
+  const filteredItems = (() => {
+    if (!paginatedData?.items) return [];
+    if (!filter) return paginatedData.items;
+    const f = filter.trim().toLowerCase();
+    return paginatedData.items.filter(
+      (item: any) =>
+        item.name?.toLowerCase().includes(f) ||
+        item.address?.toLowerCase().includes(f) ||
+        item.specialCode?.toLowerCase().includes(f)
+    );
+  })();
+
+  const sortedItems = (() => {
+    if (!filteredItems) return [];
+    const items = [...filteredItems];
+    if (!sortBy) return items;
+    return items.sort((a: any, b: any) => {
+      let aValue = a[sortBy];
+      let bValue = b[sortBy];
+
+      // Support nested keys (e.g., salaryAccount.bankName)
+      if (sortBy.includes(".")) {
+        const keys = sortBy.split(".");
+        aValue = keys.reduce((val: any, key) => val?.[key], a);
+        bValue = keys.reduce((val: any, key) => val?.[key], b);
+      }
+
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return 1;
+      if (bValue == null) return -1;
+
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
+      }
+      return sortDirection === "asc"
+        ? String(aValue).localeCompare(String(bValue))
+        : String(bValue).localeCompare(String(aValue));
+    });
+  })();
+
   return (
     <div className="container mx-auto p-4">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold">Submissions Dashboard</h1>
         <div className="flex gap-2">
+          <Input
+            placeholder="Filter by name, address, or code"
+            value={filter}
+            onChange={(e) => {
+              setFilter(e.target.value);
+              // Optionally reset to page 1 on filter change
+              updateQueryParams(1);
+            }}
+            className="w-64"
+          />
           <Button
             variant="destructive"
             size="sm"
@@ -269,109 +513,18 @@ export default function AnonymousSubmissionsPage() {
         </div>
       </div>
 
+      {/* Replace Table with DataTable */}
       <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-12 flex items-center justify-center">
-                <Checkbox
-                  checked={
-                    paginatedData?.items.length === selectedSubmissions.size &&
-                    paginatedData?.items.length > 0
-                  }
-                  onCheckedChange={toggleAll}
-                  className="h-6 w-6"
-                />
-              </TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Address</TableHead>
-              <TableHead>Special Code</TableHead>
-              <TableHead>Bank</TableHead>
-              <TableHead className="text-center">
-                Businesses Registered
-              </TableHead>
-              <TableHead className="w-12"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedData?.items.map((submission) => (
-              <TableRow
-                key={submission.$id}
-                className="cursor-pointer"
-                onClick={() => {
-                  setSelectedSubmission(submission);
-                  setDialogMode("view");
-                  setDialogOpen(true);
-                }}
-              >
-                <TableCell
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleSubmission(submission.$id);
-                  }}
-                  tabIndex={0}
-                  aria-label={
-                    selectedSubmissions.has(submission.$id)
-                      ? "Deselect row"
-                      : "Select row"
-                  }
-                  role="checkbox"
-                  aria-checked={selectedSubmissions.has(submission.$id)}
-                  className="flex items-center justify-center"
-                >
-                  <Checkbox
-                    checked={selectedSubmissions.has(submission.$id)}
-                    tabIndex={-1}
-                    aria-label={
-                      selectedSubmissions.has(submission.$id)
-                        ? "Deselect row"
-                        : "Select row"
-                    }
-                    className="h-6 w-6"
-                  />
-                </TableCell>
-                <TableCell>{submission.name}</TableCell>
-                <TableCell>{submission.address}</TableCell>
-                <TableCell>{submission.specialCode}</TableCell>
-                <TableCell>{submission.salaryAccount.bankName}</TableCell>
-                <TableCell className="flex items-center justify-center h-full text-center">
-                  {typeof submission.businessCount === "number" ? (
-                    submission.businessCount
-                  ) : (
-                    <span className="text-muted-foreground">...</span>
-                  )}
-                </TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => handleAction("view", submission)}
-                      >
-                        View Details
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleAction("edit", submission)}
-                      >
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleAction("delete", submission)}
-                        className="text-red-600"
-                      >
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <DataTable
+          columns={columns}
+          data={sortedItems}
+          onRowClick={(row: any) => {
+            setSelectedSubmission(row.original);
+            setDialogMode("view");
+            setDialogOpen(true);
+          }}
+          rowKey="$id"
+        />
       </div>
 
       {paginatedData && paginatedData.pageCount > 1 && (

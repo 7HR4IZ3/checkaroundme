@@ -18,17 +18,41 @@ export default function VerificationPage() {
   }
 
   if (error) {
-    return <div className="text-red-500">Error: {error.message}</div>;
+    // Network or TRPC error
+    return (
+      <div className="container mx-auto py-8">
+        <h1 className="text-2xl font-bold mb-4">Error</h1>
+        <div className="bg-red-100 text-red-700 p-4 rounded">
+          <p>
+            <strong>Failed to load submission.</strong>
+          </p>
+          <p>
+            {error.message ||
+              "An unexpected error occurred. Please try again later."}
+          </p>
+        </div>
+      </div>
+    );
   }
 
   if (!submission) {
-    return <div>Submission not found.</div>;
+    return (
+      <div className="container mx-auto py-8">
+        <h1 className="text-2xl font-bold mb-4">Submission not found</h1>
+        <div className="bg-yellow-100 text-yellow-700 p-4 rounded">
+          <p>
+            The requested submission could not be found. It may have been
+            deleted or the link is incorrect.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-2xl font-bold mb-4">
-        Submission Verification ({ submission.title })
+        Submission Verification ({submission.title})
       </h1>
       <div className="bg-white shadow-md rounded-lg p-6">
         <div className="mb-4">
@@ -37,6 +61,14 @@ export default function VerificationPage() {
           </p>
           <p>
             <strong>Address:</strong> {submission.address}
+          </p>
+          <p>
+            <strong>Businesses Registered:</strong>{" "}
+            {typeof submission.businessCount === "number" ? (
+              submission.businessCount
+            ) : (
+              <span className="text-muted-foreground">...</span>
+            )}
           </p>
           <p>
             <strong>Submitted File:</strong>

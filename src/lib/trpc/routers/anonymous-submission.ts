@@ -57,6 +57,7 @@ export const createAnonymousSubmissionRouter = (
           .object({
             page: z.number().min(1).default(1),
             perPage: z.number().min(1).max(100).default(10),
+            filter: z.string().optional(),
           })
           .optional()
       )
@@ -64,10 +65,12 @@ export const createAnonymousSubmissionRouter = (
         try {
           const page = input?.page || 1;
           const perPage = input?.perPage || 10;
+          const filter = input?.filter;
           // Use the service method and pass pagination params
           return await AnonymousSubmissionService.getAllAnonymousSubmissions({
             page,
             perPage,
+            filter,
           });
         } catch (error) {
           console.error("Error fetching all anonymous submissions:", error);
