@@ -1276,53 +1276,76 @@ export const AnonymousSubmissionService = {
       const offset = (page - 1) * perPage;
       const filter = opts?.filter?.trim().toLowerCase();
 
-      const result = await databases.listDocuments(
-        DATABASE_ID,
-        ANONYMOUS_SUBMISSIONS_COLLECTION_ID,
-        [
-          Query.orderDesc("$createdAt"),
-          Query.limit(perPage),
-          Query.offset(offset),
-        ]
-      );
+      const queries = [Query.orderDesc("$createdAt")];
+      if (filter) {
+        // Use OR logic with multiple Query.search() if supported
+        queries.push(
+          Query.or([
+            Query.search("name", filter),
+            Query.search("title", filter),
+            Query.search("address", filter),
+            Query.search("specialCode", filter),
+          ])
+        );
+      }
+      queries.push(Query.limit(perPage), Query.offset(offset));
+
+      const result = await databases.listDocuments<
+        Models.Document & AnonymousSubmission
+      >(DATABASE_ID, ANONYMOUS_SUBMISSIONS_COLLECTION_ID, queries);
 
       // Fetch business counts for all special codes in parallel
-      let items = await Promise.all(
-        result.documents.map(async (submission) => {
-          let businessCount = 0;
-          try {
-            const businessResult = await databases.listDocuments(
-              DATABASE_ID,
-              BUSINESSES_COLLECTION_ID,
-              [Query.equal("referralCode", submission.specialCode)]
-            );
-            businessCount = businessResult.total;
-          } catch {
-            businessCount = 0;
-          }
-          return {
-            ...submission,
-            salaryAccount: JSON.parse(submission.salaryAccount),
-            businessCount,
-          } as unknown as AnonymousSubmission & {
-            businessCount: number;
-          };
-        })
-      );
+      // let items = await Promise.all(
+      //   result.documents.map(async (submission) => {
+      //     let businessCount = 0;
+      //     try {
+      //       const businessResult = await databases.listDocuments(
+      //         DATABASE_ID,
+      //         BUSINESSES_COLLECTION_ID,
+      //         [Query.equal("referralCode", submission.specialCode)]
+      //       );
+      //       businessCount = businessResult.total;
+      //     } catch {
+      //       businessCount = 0;
+      //     }
+      //     return {
+      // ...submission,
+      // salaryAccount: JSON.parse(submission.salaryAccount),
+      // businessCount,
+      //     } as unknown as AnonymousSubmission & {
+      //       businessCount: number;
+      //     };
+      //   })
+      // );
 
-      // Apply filter client-side (case-insensitive, partial match)
-      if (filter) {
-        items = items.filter((item) => {
-          return (
-            item.name?.toLowerCase().includes(filter) ||
-            item.address?.toLowerCase().includes(filter) ||
-            item.specialCode?.toLowerCase().includes(filter)
-          );
-        });
-      }
+      const specialCodes: string[] = [];
+      const items = result.documents.map((doc) => {
+        specialCodes.push(doc.specialCode);
+        return {
+          ...doc,
+          // @ts-ignore: This is actually saved in the database as a string, then parsed upon retrevial
+          salaryAccount: JSON.parse(doc.salaryAccount),
+        };
+      });
+      const businessCounts = await databases.listDocuments(
+        DATABASE_ID,
+        BUSINESSES_COLLECTION_ID,
+        [Query.contains("referralCode", specialCodes)]
+      );
 
       return {
         items,
+        counts: businessCounts.documents.reduce(
+          (a: { [key: string]: number }, b) => {
+            if (a[b.$id]) {
+              a[b.$id] = a[b.$id] + 1;
+            } else {
+              a[b.$id] = 1;
+            }
+            return a;
+          },
+          {}
+        ),
         total: filter ? items.length : result.total,
         page,
         perPage,

@@ -39,7 +39,7 @@ import { toast } from "sonner";
 import { DataTable } from "@/components/ui/data-table"; // Add this import
 import { Input } from "@/components/ui/input"; // Add this import
 
-const SECRET_PASSWORD = "PASSWORD";
+const SECRET_PASSWORD = process.env.SUBMISSIONS_PASSWORD;
 
 interface SubmissionDialogProps {
   submission: AnonymousSubmission | null;
@@ -333,10 +333,10 @@ export default function AnonymousSubmissionsPage() {
         <span
           className="cursor-pointer select-none"
           onClick={() => {
-            if (sortBy === "bankName") {
+            if (sortBy === "salaryAccount.bankName") {
               setSortDirection(sortDirection === "asc" ? "desc" : "asc");
             } else {
-              setSortBy("bankName");
+              setSortBy("salaryAccount.bankName");
               setSortDirection("asc");
             }
           }}
@@ -368,8 +368,8 @@ export default function AnonymousSubmissionsPage() {
         </span>
       ),
       cell: ({ row }: any) =>
-        typeof row.original.businessCount === "number" ? (
-          row.original.businessCount
+        paginatedData ? (
+          paginatedData.counts[row.original.$id]
         ) : (
           <span className="text-muted-foreground">...</span>
         ),
@@ -523,7 +523,6 @@ export default function AnonymousSubmissionsPage() {
             setDialogMode("view");
             setDialogOpen(true);
           }}
-          rowKey="$id"
         />
       </div>
 

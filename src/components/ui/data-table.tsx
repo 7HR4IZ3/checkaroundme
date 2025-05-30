@@ -20,7 +20,6 @@ import {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  rowKey: string;
   onRowClick: (row: Row<TData>) => void;
 }
 
@@ -62,7 +61,27 @@ export function DataTable<TData, TValue>({
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
-                onClick={() => onRowClick(row)}
+                onClick={(e) => {
+                  // Prevent row click when clicking on interactive elements
+                  const target = e.target as HTMLElement;
+                  if (
+                    target.closest(
+                      'button, input, [role="checkbox"], [role="menuitem"]'
+                    )
+                  ) {
+                    return;
+                  }
+                  onRowClick(row);
+                }}
+                className="cursor-pointer"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onRowClick(row);
+                  }
+                }}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
