@@ -39,7 +39,8 @@ import { toast } from "sonner";
 import { DataTable } from "@/components/ui/data-table"; // Add this import
 import { Input } from "@/components/ui/input"; // Add this import
 
-const SECRET_PASSWORD = process.env.SUBMISSIONS_PASSWORD;
+// TODO: Move to backend
+const SECRET_PASSWORD = process.env.NEXT_PUBLIC_SUBMISSIONS_PASSWORD;
 
 interface SubmissionDialogProps {
   submission: AnonymousSubmission | null;
@@ -342,7 +343,8 @@ export default function AnonymousSubmissionsPage() {
           }}
         >
           Bank
-          {sortBy === "bankName" && (sortDirection === "asc" ? " ▲" : " ▼")}
+          {sortBy === "salaryAccount.bankName" &&
+            (sortDirection === "asc" ? " ▲" : " ▼")}
         </span>
       ),
       cell: ({ row }: any) => row.original.salaryAccount.bankName,
@@ -369,7 +371,7 @@ export default function AnonymousSubmissionsPage() {
       ),
       cell: ({ row }: any) =>
         paginatedData ? (
-          paginatedData.counts[row.original.$id]
+          paginatedData.counts[row.original.specialCode]
         ) : (
           <span className="text-muted-foreground">...</span>
         ),

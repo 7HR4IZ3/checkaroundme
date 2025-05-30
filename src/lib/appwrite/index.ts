@@ -1327,29 +1327,35 @@ export const AnonymousSubmissionService = {
           salaryAccount: JSON.parse(doc.salaryAccount),
         };
       });
-      const businessCounts = await databases.listDocuments(
-        DATABASE_ID,
-        BUSINESSES_COLLECTION_ID,
-        [Query.contains("referralCode", specialCodes)]
+      // Create a map of referral codes to business counts
+      const businessCountsMap: { [key: string]: number } = {};
+
+      // For each special code, count matching businesses
+      await Promise.all(
+        specialCodes.map(async (code) => {
+          try {
+            const result = await databases.listDocuments(
+              DATABASE_ID,
+              BUSINESSES_COLLECTION_ID,
+              [Query.equal("referralCode", code)]
+            );
+            businessCountsMap[code] = result.total;
+          } catch {
+            businessCountsMap[code] = 0;
+          }
+        })
       );
 
       return {
-        items,
-        counts: businessCounts.documents.reduce(
-          (a: { [key: string]: number }, b) => {
-            if (a[b.$id]) {
-              a[b.$id] = a[b.$id] + 1;
-            } else {
-              a[b.$id] = 1;
-            }
-            return a;
-          },
-          {}
-        ),
-        total: filter ? items.length : result.total,
+        items: items.map((item) => ({
+          ...item,
+          businessCount: businessCountsMap[item.specialCode] || 0,
+        })),
+        counts: businessCountsMap,
         page,
         perPage,
-        pageCount: Math.ceil((filter ? items.length : result.total) / perPage),
+        total: result.total,
+        pageCount: Math.ceil(result.total / perPage),
       };
     } catch (error) {
       console.error("Error fetching all anonymous submissions:", error);

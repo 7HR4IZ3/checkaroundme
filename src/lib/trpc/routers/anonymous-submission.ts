@@ -96,13 +96,15 @@ export const createAnonymousSubmissionRouter = (
       .input(z.object({ ids: z.array(z.string().min(1)) }))
       .mutation(async ({ input }) => {
         try {
-          for (const id of input.ids) {
-            await databases.deleteDocument(
-              DATABASE_ID,
-              ANONYMOUS_SUBMISSIONS_COLLECTION_ID,
-              id
-            );
-          }
+          await Promise.allSettled(
+            input.ids.map((id) =>
+              databases.deleteDocument(
+                DATABASE_ID,
+                ANONYMOUS_SUBMISSIONS_COLLECTION_ID,
+                id
+              )
+            )
+          );
           return { success: true };
         } catch (error) {
           console.error("Batch delete error:", error);
