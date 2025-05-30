@@ -111,6 +111,13 @@ const SubmissionDialog = ({
   );
 };
 
+/**
+ * Displays the protected dashboard for managing anonymous submissions, including client-side filtering, sorting, pagination, selection, and batch deletion.
+ *
+ * Renders a table of submissions with controls for filtering by name, address, or special code, sorting by various columns, and paginating through results. Supports viewing, editing, and deleting individual submissions, as well as batch deletion of selected entries. Access is restricted via a password provided in the URL query parameters.
+ *
+ * @remark Access to the page is denied unless the correct password is present in the URL query parameters.
+ */
 export default function AnonymousSubmissionsPage() {
   const router = useRouter();
   const pathname = usePathname();

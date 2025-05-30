@@ -3,6 +3,11 @@
 import { useParams } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
 
+/**
+ * Displays the details of a submission for verification based on the document ID from the URL.
+ *
+ * Renders loading, error, or not-found states as appropriate. If the submission is found, shows submitter information, business registration count, file link (if available), salary account details, and a special code.
+ */
 export default function VerificationPage() {
   const params = useParams();
   const documentId = params.documentId as string;

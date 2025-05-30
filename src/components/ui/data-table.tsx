@@ -24,6 +24,15 @@ interface DataTableProps<TData, TValue> {
   onRowClick: (row: Row<TData>) => void;
 }
 
+/**
+ * Renders a generic data table with customizable columns and row data.
+ *
+ * Displays tabular data using column definitions and supports flexible cell rendering via `@tanstack/react-table`. Each row is clickable and triggers the provided callback with the row object. If no data is present, a message is shown instead.
+ *
+ * @param columns - Column definitions describing how each column should be rendered.
+ * @param data - Array of data objects to display as rows.
+ * @param onRowClick - Callback invoked with the row object when a row is clicked.
+ */
 export function DataTable<TData, TValue>({
   columns,
   data,
