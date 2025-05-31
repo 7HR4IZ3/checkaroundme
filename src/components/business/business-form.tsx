@@ -760,7 +760,7 @@ export default function BusinessForm({
           Price Indicator
         </Label>
         <p className="text-sm text-muted-foreground mb-2">
-          Select the typical maximum price range for your main
+          Select the typical minimum price range for your main
           services/products.
         </p>
         {/* Price Indicator Select (requires Controller or manual state management with setValue) */}
@@ -772,7 +772,7 @@ export default function BusinessForm({
           }
         >
           <SelectTrigger id="maxPrice" className="w-full mt-2">
-            <SelectValue placeholder="Select maximum price range" />
+            <SelectValue placeholder="Select minimum price range" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="1000">NGN 1,000</SelectItem>
