@@ -770,7 +770,7 @@ export default function BusinessPage() {
                 {business.maxPrice && (
                   <div className="flex items-center gap-2">
                     <span className="font-medium w-28">Price Range:</span>
-                    <span>NGN {business.maxPrice} (Minmum Price)</span>
+                    <span>NGN {business.maxPrice} (Minimum Price)</span>
                   </div>
                 )}
 
