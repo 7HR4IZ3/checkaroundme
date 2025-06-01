@@ -16,14 +16,14 @@ const ContactUsPage = () => {
               support@checkaroundme.com
             </a>
           </p>
-          <p>
+          {/* <p>
             <a
               href="tel:+2349159558854"
               className="hover:text-white hover:underline"
             >
               +234 915 955 8854
             </a>
-          </p>
+          </p> */}
         </section>
         <section className="mb-8">
           <h2 className="text-3xl font-bold mb-4">Send us a message</h2>
