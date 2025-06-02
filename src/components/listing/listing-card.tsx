@@ -50,7 +50,7 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
             {/* Content container for mobile overlay */}
             <div
               className="absolute inset-0 p-4 flex flex-col justify-between md:hidden"
-              onClick={() => router.push(`/business/${business.$id}`)}
+              // onClick={() => router.push(`/business/${business.$id}`)}
             >
               {/* Top section: Name, Address, Category, Rating */}
               <div className="flex flex-col">
