@@ -40,7 +40,7 @@ const ServicesNearYou = () => {
       <div className="bg-gray-50 py-16">
         <div className="mdntainer px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto">
           <h2 className="text-lg md:text-2xl font-semibold text-center text-gray-800 mb-8">
-            Services Near You
+            Service Providers Near You
           </h2>
           <div className="text-red-600">
             <p>Enable permissions to access your location data</p>
@@ -55,7 +55,7 @@ const ServicesNearYou = () => {
       <div className="bg-gray-50 py-16">
         <div className="md:container px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto">
           <h2 className="text-lg md:text-2xl font-semibold text-center text-gray-800 mb-8">
-            Services Near You
+            Service Providers Near You
           </h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {[...Array(6)].map((_, i) => (
@@ -72,7 +72,7 @@ const ServicesNearYou = () => {
       <div className="bg-gray-50 py-16">
         <div className="md:container px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto">
           <h2 className="text-lg md:text-2xl font-semibold text-center text-gray-800 mb-8">
-            Services Near You
+            Service Providers Near You
           </h2>
           <div className="text-red-600">Failed to load services.</div>
         </div>
@@ -84,16 +84,16 @@ const ServicesNearYou = () => {
     return null;
   }
 
-  // Add this block for "No services found"
+  // Add this block for "No service providers found"
   if (Array.isArray(businesses) && businesses.length === 0) {
     return (
       <div className="bg-gray-50 py-16">
         <div className="md:container px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto">
           <h2 className="text-lg md:text-2xl font-semibold text-center text-gray-800 mb-8">
-            Services Near You
+            Service Providers Near You
           </h2>
           <div className="text-center text-gray-500">
-            <p>No services found near your location.</p>
+            <p>No service providers found near your location.</p>
           </div>
         </div>
       </div>
@@ -104,7 +104,7 @@ const ServicesNearYou = () => {
     <div className="bg-gray-50 py-16">
       <div className="md:container px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto">
         <h2 className="text-lg md:text-2xl font-semibold text-center text-gray-800 mb-8">
-          Services Near You
+          Service Providers Near You
         </h2>
         {/* <div className="grid grid-cols-1 l:grid-cols-2 gap-6">
           <MapPlaceholder businesses={businesses} />

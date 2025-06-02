@@ -16,9 +16,9 @@ const PopularServices = async () => {
       <div className="bg-gray-50 py-4 md:py-16">
         <div className="container px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto">
           <h2 className="ext-lg md:text-2xl font-semibold text-gray-800 mb-8 text-center">
-            Popular Services
+            Popular Service Providers
           </h2>
-          <div className="text-red-600">Failed to load popular services.</div>
+          <div className="text-red-600">Failed to load popular service providers.</div>
         </div>
       </div>
     );
@@ -32,7 +32,7 @@ const PopularServices = async () => {
       <div className="bg-gray-50 py-4 md:py-16">
         <div className="lg:container px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto">
           <h2 className="ext-lg md:text-2xl font-semibold text-gray-800 mb-8 text-center">
-            Popular Services
+            Popular Service Providers
           </h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {[...Array(6)].map((_, i) => (
@@ -48,7 +48,7 @@ const PopularServices = async () => {
     <div className="bg-gray-50 py-4 md:py-16">
       <div className="lg:container px-4 sm:px-6 lg:px-8 max-w-8xl mx-auto">
         <h2 className="ext-lg md:text-2xl font-semibold text-gray-800 mb-8 text-center">
-          Popular Services
+          Popular Service Providers
         </h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {businesses.map((business) => (

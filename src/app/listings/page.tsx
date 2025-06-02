@@ -285,7 +285,7 @@ export default function Home() {
           {/* Main content - Takes 2/3 on tablet, 5/8 on desktop */}
           <div className="md:col-span-2 lg:col-span-5 py-8 space-y-4">
             <h1 className="text-lg md:text-2xl font-semibold text-gray-800">
-              {selectedCategory || "All Businesses"} near{" "}
+              {selectedCategory || "All Service Providers"} near{" "}
               {locationParam || "your current location"}
             </h1>
             <FilterSortBar
@@ -312,7 +312,7 @@ export default function Home() {
                 </div>
               ) : !list || list.businesses.length === 0 ? (
                 <div className="text-center text-gray-500">
-                  No businesses found matching your criteria.
+                  No service providers found matching your criteria.
                 </div>
               ) : (
                 list.businesses.map((business, index) => (
