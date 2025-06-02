@@ -15,7 +15,7 @@ const Hero: React.FC<HeroProps> = ({ title, subtitles, button }) => {
   const router = useRouter();
 
   title ??= "Discover and connect with";
-  subtitles ??= ["amazing service providers in your", "community"];
+  subtitles ??= ["amazing Service Providers in your", "community"];
   button ??= { text: "EXPLORE", onclick: () => router.push("/listings") };
 
   return (
