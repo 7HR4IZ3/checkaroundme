@@ -334,10 +334,11 @@ export default function Home() {
                     <PaginationItem>
                       <PaginationPrevious
                         aria-disabled={currentPage === 1}
-                        onClick={() =>
-                          currentPage >= 1 &&
-                          onPageChange(currentPage + 1)
-                        }
+                        onClick={() => {
+                          currentPage >= 1 && onPageChange(currentPage - 1);
+                          typeof window !== "undefined" &&
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
                       />
                     </PaginationItem>
                     {Array.from({ length: totalPages }).map((_, i) => (
@@ -353,10 +354,12 @@ export default function Home() {
                     <PaginationItem>
                       <PaginationNext
                         aria-disabled={currentPage === totalPages}
-                        onClick={() =>
+                        onClick={() => {
                           currentPage < totalPages &&
-                          onPageChange(currentPage + 1)
-                        }
+                            onPageChange(currentPage + 1);
+                          typeof window !== "undefined" &&
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
                       />
                     </PaginationItem>
                   </PaginationContent>
