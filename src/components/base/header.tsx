@@ -26,6 +26,16 @@ import { useRouter } from "next/navigation";
 import React, { useState, useCallback } from "react";
 import { trpc } from "@/lib/trpc/client";
 import { Skeleton } from "../ui/skeleton";
+import clsx from "clsx";
+
+const SEARCH_PLACEHOLDERS = [
+  "Pizza near me",
+  "Coffee in Brooklyn",
+  "Vegan restaurants",
+  "Dog groomers",
+  "Bookstores",
+  "Open late",
+];
 
 const Header = () => {
   const auth = useAuth();
@@ -38,8 +48,29 @@ const Header = () => {
 
   const { data: businesses, isLoading } = trpc.getBusinessesByUserId.useQuery(
     { userId: auth.user?.$id || "" },
-    { enabled: auth.isAuthenticated && !!auth.user?.$id },
+    { enabled: auth.isAuthenticated && !!auth.user?.$id }
   );
+
+  // Rolling placeholder state
+  const [placeholderIdx, setPlaceholderIdx] = useState(0);
+  const [fade, setFade] = useState(true);
+
+  React.useEffect(() => {
+    if (search) return;
+    let fadeTimeout: NodeJS.Timeout;
+    let idxTimeout: NodeJS.Timeout;
+
+    fadeTimeout = setTimeout(() => setFade(false), 1700); // Start fade out
+    idxTimeout = setTimeout(() => {
+      setPlaceholderIdx((idx) => (idx + 1) % SEARCH_PLACEHOLDERS.length);
+      setFade(true); // Fade in new text
+    }, 2200);
+
+    return () => {
+      clearTimeout(fadeTimeout);
+      clearTimeout(idxTimeout);
+    };
+  }, [placeholderIdx, search]);
 
   // Handler to perform search
   const handleSearch = useCallback(() => {
@@ -76,15 +107,32 @@ const Header = () => {
 
         <div className="flex justify-center items-center space-x-2 flex-grow">
           <div className="flex items-center justify-center gap-2 w-full md:w-[40vw] lg:w-[40%]">
-            <div className="flex items-center border border-gray-300 rounded-full flex-grow">
+            <div className="flex items-center border border-gray-300 rounded-full flex-grow relative">
               <Input
                 type="text"
-                placeholder="Search..."
-                className="w-full md:w-2/5 px-4 py-2 focus:outline-none rounded-full md:rounded-none md:rounded-l-full md:border-r-0"
+                className="w-full md:w-2/5 px-4 py-2 focus:outline-none rounded-full md:rounded-none md:rounded-l-full md:border-r-0 bg-transparent relative z-10"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={handleKeyDown}
+                placeholder=""
+                autoComplete="off"
               />
+              {/* Rolling placeholder overlay */}
+              {!search && (
+                <span
+                  className={clsx(
+                    "pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors duration-200",
+                    "w-[90%] overflow-hidden h-[1.5em] flex items-center select-none px-4",
+                    fade
+                      ? "opacity-100 transition-opacity duration-400"
+                      : "opacity-0 transition-opacity duration-400"
+                  )}
+                  style={{ zIndex: 1 }}
+                  aria-hidden="true"
+                >
+                  {SEARCH_PLACEHOLDERS[placeholderIdx]}
+                </span>
+              )}
               <div className="w-px h-6 bg-gray-300 hidden md:block"></div>
               <Input
                 type="text"

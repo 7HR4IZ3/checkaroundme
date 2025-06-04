@@ -344,7 +344,11 @@ export default function Home() {
                     {Array.from({ length: totalPages }).map((_, i) => (
                       <PaginationItem key={i + 1}>
                         <PaginationLink
-                          onClick={() => onPageChange(i + 1)}
+                          onClick={() => {
+                            onPageChange(i + 1);
+                            typeof window !== "undefined" &&
+                              window.scrollTo({ top: 0, behavior: "smooth" });
+                          }}
                           isActive={currentPage === i + 1}
                         >
                           {i + 1}
