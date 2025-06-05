@@ -140,7 +140,7 @@ const Header = () => {
                 <span
                   className={clsx(
                     "pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors duration-200",
-                    "w-[90%] overflow-hidden h-[1.5em] flex items-center select-none px-4 text-sm",
+                    "w-[90%] overflow-hidden h-[2em] flex items-center select-none pl-2 text-xs",
                     fade
                       ? "opacity-100 transition-opacity duration-400"
                       : "opacity-0 transition-opacity duration-400"
