@@ -51,6 +51,8 @@ const Header = () => {
     { enabled: auth.isAuthenticated && !!auth.user?.$id }
   );
 
+  const sendEmailMutation = trpc.sendEmailVerification.useMutation();
+
   // Rolling placeholder state
   const [placeholderIdx, setPlaceholderIdx] = useState(0);
   const [fade, setFade] = useState(true);
@@ -89,6 +91,11 @@ const Header = () => {
     }
   };
 
+  const sendEmail = async () => {
+    if (sendEmailMutation.isPending || sendEmailMutation.isSuccess) return;
+    await sendEmailMutation.mutateAsync();
+  };
+
   if (!auth.isAuthenticated && pathname?.startsWith("/auth")) {
     return null;
   }
@@ -97,10 +104,12 @@ const Header = () => {
     <header className="bg-background sticky top-0 z-50 border-b">
       {auth.isAuthenticated && !auth.user?.emailVerification && (
         <div className="bg-yellow-100 text-yellow-800 text-center py-2 text-sm">
-          Your email is not verified. Please check your inbox for a verification link or{" "}
-          <button className="underline" onClick={() => alert("Resend verification email action needed")}>
+          Your email is not verified. Please check your inbox for a verification
+          link or{" "}
+          <button className="underline" onClick={() => sendEmail()}>
             click here to resend the email
           </button>
+          {sendEmailMutation.isPending ? " (sending...)" : ""}
           .
         </div>
       )}

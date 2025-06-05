@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { AuthenticationFactor, Models } from "appwrite";
 import { AuthService } from "@/lib/appwrite/services/auth";
 import { users, MailingListService } from "@/lib/appwrite";
+import { emailService } from "@/lib/email/EmailService";
 import { changePasswordSchema, registerInputSchema } from "@/lib/schema";
 
 import type { AppTRPC } from "../router";
@@ -63,12 +64,21 @@ export function createAuthProcedures(
         }
 
         try {
-          const user = await AuthService.register(
+          const { user, account } = await AuthService.register(
             input.email,
             input.password,
             input.name,
             input.phone
           );
+
+          // Send welcome email
+          try {
+            await emailService.sendWelcomeEmail(account.email, account.name);
+          } catch (emailError) {
+            console.error("Error sending welcome email:", emailError);
+            // Decide how to handle email sending failure (e.g., log, alert admin)
+            // Registration should likely still succeed even if email fails.
+          }
 
           // Handle mailing list opt-in
           if (input.optInMailingList) {
@@ -220,6 +230,21 @@ export function createAuthProcedures(
           };
         }
       }),
+
+    sendEmailVerification: t.procedure.input(z.void()).mutation(async () => {
+      const auth = await AuthService.getCurrentUserWithAcount();
+      if (!auth?.user) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Please sign in",
+        });
+      }
+
+      await auth.account.createVerification(
+        `${process.env.APP_URL}/api/verify-email`
+      );
+      return { success: true }
+    }),
 
     getCurrentUser: t.procedure.input(z.void()).query(async () => {
       return await AuthService.getCurrentUser();

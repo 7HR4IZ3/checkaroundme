@@ -4,7 +4,13 @@ import { User } from "../../schema";
 
 import { createAdminClient } from "../admin";
 import { createSessionClient } from "../session";
-import { databases, DATABASE_ID, USERS_COLLECTION_ID, account, users } from "../index"; // Assuming client, databases and constants remain in index.ts
+import {
+  databases,
+  DATABASE_ID,
+  USERS_COLLECTION_ID,
+  account,
+  users,
+} from "../index"; // Assuming client, databases and constants remain in index.ts
 
 // Auth Service
 export const AuthService = {
@@ -15,7 +21,7 @@ export const AuthService = {
     name: string,
     phone?: string,
     referralCode?: string
-  ): Promise<User> {
+  ) {
     try {
       // Create user account
       const newAccount = await account.create(
@@ -42,7 +48,7 @@ export const AuthService = {
         }
       );
 
-      return newUser as unknown as User;
+      return { user: newUser, account: newAccount };
     } catch (error) {
       console.error("Registration error:", error);
       throw error;
