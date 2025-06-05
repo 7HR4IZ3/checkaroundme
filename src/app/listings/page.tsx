@@ -63,7 +63,7 @@ export default function Home() {
     searchParams?.get("open_now") === "true"
   );
   const [selectedDistance, setSelectedDistance] = useState<string | null>(
-    searchParams?.get("max_distance") || "10km"
+    searchParams?.get("max_distance") || "any"
   ); // e.g., "5km", "10km"
   const [sortBy, setSortBy] = useState<string>(
     searchParams?.get("sort_by") || "rating"
