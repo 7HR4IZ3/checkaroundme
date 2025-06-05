@@ -1,29 +1,21 @@
 "use client";
 
 import { useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { redirect, useParams, useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
 import { useAuth } from "@/lib/hooks/useClientAuth";
 import BusinessForm from "@/components/business/business-form"; // Import the new component
 import { toast } from "sonner";
-import { VerificationUpload } from "@/components/business/verification-upload";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 export default function BusinessEditForm() {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
   const params = useParams();
   const businessId =
-    typeof params.businessId === "string"
-      ? params.businessId
-      : Array.isArray(params.businessId)
-      ? params.businessId[0]
+    typeof params?.businessId === "string"
+      ? params?.businessId
+      : Array.isArray(params?.businessId)
+      ? params?.businessId[0]
       : "";
 
   if (!isAuthenticated) {
@@ -46,6 +38,8 @@ export default function BusinessEditForm() {
   const updateBusiness = trpc.updateBusiness.useMutation();
 
   const handleUpdateBusiness = async (formData: any) => {
+    if (updateBusiness.isPending || updateBusiness.isSuccess) return;
+
     if (!businessId) {
       toast("Error", { description: "Business ID is missing." });
       return;
@@ -58,7 +52,7 @@ export default function BusinessEditForm() {
       toast("Business Updated", {
         description: "Your business has been successfully updated.",
       });
-      router.push(`/business/${businessId}`);
+      redirect(`/business/${businessId}`);
     } catch (error: any) {
       console.error("Failed to update business", error);
       if (error.data?.httpStatus === 400) {

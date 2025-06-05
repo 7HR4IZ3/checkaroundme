@@ -1,23 +1,37 @@
 "use client";
 
-import { ReactNode, useMemo } from "react";
+import { ReactNode, useEffect, useMemo } from "react";
 
 import { AuthContext } from "@/lib/hooks/useClientAuth";
 import { trpc } from "@/lib/trpc/client";
 import Loading from "../ui/loading";
+import { usePathname, useRouter } from "next/navigation";
 
 export default function AuthProvider({ children }: { children: ReactNode }) {
   const utils = trpc.useUtils();
+  const router = useRouter();
+  const pathname = usePathname();
   const { data: currentUser, isLoading: loadingCurrentUser } =
-    trpc.getCurrentUser.useQuery();
+    trpc.getCurrentUserWithProfile.useQuery();
 
-  const [user, isAuthenticated] = useMemo(() => {
+  const [auth, isAuthenticated] = useMemo(() => {
     if (currentUser) {
       return [currentUser, true];
     } else {
       return [null, false];
     }
   }, [loadingCurrentUser]);
+
+  // useEffect(() => {
+  //   // If user is authenticated, 2FA is enabled, but not verified, redirect to OTP page
+  //   if (
+  //     isAuthenticated &&
+  //     !auth?.user.emailVerification &&
+  //     pathname !== "/auth/verify-otp"
+  //   ) {
+  //     router.replace("/auth/verify-otp");
+  //   }
+  // }, [isAuthenticated, auth, pathname, router]);
 
   // const signInMutation = trpc.login.useMutation();
   const signoutMutation = trpc.logout.useMutation();
@@ -60,15 +74,16 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
   const refresh = () => {
     utils.getCurrentUser.refetch();
-  }
+  };
 
   return (
     <AuthContext.Provider
       // @ts-ignore
       value={{
-        logout, refresh,
-        user: user?.user ?? null,
-        profile: user?.profile ?? null,
+        logout,
+        refresh,
+        user: auth?.user ?? null,
+        profile: auth?.profile ?? null,
         isLoading: loadingCurrentUser,
         isAuthenticated: isAuthenticated,
       }}

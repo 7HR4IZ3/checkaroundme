@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useParams } from "next/navigation";
+import { redirect, useParams } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
 import { useRouter } from "next/navigation";
 import { useRef, useState, ChangeEvent, useEffect } from "react";
@@ -268,12 +268,13 @@ export default function BusinessPage() {
   });
 
   const utils = trpc.useUtils(); // For invalidating queries
-  const businessId =
-    typeof params.businessId === "string"
+  const businessId = params
+    ? typeof params.businessId === "string"
       ? params.businessId
       : Array.isArray(params.businessId)
       ? params.businessId[0]
-      : "";
+      : ""
+    : "";
 
   // tRPC queries
   const {
@@ -635,13 +636,23 @@ export default function BusinessPage() {
 
               <div className="flex flex-wrap gap-2">
                 {isAuthenticated && (
-                  <Button
-                    variant="outline"
-                    className="bg-primary text-white dark:text-black"
-                    onClick={() => setIsWriteReviewModalOpen(true)}
-                  >
-                    <Star className="mr-2 h-4 w-4" /> Write a review
-                  </Button>
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        redirect(`/messages?recipient=${business.ownerId}`)
+                      }
+                    >
+                      <MessageSquare className="mr-2 h-4 w-4" /> Message
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="bg-primary text-white dark:text-black"
+                      onClick={() => setIsWriteReviewModalOpen(true)}
+                    >
+                      <Star className="mr-2 h-4 w-4" /> Write a review
+                    </Button>
+                  </>
                 )}
                 {user?.$id === business.ownerId && (
                   <Button
@@ -970,7 +981,9 @@ export default function BusinessPage() {
                 variant="ghost"
                 className="w-full flex justify-end md:justify-between flex-row-reverse md:flex-row"
                 size="lg"
-                onClick={() => router.push("/messages")}
+                onClick={() =>
+                  redirect(`/messages?recipient=${business.ownerId}`)
+                }
               >
                 Message business <MessageSquare className="mr-2 h-4 w-4" />
               </Button>

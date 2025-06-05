@@ -205,6 +205,8 @@ export const userSettingsSchema = z.object({
     })
     .default({ newMessagesEmail: true, businessUpdatesEmail: true }),
   theme: z.enum(["light", "dark", "system"]).default("system"),
+  twoFactorEnabled: z.boolean().default(false),
+  twoFactorVerified: z.boolean().default(false),
 });
 
 // Change Password Schema

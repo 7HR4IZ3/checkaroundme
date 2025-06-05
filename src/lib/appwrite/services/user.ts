@@ -32,7 +32,10 @@ export const updateUserSubscriptionStatus = async (
       Object.entries(dataToUpdate).filter(([_, v]) => v != null)
     );
 
-    const updatedUser = await users.updatePrefs(userId, filteredData);
+    const preferences = await users.getPrefs(userId);
+    const updatedUser = await users.updatePrefs(userId, {
+      ...preferences, ...filteredData
+    });
 
     // Appwrite's updatePrefs returns an empty object on success by default with REST,
     // but node-appwrite might return the user object. Let's log for confirmation.

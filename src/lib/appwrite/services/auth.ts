@@ -4,12 +4,7 @@ import { User } from "../../schema";
 
 import { createAdminClient } from "../admin";
 import { createSessionClient } from "../session";
-import {
-  databases,
-  DATABASE_ID,
-  USERS_COLLECTION_ID,
-  account,
-} from "../index"; // Assuming client, databases and constants remain in index.ts
+import { databases, DATABASE_ID, USERS_COLLECTION_ID, account, users } from "../index"; // Assuming client, databases and constants remain in index.ts
 
 // Auth Service
 export const AuthService = {
@@ -19,7 +14,7 @@ export const AuthService = {
     password: string,
     name: string,
     phone?: string,
-    referralCode?: string,
+    referralCode?: string
   ): Promise<User> {
     try {
       // Create user account
@@ -27,8 +22,10 @@ export const AuthService = {
         ID.unique(),
         email,
         password,
-        name,
+        name
       );
+
+      // users.updateMfa
 
       // Create user profile in database
       const newUser = await databases.createDocument(
@@ -42,7 +39,7 @@ export const AuthService = {
           referralCode: referralCode || null,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-        },
+        }
       );
 
       return newUser as unknown as User;
@@ -53,7 +50,10 @@ export const AuthService = {
   },
 
   // Login existing user
-  async login(email: string, password: string): Promise<{ success: boolean }> {
+  async login(
+    email: string,
+    password: string
+  ): Promise<{ success: boolean; session: string }> {
     try {
       const session = await account.createEmailPasswordSession(email, password);
 
@@ -67,7 +67,7 @@ export const AuthService = {
         });
       });
 
-      return { success: true };
+      return { success: true, session: session.secret };
     } catch (error) {
       console.error("Login error:", error);
       throw error;
@@ -80,7 +80,7 @@ export const AuthService = {
       return await account.createOAuth2Token(
         OAuthProvider.Google,
         redirectUrl,
-        `${redirectUrl}?failure=true`,
+        `${redirectUrl}?failure=true`
       );
     } catch (error) {
       console.error("Google login error:", error);
@@ -105,7 +105,7 @@ export const AuthService = {
             avatarUrl: null,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
-          },
+          }
         );
       }
 
@@ -130,11 +130,43 @@ export const AuthService = {
   // Get current user
   async getCurrentUser(): Promise<{
     user: Models.User<Models.Preferences>;
+    // profile: User;
+  } | null> {
+    try {
+      const session = await cookies().then((cookies) =>
+        cookies.get("cham_appwrite_session")
+      );
+
+      if (!session?.value) {
+        return null;
+      }
+
+      const { account } = await createSessionClient(session.value);
+      const user = await account.get();
+
+      // const profile = await databases.getDocument(
+      //   DATABASE_ID,
+      //   USERS_COLLECTION_ID,
+      //   user.$id,
+      // );
+
+      return { user } as unknown as {
+        user: Models.User<Models.Preferences>;
+        // profile: User;
+      };
+    } catch (error) {
+      console.error("Get current user error:", error);
+      return null;
+    }
+  },
+
+  async getCurrentUserWithProfile(): Promise<{
+    user: Models.User<Models.Preferences>;
     profile: User;
   } | null> {
     try {
       const session = await cookies().then((cookies) =>
-        cookies.get("cham_appwrite_session"),
+        cookies.get("cham_appwrite_session")
       );
 
       if (!session?.value) {
@@ -147,7 +179,7 @@ export const AuthService = {
       const profile = await databases.getDocument(
         DATABASE_ID,
         USERS_COLLECTION_ID,
-        user.$id,
+        user.$id
       );
 
       return { user, profile } as unknown as {
@@ -160,12 +192,32 @@ export const AuthService = {
     }
   },
 
+  async getCurrentUserWithAcount() {
+    try {
+      const session = await cookies().then((cookies) =>
+        cookies.get("cham_appwrite_session")
+      );
+
+      if (!session?.value) {
+        return null;
+      }
+
+      const { account } = await createSessionClient(session.value);
+      const user = await account.get();
+
+      return { user, account };
+    } catch (error) {
+      console.error("Get current user error:", error);
+      return null;
+    }
+  },
+
   // Logout user
   async logout(): Promise<void> {
     try {
       const { account } = await createAdminClient();
       const session = await cookies().then((cookies) =>
-        cookies.get("cham_appwrite_session"),
+        cookies.get("cham_appwrite_session")
       );
 
       if (!session?.value) {
@@ -187,7 +239,7 @@ export const AuthService = {
       // Appwrite's createRecovery sends an email with a link to the resetUrl
       // The link will contain a secret and userId as query parameters
       const session = await cookies().then((cookies) =>
-        cookies.get("cham_appwrite_session"),
+        cookies.get("cham_appwrite_session")
       );
 
       if (!session?.value) {
@@ -209,12 +261,12 @@ export const AuthService = {
   async resetPassword(
     userId: string,
     secret: string,
-    password: string,
+    password: string
   ): Promise<void> {
     try {
       // Appwrite's updateRecovery completes the password reset
       const session = await cookies().then((cookies) =>
-        cookies.get("cham_appwrite_session"),
+        cookies.get("cham_appwrite_session")
       );
 
       if (!session?.value) {
@@ -235,13 +287,13 @@ export const AuthService = {
   // Change current user's password
   async changePassword(
     currentPassword: string,
-    newPassword: string,
+    newPassword: string
   ): Promise<void> {
     try {
       // The `account` instance here should be for the currently authenticated user.
       // Appwrite's `account.updatePassword` uses the active session.
       const session = await cookies().then((cookies) =>
-        cookies.get("cham_appwrite_session"),
+        cookies.get("cham_appwrite_session")
       );
 
       if (!session?.value) {

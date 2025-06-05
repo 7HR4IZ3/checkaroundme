@@ -211,9 +211,9 @@ export function createPaystackProcedures(
             );
           }
 
-          await users.updatePrefs(auth.user.$id, {
-            ...auth.user.prefs,
-          });
+          // await users.updatePrefs(auth.user.$id, {
+          //   ...auth.user.prefs,
+          // });
 
           const existingSubsription = await psListSubscriptions();
           // @ts-ignore

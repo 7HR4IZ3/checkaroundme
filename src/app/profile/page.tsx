@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useEffect, useRef } from "react";
+import { Suspense, useState, useEffect, useRef, JSX } from "react";
 import { useAuth } from "@/lib/hooks/useClientAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,6 +63,19 @@ import {
   Edit3,
   LogOut,
 } from "lucide-react";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 // Helper to format currency
 const formatCurrency = (amount: number, currencyCode = "NGN") =>
@@ -80,7 +93,7 @@ function ProfileOverviewSection() {
   const appwriteUser = auth.user;
 
   return (
-    <Card className="border-0 shadow-0">
+    <Card className="rounded-lg border shadow-sm">
       <CardHeader>
         <CardTitle>Profile Overview</CardTitle>
         <CardDescription>
@@ -252,7 +265,7 @@ function EditProfileSection() {
   if (!auth.isAuthenticated || !auth.user) return <Loading />;
 
   return (
-    <Card className="border-0 shadow-0">
+    <Card className="rounded-lg border shadow-sm">
       <CardHeader>
         <CardTitle>Edit Profile</CardTitle>
         <CardDescription>
@@ -354,7 +367,7 @@ function MyBusinessesSection() {
   const auth = useAuth();
   if (!auth.isAuthenticated) return <Loading />;
   return (
-    <Card className="border-0 shadow-0">
+    <Card className="rounded-lg border shadow-sm">
       <CardHeader>
         <CardTitle>My Businesses</CardTitle>
         <CardDescription>Manage your registered businesses.</CardDescription>
@@ -420,7 +433,7 @@ function AppSettingsSection() {
     );
 
   return (
-    <Card className="border-0 shadow-0">
+    <Card className="rounded-lg border shadow-sm">
       <CardHeader>
         <CardTitle>Application Settings</CardTitle>
         <CardDescription>
@@ -430,7 +443,7 @@ function AppSettingsSection() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmitSettings)}>
           <CardContent className="space-y-6">
-            <Card className="border-0 shadow-0">
+            <Card className="rounded-lg border shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg">
                   Notification Preferences
@@ -488,7 +501,7 @@ function AppSettingsSection() {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-0">
+            <Card className="rounded-lg border shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg">Theme Settings</CardTitle>
               </CardHeader>
@@ -587,7 +600,7 @@ function SecuritySection() {
   if (!auth.isAuthenticated) return <Loading />;
 
   return (
-    <Card className="border-0 shadow-0">
+    <Card className="rounded-lg border shadow-sm">
       <CardHeader>
         <CardTitle>Security Settings</CardTitle>
         <CardDescription>Manage your account password.</CardDescription>
@@ -649,7 +662,11 @@ function SecuritySection() {
             />
           </CardContent>
           <CardFooter>
-            <Button type="submit" disabled={changePasswordMutation.isPending}>
+            <Button
+              type="submit"
+              disabled={changePasswordMutation.isPending}
+              className="mt-2"
+            >
               {changePasswordMutation.isPending ? <Loading /> : null}
               {changePasswordMutation.isPending
                 ? "Updating..."
@@ -681,7 +698,7 @@ function ReferralSection() {
   };
 
   return (
-    <Card className="border-0 shadow-0">
+    <Card className="rounded-lg border shadow-sm">
       <CardHeader>
         <CardTitle>Refer a Friend</CardTitle>
         <CardDescription>
@@ -791,7 +808,7 @@ function BillingSection() {
 
   return (
     <div className="space-y-8">
-      <Card className="border-0 shadow-0">
+      <Card className="rounded-lg border shadow-sm">
         <CardHeader>
           <CardTitle>Current Subscription</CardTitle>
           <CardDescription>
@@ -847,7 +864,7 @@ function BillingSection() {
         </CardFooter>
       </Card>
 
-      <Card className="border-0 shadow-0">
+      <Card className="rounded-lg border shadow-sm">
         <CardHeader>
           <CardTitle>Payment History</CardTitle>
           <CardDescription>
@@ -942,8 +959,68 @@ function BillingSection() {
 }
 
 // Main Profile Page Component
+function MainNav({
+  items,
+  selected,
+  onSelect,
+}: {
+  items: { value: string; label: string; icon: any }[];
+  selected: string;
+  onSelect: (value: string) => void;
+}) {
+  return (
+    <nav className="flex space-x-2">
+      {items.map((item) => (
+        <button
+          key={item.value}
+          onClick={() => onSelect(item.value)}
+          className={cn(
+            "inline-flex items-center whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+            selected === item.value
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "hover:bg-muted"
+          )}
+        >
+          <item.icon className="mr-2 h-4 w-4" />
+          {item.label}
+        </button>
+      ))}
+    </nav>
+  );
+}
+
+// Add SignOutButton component
+function SignOutButton() {
+  const auth = useAuth();
+
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <LogOut className="h-5 w-5" />
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Sign Out</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to sign out of your account?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={() => auth.logout()}>
+            Sign Out
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
 export default function ProfilePage() {
   const auth = useAuth();
+  const [selectedTab, setSelectedTab] = useState("overview");
 
   if (auth.isLoading) {
     return (
@@ -957,109 +1034,68 @@ export default function ProfilePage() {
     if (typeof window !== "undefined") {
       redirect("/auth?next=" + window.location.pathname);
     }
-    return null; // Or a redirect component if preferred server-side
+    return null;
   }
 
-  const tabItems = [
-    {
-      value: "overview",
-      label: "Overview",
-      icon: User,
-      component: <ProfileOverviewSection />,
-    },
-    {
-      value: "edit-profile",
-      label: "Edit Profile",
-      icon: Edit3,
-      component: <EditProfileSection />,
-    },
-    {
-      value: "businesses",
-      label: "My Businesses",
-      icon: Briefcase,
-      component: <MyBusinessesSection />,
-    },
-    {
-      value: "settings",
-      label: "App Settings",
-      icon: Settings,
-      component: <AppSettingsSection />,
-    },
-    {
-      value: "security",
-      label: "Security",
-      icon: ShieldCheck,
-      component: <SecuritySection />,
-    },
-    {
-      value: "referrals",
-      label: "Referrals",
-      icon: Share2,
-      component: <ReferralSection />,
-    },
-    {
-      value: "billing",
-      label: "Billing",
-      icon: CreditCard,
-      component: <BillingSection />,
-    },
+  const navigationItems = [
+    { value: "overview", label: "Overview", icon: User },
+    { value: "edit-profile", label: "Edit Profile", icon: Edit3 },
+    { value: "businesses", label: "My Businesses", icon: Briefcase },
+    { value: "settings", label: "App Settings", icon: Settings },
+    { value: "security", label: "Security", icon: ShieldCheck },
+    { value: "referrals", label: "Referrals", icon: Share2 },
+    { value: "billing", label: "Billing", icon: CreditCard },
   ];
 
+  const contentComponents: Record<string, JSX.Element> = {
+    overview: <ProfileOverviewSection />,
+    "edit-profile": <EditProfileSection />,
+    businesses: <MyBusinessesSection />,
+    settings: <AppSettingsSection />,
+    security: <SecuritySection />,
+    referrals: <ReferralSection />,
+    billing: <BillingSection />,
+  };
+
   return (
-    <Suspense
-      fallback={
-        <div className="flex items-center justify-center min-h-screen">
-          <Loading />
-        </div>
-      }
-    >
-      <div className="container mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 lg:h-[80vh]">
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Account Settings
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Manage your account information, preferences, and security settings.
-          </p>
-        </header>
-
-        <Tabs defaultValue="overview" className="w-full">
-          <div className="mb-6">
-            <TabsList
-              className="h-15 flex flex-row items-center overflow-x-auto p-2 space-x-2 justify-between bg-background border"
-              style={{
-                gridTemplateColumns: "repeat(auto-fill, minmax(72px, 1fr))",
-              }}
-            >
-              {tabItems.map((tab) => (
-                <TabsTrigger
-                  key={tab.value}
-                  value={tab.value}
-                  className="h-10 flex flex-col items-center justify-center aspect-square p-2 flex-shrink-0 rounded-lg hover:bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-colors"
-                  title={tab.label} // Tooltip for icon-only view
-                >
-                  <tab.icon className="h-6 w-6" /> {/* Consistent icon size */}
-                  <span className="sr-only">{tab.label}</span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
+    <div className="container flex flex-col space-y-8 p-8">
+      <div className="flex flex-col space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Account Settings
+            </h1>
+            <p className="text-muted-foreground">
+              Manage your account preferences and settings
+            </p>
           </div>
-
-          {tabItems.map((tab) => (
-            <TabsContent key={tab.value} value={tab.value} className="mt-0">
-              <Suspense
-                fallback={
-                  <div className="flex justify-center py-10">
-                    <Loading />
-                  </div>
-                }
-              >
-                {tab.component}
-              </Suspense>
-            </TabsContent>
-          ))}
-        </Tabs>
+          <SignOutButton />
+        </div>
+        <ScrollArea className="w-full">
+          <div className="flex pb-4">
+            <MainNav
+              items={navigationItems}
+              selected={selectedTab}
+              onSelect={setSelectedTab}
+            />
+          </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
       </div>
-    </Suspense>
+
+      <div className="flex-1 space-y-4">
+        <div className="grid gap-4">
+          <Suspense
+            fallback={
+              <div className="flex justify-center py-10">
+                <Loading />
+              </div>
+            }
+          >
+            {contentComponents[selectedTab]}
+          </Suspense>
+        </div>
+      </div>
+    </div>
   );
 }

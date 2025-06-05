@@ -189,7 +189,10 @@ export const UserService = {
       throw error;
     }
     try {
-      const updatedPrefs = await users.updatePrefs(userId, data);
+      const preferences = await users.getPrefs(userId);
+      const updatedPrefs = await users.updatePrefs(userId, {
+        ...preferences, ...data
+      });
       return updatedPrefs;
     } catch (error) {
       console.error(`Update user settings error for ${userId}:`, error);
@@ -229,7 +232,8 @@ export const UserService = {
         Object.entries(dataToUpdate).filter(([_, v]) => v != null)
       );
       // Store under a specific key in prefs, e.g., 'subscription'
-      const prefsToUpdate = { subscription: filteredData };
+      const preferences = await users.getPrefs(userId);
+      const prefsToUpdate = { ...preferences, subscription: filteredData };
       const updatedUser = await users.updatePrefs(userId, prefsToUpdate);
       console.log(`Successfully updated subscription prefs for user ${userId}`);
       return updatedUser;
@@ -1472,12 +1476,14 @@ export const NotificationService = {
 
   async registerDeviceToken(token: string): Promise<void> {
     try {
-      const user = await AuthService.getCurrentUser();
-      if (!user) throw new Error("Unautenticated user");
+      const auth = await AuthService.getCurrentUser();
+      if (!auth) throw new Error("Unautenticated user");
 
-      const currentTokens = user.user.prefs?.deviceTokens || [];
+      const currentTokens = auth.user.prefs?.deviceTokens || [];
       if (!currentTokens.includes(token)) {
-        await users.updatePrefs(user.user.$id, {
+        const preferences = await users.getPrefs(auth.user.$id);
+        await users.updatePrefs(auth.user.$id, {
+          ...preferences,
           deviceTokens: [...currentTokens, token],
         });
       }

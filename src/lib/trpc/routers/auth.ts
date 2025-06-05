@@ -1,23 +1,24 @@
 import { z } from "zod";
-import { AuthService } from "../../appwrite/services/auth";
-import { changePasswordSchema, registerInputSchema } from "../../schema";
-import SuperJSON from "superjson";
 import { TRPCError } from "@trpc/server";
+import { AuthenticationFactor, Models } from "appwrite";
+import { AuthService } from "@/lib/appwrite/services/auth";
+import { users, MailingListService } from "@/lib/appwrite";
+import { changePasswordSchema, registerInputSchema } from "@/lib/schema";
 
-import type { AppTRPC } from "../router"; // Import the AppTRPC type
-import { MailingListService } from "@/lib/appwrite";
+import type { AppTRPC } from "../router";
+import { createSessionClient } from "@/lib/appwrite/session";
 
 export function createAuthProcedures(
   t: AppTRPC,
-  protectedProcedure: typeof t.procedure,
+  protectedProcedure: typeof t.procedure
 ) {
   async function verifyCaptcha(
-    token: string,
+    token: string
   ): Promise<{ success: boolean; score?: number; "error-codes"?: string[] }> {
     const secretKey = process.env.RECAPTCHA_SECRET_KEY;
     if (!secretKey) {
       console.error(
-        "RECAPTCHA_SECRET_KEY is not set in environment variables.",
+        "RECAPTCHA_SECRET_KEY is not set in environment variables."
       );
       // Depending on security policy, either fail open or closed. Failing closed is safer.
       throw new TRPCError({
@@ -26,7 +27,7 @@ export function createAuthProcedures(
       });
     }
 
-    console.log("Verifying captcha token:", token);
+    // console.log("Verifying captcha token:", token);
 
     const verificationUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`;
 
@@ -60,27 +61,56 @@ export function createAuthProcedures(
             }`,
           });
         }
-        await AuthService.register(
-          input.email,
-          input.password,
-          input.name,
-          input.phone,
-        );
 
-        // Handle mailing list opt-in
-        if (input.optInMailingList) {
-          try {
-            await MailingListService.addEmail(input.email);
-          } catch (error) {
-            console.error("Error subscribing user to mailing list:", error);
-            // Optionally throw an error or log, but don't block registration
+        try {
+          const user = await AuthService.register(
+            input.email,
+            input.password,
+            input.name,
+            input.phone
+          );
+
+          // Handle mailing list opt-in
+          if (input.optInMailingList) {
+            try {
+              await MailingListService.addEmail(input.email);
+            } catch (error) {
+              console.error("Error subscribing user to mailing list:", error);
+              // Optionally throw an error or log, but don't block registration
+            }
           }
-        }
 
-        if (input.login) {
-          return await AuthService.login(input.email, input.password);
-        } else {
+          if (input.login) {
+            const { session } = await AuthService.login(
+              input.email,
+              input.password
+            );
+
+            const { account } = await createSessionClient(session);
+            await account.createVerification(
+              `${process.env.APP_URL}/api/verify-email`
+            );
+
+            // // Set 2FA enabled and not verified for the new user
+            // const preferences = await users.getPrefs(user.$id);
+
+            // // Send OTP after registration (always)
+            // const challenge = await account.createVerification(
+            //   AuthenticationFactor.Email
+            // );
+
+            // await users.updatePrefs(user.$id, {
+            //   ...preferences,
+            //   challenge,
+            //   twoFactorEnabled: true,
+            //   twoFactorVerified: false,
+            // });
+          }
+
           return { success: true };
+        } catch (error) {
+          console.error(error);
+          throw error;
         }
       }),
 
@@ -90,7 +120,7 @@ export function createAuthProcedures(
           email: z.string().email(),
           password: z.string().min(6),
           captchaToken: z.string(),
-        }),
+        })
       )
       .mutation(async ({ input }) => {
         const captchaResult = await verifyCaptcha(input.captchaToken);
@@ -102,7 +132,36 @@ export function createAuthProcedures(
             }`,
           });
         }
-        return await AuthService.login(input.email, input.password);
+
+        const { session } = await AuthService.login(
+          input.email,
+          input.password
+        );
+
+        // After login, check if 2FA is enabled and not verified, then send OTP
+        const auth = await AuthService.getCurrentUser();
+        if (!auth) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Please sign in",
+          });
+        }
+
+        // if (
+        //   auth.user.prefs?.twoFactorEnabled &&
+        //   !auth.user.prefs?.twoFactorVerified
+        // ) {
+        //   const { account } = await createSessionClient(session);
+        //   const challenge = await account.createMfaChallenge(
+        //     AuthenticationFactor.Email
+        //   );
+        //   const preferences = await users.getPrefs(auth.user.$id);
+        //   await users.updatePrefs(auth.user.$id, {
+        //     ...preferences,
+        //     challenge,
+        //   });
+        // }
+        return { success: true };
       }),
 
     loginWithGoogle: protectedProcedure
@@ -110,7 +169,7 @@ export function createAuthProcedures(
         z.object({
           redirectUrl: z.string().url(),
           captchaToken: z.string(),
-        }),
+        })
       )
       .mutation(async ({ input }) => {
         const captchaResult = await verifyCaptcha(input.captchaToken);
@@ -130,7 +189,7 @@ export function createAuthProcedures(
         z.object({
           email: z.string().email(),
           captchaToken: z.string(), // Added captcha token
-        }),
+        })
       )
       .mutation(async ({ input }) => {
         const captchaResult = await verifyCaptcha(input.captchaToken);
@@ -166,17 +225,21 @@ export function createAuthProcedures(
       return await AuthService.getCurrentUser();
     }),
 
+    getCurrentUserWithProfile: t.procedure.input(z.void()).query(async () => {
+      return await AuthService.getCurrentUserWithProfile();
+    }),
+
     completeOauthLogin: t.procedure
       .input(
         z.object({
           userId: z.string(),
           secret: z.string(),
-        }),
+        })
       )
       .mutation(async ({ input }) => {
         return await AuthService.completeOauth2Login(
           input.userId,
-          input.secret,
+          input.secret
         );
       }),
 
@@ -190,7 +253,7 @@ export function createAuthProcedures(
           userId: z.string(),
           secret: z.string(),
           password: z.string().min(6), // Ensure password meets minimum length
-        }),
+        })
       )
       .mutation(async ({ input }) => {
         // TODO: Implement AuthService.resetPassword in src/lib/appwrite/index.ts (or relevant file)
@@ -201,7 +264,7 @@ export function createAuthProcedures(
           await AuthService.resetPassword(
             input.userId,
             input.secret,
-            input.password,
+            input.password
           );
           return { success: true };
         } catch (error: any) {
@@ -224,7 +287,7 @@ export function createAuthProcedures(
           // AuthService.changePassword will call Appwrite's account.updatePassword
           await AuthService.changePassword(
             input.currentPassword,
-            input.newPassword,
+            input.newPassword
           );
           return { success: true, message: "Password changed successfully." };
         } catch (error: any) {
@@ -233,6 +296,105 @@ export function createAuthProcedures(
             code: "INTERNAL_SERVER_ERROR",
             message: error.message || "Failed to change password.",
           });
+        }
+      }),
+
+    start2FA: protectedProcedure
+      .input(
+        z.object({
+          factor: z
+            .enum(["email", "phone", "totp", "recoverycode"])
+            .default("email"),
+        })
+      )
+      .mutation(async ({ input }) => {
+        try {
+          const auth = await AuthService.getCurrentUserWithAcount();
+          if (!auth?.user) {
+            throw new TRPCError({
+              code: "UNAUTHORIZED",
+              message: "Please sign in",
+            });
+          }
+
+          // Always send a new OTP challenge
+          const challenge = await auth.account.createMfaChallenge(
+            input.factor as AuthenticationFactor
+          );
+          const preferences = await users.getPrefs(auth.user.$id);
+          await users.updatePrefs(auth.user.$id, {
+            ...preferences,
+            challenge,
+          });
+          return challenge;
+        } catch (error) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to send OTP",
+          });
+        }
+      }),
+
+    verify2FA: protectedProcedure
+      .input(z.object({ otp: z.string().min(4) }))
+      .mutation(async ({ input }) => {
+        try {
+          // Mark user as 2FA verified in prefs
+          const auth = await AuthService.getCurrentUserWithAcount();
+          if (!auth?.user) {
+            throw new TRPCError({
+              code: "UNAUTHORIZED",
+              message: "Please sign in",
+            });
+          }
+
+          const preferences = await users.getPrefs(auth.user.$id);
+          if (!preferences.challange?.$id) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message: "You don't have a pending OTP request",
+            });
+          }
+
+          // Verify OTP using Appwrite
+          await auth.account.updateMfaChallenge(
+            preferences.challenge.$id,
+            input.otp
+          );
+
+          await users.updatePrefs(auth.user.$id, {
+            ...preferences,
+            challenge: null,
+            twoFactorVerified: true,
+          });
+          return { success: true };
+        } catch (error: any) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: error?.message || "Invalid OTP",
+          });
+        }
+      }),
+
+    check2FAStatus: protectedProcedure
+      .input(z.object({}))
+      .query(async ({ ctx }) => {
+        try {
+          const auth = await AuthService.getCurrentUser();
+
+          if (!auth) {
+            throw new TRPCError({
+              code: "UNAUTHORIZED",
+              message: "Please sign in",
+            });
+          }
+
+          // Check if user has 2FA enabled and verified
+          const twoFactorEnabled = auth.user.prefs?.twoFactorEnabled ?? false;
+          const twoFactorVerified = auth.user.prefs?.twoFactorVerified ?? false;
+          return { twoFactorEnabled, twoFactorVerified };
+        } catch {
+          return { twoFactorEnabled: false, twoFactorVerified: false };
         }
       }),
   };

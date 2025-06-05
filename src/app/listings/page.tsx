@@ -32,18 +32,18 @@ export default function Home() {
   } = useGeolocation();
 
   // Parse main category from URL
-  const categoryParam = searchParams.get("category");
+  const categoryParam = searchParams?.get("category");
   const selectedCategory =
     categoryParam && categoryParam.length > 0
       ? decodeURIComponent(categoryParam)
       : null;
 
-  const queryParam = searchParams.get("query") || "";
-  const locationParam = searchParams.get("location") || "";
+  const queryParam = searchParams?.get("query") || "";
+  const locationParam = searchParams?.get("location") || "";
 
   // Filters from FiltersPanel
-  const priceParam = searchParams.get("price");
-  const featuresParam = searchParams.get("features");
+  const priceParam = searchParams?.get("price");
+  const featuresParam = searchParams?.get("features");
   // `distances` from FiltersPanel is deprecated in favor of selectedDistance from FilterSortBar
 
   const initialFiltersPanelFilters: Filters = useMemo(
@@ -58,20 +58,20 @@ export default function Home() {
   // State for FilterSortBar specific filters
   const [otherFilterBarCategories, setOtherFilterBarCategories] = useState<
     string[]
-  >(searchParams.get("other_filters")?.split(",") || []);
+  >(searchParams?.get("other_filters")?.split(",") || []);
   const [openNow, setOpenNow] = useState<boolean>(
-    searchParams.get("open_now") === "true"
+    searchParams?.get("open_now") === "true"
   );
   const [selectedDistance, setSelectedDistance] = useState<string | null>(
-    searchParams.get("max_distance")
+    searchParams?.get("max_distance") || "10km"
   ); // e.g., "5km", "10km"
   const [sortBy, setSortBy] = useState<string>(
-    searchParams.get("sort_by") || "rating"
+    searchParams?.get("sort_by") || "rating"
   ); // e.g., "rating", "distance", "price_asc"
 
   // Pagination
-  const limitParam = searchParams.get("limit");
-  const offsetParam = searchParams.get("offset");
+  const limitParam = searchParams?.get("limit");
+  const offsetParam = searchParams?.get("offset");
   const limit = limitParam ? parseInt(limitParam, 10) : 10;
   const offset = offsetParam ? parseInt(offsetParam, 10) : 0;
 
@@ -79,7 +79,7 @@ export default function Home() {
 
   // Update URL when filter states change
   useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(searchParams?.toString());
 
     // Main category
     if (selectedCategory)
@@ -118,7 +118,7 @@ export default function Home() {
     // Only push if params actually changed to avoid loops, though router.replace is safer
     if (
       params.toString() !==
-      new URLSearchParams(searchParams.toString()).toString()
+      new URLSearchParams(searchParams?.toString()).toString()
     ) {
       router.replace(`?${params.toString()}`, { scroll: false });
     }
@@ -139,7 +139,7 @@ export default function Home() {
 
   const updateUrlAndResetOffset = useCallback(
     (newParams: Record<string, string | null>) => {
-      const params = new URLSearchParams(searchParams.toString());
+      const params = new URLSearchParams(searchParams?.toString());
       Object.entries(newParams).forEach(([key, value]) => {
         if (value === null) {
           params.delete(key);
@@ -199,7 +199,7 @@ export default function Home() {
 
   const onPageChange = useCallback(
     (page: number) => {
-      const params = new URLSearchParams(searchParams.toString());
+      const params = new URLSearchParams(searchParams?.toString());
       const newPage = Math.max(1, page);
       params.set("offset", ((newPage - 1) * limit).toString());
       // limit is already in useEffect dependency, so no need to set it here again

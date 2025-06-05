@@ -29,7 +29,7 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
   });
 
   return (
-    <div className="container bg-white rounded-xl shadow-md overflow-hidden flex flex-col md:flex-row relative gap-4 h-auto">
+    <div className="container bg-white rounded-xl shadow-md overflow-hidden flex flex-col md:flex-row relative gap-4 h-auto md:p-4">
       <div className="relative w-full aspect-video md:aspect-auto md:w-48 shrink-0">
         {isLoading ? (
           <Skeleton className="w-full h-full rounded-lg" />

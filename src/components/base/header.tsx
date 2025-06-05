@@ -43,8 +43,8 @@ const Header = () => {
   const pathname = usePathname();
   const params = useSearchParams();
 
-  const [search, setSearch] = useState(params.get("query") || "");
-  const [location, setLocation] = useState(params.get("location") || "");
+  const [search, setSearch] = useState(params?.get("query") || "");
+  const [location, setLocation] = useState(params?.get("location") || "");
 
   const { data: businesses, isLoading } = trpc.getBusinessesByUserId.useQuery(
     { userId: auth.user?.$id || "" },
@@ -89,12 +89,21 @@ const Header = () => {
     }
   };
 
-  if (!auth.isAuthenticated && pathname.startsWith("/auth")) {
+  if (!auth.isAuthenticated && pathname?.startsWith("/auth")) {
     return null;
   }
 
   return (
     <header className="bg-background sticky top-0 z-50 border-b">
+      {auth.isAuthenticated && !auth.user?.emailVerification && (
+        <div className="bg-yellow-100 text-yellow-800 text-center py-2 text-sm">
+          Your email is not verified. Please check your inbox for a verification link or{" "}
+          <button className="underline" onClick={() => alert("Resend verification email action needed")}>
+            click here to resend the email
+          </button>
+          .
+        </div>
+      )}
       <nav className="mx-4 px-2 sm:px-6 lg:px-4 py-4 flex justify-between items-center gap-4">
         <Link href="/" className="">
           <Image
@@ -122,7 +131,7 @@ const Header = () => {
                 <span
                   className={clsx(
                     "pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors duration-200",
-                    "w-[90%] overflow-hidden h-[1.5em] flex items-center select-none px-4",
+                    "w-[90%] overflow-hidden h-[1.5em] flex items-center select-none px-4 text-sm",
                     fade
                       ? "opacity-100 transition-opacity duration-400"
                       : "opacity-0 transition-opacity duration-400"

@@ -65,7 +65,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
       if (result.success) {
         auth.refresh();
 
-        const nextUrl = searchParams.get("next");
+        const nextUrl = searchParams?.get("next");
         if (nextUrl && nextUrl.startsWith("/")) {
           window.location.assign(nextUrl);
         } else {
@@ -107,7 +107,7 @@ function LoginForm({ onToggle }: { onToggle: () => void }) {
     }
 
     try {
-      const nextUrl = searchParams.get("next");
+      const nextUrl = searchParams?.get("next");
       let callbackUrl = window.location.origin + "/api/auth/oauth-callback";
       const queryParams = new URLSearchParams();
       if (nextUrl && nextUrl.startsWith("/")) {
@@ -360,14 +360,14 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
         phone,
         captchaToken,
         login: true,
-        referralCode: searchParams.get("ref") || undefined,
+        referralCode: searchParams?.get("ref") || undefined,
         optInMailingList: optInMailingList, // Add mailing list opt-in state (backend TRPC router src/lib/trpc/routers/auth.ts might need update)
       });
 
       if (result.success) {
         auth.refresh();
 
-        const nextUrl = searchParams.get("next");
+        const nextUrl = searchParams?.get("next");
         if (nextUrl && nextUrl.startsWith("/")) {
           window.location.assign(nextUrl);
         } else {
@@ -416,8 +416,8 @@ function SignUpForm({ onToggle }: { onToggle: () => void }) {
     }
 
     try {
-      const refCode = searchParams.get("ref");
-      const nextUrl = searchParams.get("next");
+      const refCode = searchParams?.get("ref");
+      const nextUrl = searchParams?.get("next");
       let callbackUrl = window.location.origin + "/api/auth/oauth-callback";
       const queryParams = new URLSearchParams();
       if (refCode) {
@@ -914,7 +914,7 @@ function LandingPage() {
 function AuthPageInner() {
   const auth = useAuth();
   const params = useSearchParams();
-  const [isLogin, setIsLogin] = useState(!params.has("signup"));
+  const [isLogin, setIsLogin] = useState(!params?.has("signup"));
 
   if (auth.isAuthenticated) return redirect("/");
 

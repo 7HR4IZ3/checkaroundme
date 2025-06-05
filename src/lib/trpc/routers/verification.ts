@@ -62,7 +62,7 @@ export function createVerificationProcedures(
 ) {
   // Middleware to check if user is authenticated
   const isAuthed = t.middleware(async ({ next }) => {
-    const authResult = await AuthService.getCurrentUser();
+    const authResult = await AuthService.getCurrentUserWithProfile();
     if (!authResult?.user) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }

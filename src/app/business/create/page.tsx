@@ -30,6 +30,8 @@ export default function BusinessCreateForm() {
 
   const createBusiness = trpc.createBusiness.useMutation();
   const handleCreateBusiness = async (formData: any) => {
+    if (createBusiness.isPending || createBusiness.isSuccess) return;
+
     if (!user?.$id) {
       toast.error("Error", { description: "User not authenticated." });
       return;
@@ -51,7 +53,7 @@ export default function BusinessCreateForm() {
         setNewlyCreatedBusinessId(result.$id);
         setShowSubscriptionModal(true);
       } else {
-        router.push(`/business/${result.$id}`);
+        redirect(`/business/${result.$id}`);
       }
     } catch (error: any) {
       console.error("Failed to create business", error);
