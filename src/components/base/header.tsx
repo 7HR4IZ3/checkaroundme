@@ -29,12 +29,14 @@ import { Skeleton } from "../ui/skeleton";
 import clsx from "clsx";
 
 const SEARCH_PLACEHOLDERS = [
-  "Pizza near me",
-  "Coffee in Brooklyn",
-  "Vegan restaurants",
-  "Dog groomers",
-  "Bookstores",
-  "Open late",
+  "Cleaner",
+  "Electrician",
+  "Painters",
+  "Photographer",
+  "Event Planner",
+  "Pest Control",
+  "IT Support",
+  "Caterer"
 ];
 
 const Header = () => {
