@@ -35,7 +35,8 @@ export default function Home() {
   const categoryParam = searchParams?.get("category");
   const selectedCategory =
     categoryParam && categoryParam.length > 0
-      ? decodeURIComponent(categoryParam)
+      ? // Categories gets double encoded for some reason
+        decodeURIComponent(decodeURIComponent(categoryParam))
       : null;
 
   const queryParam = searchParams?.get("query") || "";
