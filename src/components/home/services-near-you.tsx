@@ -14,8 +14,6 @@ const ServicesNearYou = () => {
     ...cordinates
   } = useGeolocation();
 
-  console.log(geoError, cordinates);
-
   const {
     data: businesses,
     isLoading: queryLoading,

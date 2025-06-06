@@ -46,6 +46,8 @@ export default function Conversation({
 
   // console.log(userBusiness)
 
+  if (!activeChatUser) return null;
+
   return (
     <div className="flex-1 flex flex-col">
       {selectedChatId ? (
