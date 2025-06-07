@@ -11,6 +11,7 @@ import {
   account,
   users,
 } from "../index"; // Assuming client, databases and constants remain in index.ts
+import { emailService } from "@/lib/email/EmailService";
 
 // Auth Service
 export const AuthService = {
@@ -96,6 +97,8 @@ export const AuthService = {
 
   async completeOauth2Login(userId: string, secret: string) {
     try {
+      let sendWelcomeEmail = false;
+
       try {
         // Check if user exists
         await databases.getDocument(DATABASE_ID, USERS_COLLECTION_ID, userId);
@@ -113,6 +116,8 @@ export const AuthService = {
             updatedAt: new Date().toISOString(),
           }
         );
+
+        sendWelcomeEmail = true;
       }
 
       const session = await account.createSession(userId, secret);
@@ -125,6 +130,15 @@ export const AuthService = {
           maxAge: 60 * 60 * 24 * 365, // 1 year
         });
       });
+
+      if (sendWelcomeEmail) {
+        users
+          .get(session.userId)
+          .then((user) =>
+            emailService.sendUserWelcomeEmail(user.email, user.name)
+          )
+          .catch(() => console.log("Error sending email"));
+      }
 
       return { success: true };
     } catch (error) {

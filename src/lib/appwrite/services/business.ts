@@ -22,11 +22,13 @@ import {
   DATABASE_ID,
   BUSINESS_HOURS_COLLECTION_ID,
   BUSINESS_IMAGES_COLLECTION_ID,
+  users,
 } from "../index"; // Assuming databases and constants remain in index.ts
 import { BusinessHoursService } from "./business-hours"; // Assuming BusinessHoursService will be in its own file
 import { BusinessImagesService } from "./business-images"; // Assuming BusinessImagesService will be in its own file
 import { AuthService } from "./auth";
 import { z } from "zod";
+import { emailService } from "@/lib/email/EmailService";
 
 // Helper function to calculate Haversine distance between two points
 function getHaversineDistance(
@@ -196,7 +198,7 @@ export const BusinessService = {
       const { status, hours, images, ...restOfData } =
         businessDataWithCoordinates;
 
-      console.log(restOfData);
+      // console.log(restOfData);
 
       const newBusiness = await databases.createDocument(
         DATABASE_ID,
@@ -218,6 +220,10 @@ export const BusinessService = {
         newBusiness.$id,
         images
       );
+
+      emailService
+        .sendBusinessWelcomeEmail(auth.user.email, auth.user.name)
+        .catch(() => console.log("Error sending email"));
 
       return newBusiness as unknown as Business;
     } catch (error) {

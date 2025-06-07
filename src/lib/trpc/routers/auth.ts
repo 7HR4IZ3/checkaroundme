@@ -73,7 +73,10 @@ export function createAuthProcedures(
 
           // Send welcome email
           try {
-            await emailService.sendWelcomeEmail(account.email, account.name);
+            await emailService.sendUserWelcomeEmail(
+              account.email,
+              account.name
+            );
           } catch (emailError) {
             console.error("Error sending welcome email:", emailError);
             // Decide how to handle email sending failure (e.g., log, alert admin)
@@ -243,7 +246,7 @@ export function createAuthProcedures(
       await auth.account.createVerification(
         `${process.env.APP_URL}/api/verify-email`
       );
-      return { success: true }
+      return { success: true };
     }),
 
     getCurrentUser: t.procedure.input(z.void()).query(async () => {
