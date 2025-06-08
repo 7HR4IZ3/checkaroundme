@@ -132,8 +132,8 @@ const Header = () => {
           </div>
         )} */}
 
-      <nav className="mx-4 px-2 sm:px-6 lg:px-4 py-4 flex justify-between items-center gap-4">
-        <Link href="/" className="">
+      <nav className="mx-3 py-4 flex justify-between items-center gap-4">
+        <Link href="/" className="w-1/4">
           <Image
             src="/images/logo.png"
             alt="CheckAroundMe Logo"
@@ -142,7 +142,7 @@ const Header = () => {
           />
         </Link>
 
-        <div className="flex justify-center items-center space-x-2 flex-grow">
+        <div className="space-x-2 flex-grow w-2/4">
           <div className="flex items-center justify-center gap-2 w-full md:w-[40vw] lg:w-[40%]">
             <div className="flex items-center border border-gray-300 rounded-full flex-grow relative">
               <Input
@@ -232,7 +232,7 @@ const Header = () => {
           )}
         </div>
 
-        <div className="flex justify-end items-center">
+        <div className="flex justify-end items-center w-1/5">
           {auth.isAuthenticated ? (
             <UserNav />
           ) : (

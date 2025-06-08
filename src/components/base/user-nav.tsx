@@ -36,9 +36,9 @@ export function UserNav() {
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className="relative h-10 flex items-center space-x-2 p-1 rounded-full"
+            className="relative h-10 flex items-center p-1 rounded-full"
           >
-            <Avatar className="h-9 w-9 border">
+            <Avatar className="h-8 w-8">
               {" "}
               {/* Added border like in design */}
               <AvatarImage
@@ -49,9 +49,9 @@ export function UserNav() {
                 {auth.user.name.split(" ")[0].charAt(0)}
               </AvatarFallback>
             </Avatar>
-            <span className="text-base font-medium hidden md:block">
+            {/* <span className="text-base font-medium hidden md:block">
               {auth.user.name.split(" ")[0]}
-            </span>
+            </span> */}
             {/* ChevronDown indicates dropdown possibility */}
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </Button>

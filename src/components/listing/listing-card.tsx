@@ -30,8 +30,8 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
   });
 
   return (
-    <div className="container bg-white rounded-xl shadow-md overflow-hidden flex flex-col md:flex-row relative gap-4 h-auto md:p-4">
-      <div className="relative w-full aspect-video md:aspect-auto md:w-48 shrink-0">
+    <div className="container bg-white rounded-xl shadow-md overflow-hidden flex flex-col md:flex-row relative gap-4 h-[35vh] md:p-3">
+      <div className="relative h-[35vh] w-full aspect-video md:aspect-auto md:w-48 shrink-0">
         {isLoading ? (
           <Skeleton className="w-full h-full rounded-lg" />
         ) : (
@@ -50,7 +50,7 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
             <div className="absolute inset-0 bg-black opacity-40 md:hidden rounded-xl"></div>{" "}
             {/* Content container for mobile overlay */}
             <div
-              className="absolute inset-0 p-4 flex flex-col justify-between md:hidden"
+              className="absolute inset-0 p-3 flex flex-col justify-between md:hidden"
               // onClick={() => router.push(`/business/${business.$id}`)}
             >
               {/* Top section: Name, Address, Category, Rating */}
@@ -58,7 +58,7 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
                 className="flex flex-col"
                 onClick={() => router.push(`/business/${business.$id}`)}
               >
-                <div className="flex flex-wrap justify-between mb-2">
+                <div className="flex flex-wrap justify-between mb-1">
                   {/* Name (Top Left) */}
                   <Link href={`/business/${business.$id}`}>
                     <h3 className="text-lg font-semibold text-white">
@@ -108,12 +108,12 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
                 </div>
               </div>
               {/* Call to Action Buttons (Bottom Right within overlay) */}
-              <div className="flex flex-col justify-end mt-2 gap-4">
+              <div className="flex flex-col justify-end mt-1 gap-2">
                 {/* Description (Bottom Left within overlay) */}
                 <p className="text-xs leading-relaxed text-white">
-                  {business.about.length <= 100
+                  {business.about.length <= 50
                     ? business.about
-                    : `${business.about.substring(0, 100)}...`}
+                    : `${business.about.substring(0, 50)}...`}
                 </p>
                 {/* Added justify-end for right alignment */}
                 <div className="flex flex-row justify-between gap-2">

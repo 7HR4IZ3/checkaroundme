@@ -336,7 +336,7 @@ export default function Home() {
               onSortByChange={onSortByChange}
               locationsHierarchy={locationsHierarchy}
             />
-            <div className="space-y-6">
+            <div className="space-y-6 w-full">
               {isLoading ? (
                 <Loading />
               ) : geoError && !userLatitude ? (

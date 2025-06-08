@@ -1,4 +1,4 @@
-8"use client";
+"use client";
 
 import { Suspense, useState } from "react";
 import Image from "next/image";
@@ -187,44 +187,42 @@ function ForgotPasswordPageInner() {
 
   return (
     <GoogleReCaptchaProvider
-              type="v2-checkbox"
-              siteKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
-            >
-    <div className="flex flex-col p-8 gap-6 bg-background">
-      <div className="my-auto">
-        <Link href="/">
-          <Image
-            src="/images/logo.png"
-            alt="Checkaroundme"
-            width={200}
-            height={40}
-          />
-        </Link>
-      </div>
-      <div className="flex flex-col md:flex-row">
-        {/* Form container */}
-        <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 lg:p-16 h-[80vh]">
-          <div className="w-full max-w-md space-y-6">
-            
+      type="v2-checkbox"
+      siteKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
+    >
+      <div className="flex flex-col p-8 gap-6 bg-background">
+        <div className="my-auto">
+          <Link href="/">
+            <Image
+              src="/images/logo.png"
+              alt="Checkaroundme"
+              width={200}
+              height={40}
+            />
+          </Link>
+        </div>
+        <div className="flex flex-col md:flex-row">
+          {/* Form container */}
+          <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 lg:p-16 h-[80vh]">
+            <div className="w-full max-w-md space-y-6">
               <ForgotPasswordForm />
-            
+            </div>
+          </div>
+
+          {/* Image container */}
+          <div className="hidden md:block md:w-1/2 relative">
+            <Image
+              className="rounded-xl"
+              src="/images/signin-placeholder.jpg" // Consider a different image?
+              alt="Forgot password illustration" // Update alt text
+              style={{ objectFit: "cover" }}
+              fill
+              priority
+            />
           </div>
         </div>
-
-        {/* Image container */}
-        <div className="hidden md:block md:w-1/2 relative">
-          <Image
-            className="rounded-xl"
-            src="/images/signin-placeholder.jpg" // Consider a different image?
-            alt="Forgot password illustration" // Update alt text
-            style={{ objectFit: "cover" }}
-            fill
-            priority
-          />
-        </div>
       </div>
-    </div>
-      </GoogleReCaptchaProvider>
+    </GoogleReCaptchaProvider>
   );
 }
 
