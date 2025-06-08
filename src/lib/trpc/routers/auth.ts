@@ -243,10 +243,18 @@ export function createAuthProcedures(
         });
       }
 
-      await auth.account.createVerification(
-        `${process.env.APP_URL}/api/verify-email`
-      );
-      return { success: true };
+      try {
+        await auth.account.createVerification(
+          `${process.env.APP_URL}/api/verify-email`
+        );
+        return { success: true };
+      } catch (error) {
+        console.error("Failed to send verification email:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to send verification email. Please try again later.",
+        });
+      }
     }),
 
     getCurrentUser: t.procedure.input(z.void()).query(async () => {

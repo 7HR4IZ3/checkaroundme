@@ -6,6 +6,7 @@ import { trpc } from "@/lib/trpc/client";
 import { useAuth } from "@/lib/hooks/useClientAuth";
 import BusinessForm from "@/components/business/business-form"; // Import the new component
 import { toast } from "sonner";
+import Loading from "@/components/ui/loading";
 
 export default function BusinessEditForm() {
   const { isAuthenticated } = useAuth();
@@ -79,7 +80,7 @@ export default function BusinessEditForm() {
     : undefined;
 
   if (isBusinessLoading || isImagesLoading || isHoursLoading) {
-    return <div>Loading...</div>; // Or a loading spinner
+    return <Loading />;
   }
 
   if (businessError) {

@@ -1058,7 +1058,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="container flex flex-col space-y-8 p-8">
+    <div className="flex flex-col space-y-8 p-20 h-[80vh]">
       <div className="flex flex-col space-y-4">
         <div className="flex items-center justify-between">
           <div>

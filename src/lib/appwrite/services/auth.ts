@@ -103,14 +103,16 @@ export const AuthService = {
         // Check if user exists
         await databases.getDocument(DATABASE_ID, USERS_COLLECTION_ID, userId);
       } catch {
+        const user = await users.get(userId);
+
         // Create user profile in database
         await databases.createDocument(
           DATABASE_ID,
           USERS_COLLECTION_ID,
           userId,
           {
-            phone: null,
-            fullName: "",
+            phone: user.phone,
+            fullName: user.name,
             avatarUrl: null,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),

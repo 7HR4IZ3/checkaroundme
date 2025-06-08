@@ -532,15 +532,15 @@ export default function BusinessForm({
               className="rounded-4xl"
               onClick={() => handleToggleBusinessStatus(status)}
             >
-              {status === "active" ? "Disable" : "Enable"} Business
+              {status === "active" ? "Deactivate" : "Activate"} Business
             </Button>
           )}
-          {businessId && (
+          {/* {businessId && (
             <Button variant="ghost" size="icon" className="h-8 w-8">
               <MoreVertical className="h-4 w-4" />
               <span className="sr-only">More options</span>
             </Button>
-          )}
+          )} */}
           {/* --- Verify Business Button & Modal (Edit Mode Only) --- */}
           {businessId && (
             <Dialog>

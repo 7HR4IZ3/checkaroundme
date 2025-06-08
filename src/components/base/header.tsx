@@ -36,7 +36,7 @@ const SEARCH_PLACEHOLDERS = [
   "Event Planner",
   "Pest Control",
   "IT Support",
-  "Caterer"
+  "Caterer",
 ];
 
 const Header = () => {
@@ -95,7 +95,13 @@ const Header = () => {
 
   const sendEmail = async () => {
     if (sendEmailMutation.isPending || sendEmailMutation.isSuccess) return;
-    await sendEmailMutation.mutateAsync();
+    try {
+      await sendEmailMutation.mutateAsync();
+      // Optional: Show success toast
+    } catch (error) {
+      console.error("Failed to send verification email:", error);
+      // Optional: Show error toast
+    }
   };
 
   if (!auth.isAuthenticated && pathname?.startsWith("/auth")) {
@@ -104,17 +110,28 @@ const Header = () => {
 
   return (
     <header className="bg-background sticky top-0 z-50 border-b">
-      {auth.isAuthenticated && !auth.user?.emailVerification && (
+      {auth.isAuthenticated && !auth.user.emailVerification && (
         <div className="bg-yellow-100 text-yellow-800 text-center py-2 text-sm">
           Your email is not verified. Please check your inbox for a verification
           link or{" "}
           <button className="underline" onClick={() => sendEmail()}>
             click here to resend the email
           </button>
-          {sendEmailMutation.isPending ? " (sending...)" : ""}
-          .
+          {sendEmailMutation.isPending ? " (sending...)" : ""}.
         </div>
       )}
+
+      {/* {auth.isAuthenticated &&
+        auth.user.prefs.subscriptionStatus !== "active" && (
+          <div className="bg-yellow-100 text-yellow-800 text-center py-2 text-sm">
+            You are not subscribed yet. Subscribe to activate {" "}
+            <button className="underline" onClick={() => sendEmail()}>
+              click here to subscribe
+            </button>
+            {sendEmailMutation.isPending ? " (sending...)" : ""}.
+          </div>
+        )} */}
+
       <nav className="mx-4 px-2 sm:px-6 lg:px-4 py-4 flex justify-between items-center gap-4">
         <Link href="/" className="">
           <Image
@@ -142,7 +159,7 @@ const Header = () => {
                 <span
                   className={clsx(
                     "pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors duration-200",
-                    "w-[90%] overflow-hidden h-[2em] flex items-center select-none pl-2 text-xs md:text-md",
+                    "w-[90%] overflow-hidden h-[2em] flex items-center select-none pl-2 text-xs md:text-base",
                     fade
                       ? "opacity-100 transition-opacity duration-400"
                       : "opacity-0 transition-opacity duration-400"
@@ -157,7 +174,7 @@ const Header = () => {
               <Input
                 type="text"
                 placeholder="Location..."
-                className="w-3/5 px-4 py-2 focus:outline-none rounded-r-full hidden md:block md:rounded-none md:rounded-r-full md:border-l-0"
+                className="w-3/5 px-4 py-2 focus:outline-none rounded-r-full hidden md:block md:rounded-none md:rounded-r-full md:border-l-0 text-base"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
                 onKeyDown={handleKeyDown}

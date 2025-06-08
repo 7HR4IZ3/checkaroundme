@@ -18,6 +18,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FiltersPanel, Filters } from "@/components/ui/filters";
 import Loading from "@/components/ui/loading";
 import useGeolocation from "@/lib/hooks/useGeolocation"; // Import useGeolocation
+import { LocationData, organizeLocations } from "@/utils/location-helpers";
 
 export default function Home() {
   trpc.getAllCategories.usePrefetchQuery();
@@ -67,7 +68,7 @@ export default function Home() {
     searchParams?.get("max_distance") || "any"
   ); // e.g., "5km", "10km"
   const [sortBy, setSortBy] = useState<string>(
-    searchParams?.get("sort_by") || "rating"
+    searchParams?.get("sort_by") || "top"
   ); // e.g., "rating", "distance", "price_asc"
 
   // Pagination
@@ -244,7 +245,7 @@ export default function Home() {
         sortBy: sortField,
         sortDirection: sortDirection as "asc" | "desc",
       },
-      { enabled: !geoLoading } // Only enable query once geolocation is resolved (or errored)
+      { enabled: !geoLoading, refetchInterval: false } // Only enable query once geolocation is resolved (or errored)
     );
 
   const isLoading = queryIsLoading || geoLoading;
@@ -275,6 +276,37 @@ export default function Home() {
   const showingFrom = totalEntries === 0 ? 0 : (currentPage - 1) * limit + 1;
   const showingTo = Math.min(currentPage * limit, totalEntries);
 
+  // Store initial locations
+  const [initialLocations, setInitialLocations] = useState<LocationData[]>([]);
+  const locationsHierarchy = useMemo(() => {
+    return organizeLocations(initialLocations);
+  }, [initialLocations]);
+
+  // Update initialLocations only when first data arrives
+  useEffect(() => {
+    if (
+      list?.businesses &&
+      (!location || initialLocations.length === 0)
+    ) {
+      const uniqueLocations = new Set<string>();
+      const locationsList: LocationData[] = [];
+
+      list.businesses.forEach((b) => {
+        const locationKey = `${b.city}:${b.state}:${b.country}`;
+        if (!uniqueLocations.has(locationKey)) {
+          uniqueLocations.add(locationKey);
+          locationsList.push({
+            city: b.city,
+            stateCode: b.state,
+            countryCode: b.country!,
+          });
+        }
+      });
+
+      setInitialLocations(locationsList);
+    }
+  }, [list?.businesses, initialLocations.length, location]);
+
   return (
     <>
       <CategoryNav
@@ -282,12 +314,12 @@ export default function Home() {
         onChangeCategory={onChangeCategory}
       />
       <div className="container mx-auto px-4">
-        <div className="grid md:grid-cols-3 lg:grid-cols-8 gap-8">
+        <div className="flex flex-row gap-8">
           {/* Main content - Takes 2/3 on tablet, 5/8 on desktop */}
-          <div className="md:col-span-2 lg:col-span-5 py-8 space-y-4">
+          <div className="w-2/3 py-8 space-y-4">
             <h1 className="text-lg md:text-2xl font-semibold text-gray-800">
-              {selectedCategory || "All Service Providers"} near{" "}
-              {locationParam || "your current location"}
+              {selectedCategory || "All Service Providers"}
+              {locationParam ? ` in ${locationParam}` : ""}
             </h1>
             <FilterSortBar
               selectedCategories={otherFilterBarCategories}
@@ -302,6 +334,7 @@ export default function Home() {
               onChangeDistance={onChangeDistance}
               sortBy={sortBy}
               onSortByChange={onSortByChange}
+              locationsHierarchy={locationsHierarchy}
             />
             <div className="space-y-6">
               {isLoading ? (
@@ -374,8 +407,8 @@ export default function Home() {
           </div>
 
           {/* Map section - Takes 1/3 on tablet, 3/8 on desktop */}
-          <div className="hidden md:block md:col-span-1 lg:col-span-3">
-            <div className="sticky top-8 h-[calc(100vh-8rem)]">
+          <div className="hidden md:flex flex-col items-center justify-center h-[100vh] w-1/3">
+            <div className="h-[60vh] w-full">
               <MapPlaceholder businesses={list?.businesses || []} />
             </div>
           </div>

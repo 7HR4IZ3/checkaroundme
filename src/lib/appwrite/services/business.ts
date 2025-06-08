@@ -448,7 +448,7 @@ export const BusinessService = {
         sortBy = "maxPrice";
       }
 
-      sortBy != "distance" &&
+      !["distance", "top"].includes(sortBy) &&
         queryOptions.push(
           sortDirection === "asc"
             ? Query.orderAsc(sortBy)
@@ -522,11 +522,16 @@ export const BusinessService = {
       }
 
       // 3. Sory by distance
-      if (sortBy === "distance" && userLatitude && userLongitude) {
+      if (
+        (sortBy === "distance" || sortBy === "top") &&
+        userLatitude &&
+        userLongitude
+      ) {
         processedBusinesses = processedBusinesses.sort((a, b) => {
           if (!a.coordinates || !b.coordinates) {
             return 0;
           }
+
           const aCoords = JSON.parse(a.coordinates);
           const bCoords = JSON.parse(b.coordinates);
           const distanceA = getHaversineDistance(
@@ -543,6 +548,14 @@ export const BusinessService = {
           );
           return distanceA - distanceB;
         });
+
+        if (sortBy === "top") {
+          // Randomly shuffle
+          processedBusinesses = processedBusinesses
+            .map((value) => ({ value, sort: Math.random() }))
+            .sort((a, b) => a.sort - b.sort)
+            .map(({ value }) => value);
+        }
       }
 
       return {

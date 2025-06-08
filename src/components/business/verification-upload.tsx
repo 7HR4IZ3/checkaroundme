@@ -121,10 +121,10 @@ export function VerificationUpload({ businessId }: VerificationUploadProps) {
   const isLoading = isUploading || mutation.isPending;
 
   return (
-    <div className="space-y-4 p-4 border rounded-md shadow-sm">
-      <Label htmlFor="verification-file" className="text-lg font-semibold">
+    <div className="space-y-4">
+      {/* <Label htmlFor="verification-file" className="text-lg font-semibold">
         Upload Verification Document
-      </Label>
+      </Label> */}
       <p className="text-sm text-muted-foreground">
         Upload a document (PDF, JPG, PNG) to verify your business.
       </p>
@@ -135,7 +135,7 @@ export function VerificationUpload({ businessId }: VerificationUploadProps) {
         onChange={handleFileChange}
         disabled={isLoading}
         // Basic styling for the file input button itself
-        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white dark:text-black-foreground hover:file:bg-primary/90 cursor-pointer"
+        className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:flex file:items-center file:text-white dark:text-black-foreground hover:file:bg-primary/90 cursor-pointer"
       />
       {selectedFile && !isLoading && (
         <p className="text-sm text-muted-foreground">

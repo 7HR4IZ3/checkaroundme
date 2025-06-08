@@ -539,19 +539,20 @@ export default function BusinessPage() {
           <div className="md:flex-grow space-y-8">
             {/* Business Info */}
             <section>
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center justify-between gap-2 mb-2">
                 <h1
                   className="text-3xl font-bold"
                   style={{ viewTransitionName: `business-${businessId}-name` }}
                 >
                   {business.name}
                 </h1>
+                <div className="flex flex-row gap-2">
                 {user?.$id === business.ownerId && (
                   <Link
                     className="ml-2 flex items-center gap-1"
                     href={`/business/${businessId}/edit`}
                   >
-                    <Button>
+                    <Button variant="outline">
                       <Pencil className="w-4 h-4 mr-1" />
                       Edit Business
                     </Button>
@@ -579,6 +580,7 @@ export default function BusinessPage() {
                       : "Activate"}
                   </Button>
                 )}
+                </div>
               </div>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-2">
                 <div className="flex items-center gap-1">
@@ -647,7 +649,6 @@ export default function BusinessPage() {
                     </Button>
                     <Button
                       variant="outline"
-                      className="bg-primary text-white dark:text-black"
                       onClick={() => setIsWriteReviewModalOpen(true)}
                     >
                       <Star className="mr-2 h-4 w-4" /> Write a review

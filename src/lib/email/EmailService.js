@@ -1,13 +1,11 @@
-import "dotenv/config";
-
+import "dotenv/config"
 import nodemailer from "nodemailer";
-import type { Transporter } from "nodemailer";
 
 /**
  * A service for sending emails using Nodemailer.
  */
 export class EmailService {
-  private transporter: Transporter;
+  // private transporter: Transporter;
 
   constructor() {
     // Configure Nodemailer transporter
@@ -27,18 +25,31 @@ export class EmailService {
     this.transporter = nodemailer.createTransport({
       host: process.env.PRIVATE_MAIL_SMTP_HOST,
       port: parseInt(process.env.PRIVATE_MAIL_SMTP_PORT || "587", 10), // Default SMTP port
-      secure: process.env.PRIVATE_MAIL_SMTP_SECURE === "true", // true for 465, false for other ports
+      secure: false, // Set to false for TLS
+      requireTLS: true, // Require TLS
       auth: {
         user: process.env.PRIVATE_MAIL_SMTP_USER,
         pass: process.env.PRIVATE_MAIL_SMTP_PASS,
       },
-      // Optional: Add TLS options if needed
       // tls: {
-      //   rejectUnauthorized: false
-      // }
+      //   // Do not fail on invalid certificates
+      //   rejectUnauthorized: false,
+      //   ciphers: "SSLv3",
+      // },
     });
 
-    // console.log("EmailService initialized with Nodemailer.");
+    console.log({
+      host: process.env.PRIVATE_MAIL_SMTP_HOST,
+      port: parseInt(process.env.PRIVATE_MAIL_SMTP_PORT || "587", 10), // Default SMTP port
+      secure: false, // Set to false for TLS
+      requireTLS: true, // Require TLS
+      auth: {
+        user: process.env.PRIVATE_MAIL_SMTP_USER,
+        pass: process.env.PRIVATE_MAIL_SMTP_PASS,
+      },
+    });
+
+    console.log("EmailService initialized with Nodemailer.");
   }
 
   /**
@@ -46,8 +57,8 @@ export class EmailService {
    * @param email The recipient's email address.
    * @param name The recipient's name.
    */
-  async sendBusinessWelcomeEmail(email: string, name?: string): Promise<void> {
-    // console.log(`Attempting to send welcome email to ${name || email}...`);
+  async sendBusinessWelcomeEmail(email, name) {
+    console.log(`Attempting to send welcome email to ${name || email}...`);
 
     const subject = "Welcome to the Checkaroundme family!";
     const textBody = `
@@ -96,18 +107,17 @@ The Checkaroundme Team
 </div>
     `.trim();
 
-    const mailOptions = {
-      from:
-        process.env.PRIVATE_MAIL_SMTP_FROM_EMAIL ||
-        '"Checkaroundme" <noreply@checkaroundme.com>', // Sender address
-      to: email, // List of recipients
-      subject: subject, // Subject line
-      text: textBody, // Plain text body
-      html: htmlBody, // HTML body
-    };
-
     try {
-      const info = await this.transporter.sendMail(mailOptions);
+      const info = await this.transporter.sendMail({
+        from:
+          process.env.PRIVATE_MAIL_SMTP_FROM_EMAIL ||
+          '"Checkaroundme" <support@checkaroundme.com>', // Sender address
+        to: email, // List of recipients
+        subject: subject, // Subject line
+        // text: textBody, // Plain text body
+        html: htmlBody, // HTML body
+      });
+      console.log(info);
       console.log(
         `Welcome email sent successfully to ${email}: ${info.messageId}`
       );
@@ -123,8 +133,8 @@ The Checkaroundme Team
    * @param email The recipient's email address.
    * @param name The recipient's name.
    */
-  async sendUserWelcomeEmail(email: string, name?: string): Promise<void> {
-    // console.log(`Attempting to send user welcome email to ${name || email}...`);
+  async sendUserWelcomeEmail(email, name) {
+    console.log(`Attempting to send user welcome email to ${name || email}...`);
 
     const subject =
       "Welcome to Checkaroundme - Your Gateway to Local Services!";
@@ -195,12 +205,13 @@ The Checkaroundme Team
         '"Checkaroundme" <noreply@checkaroundme.com>',
       to: email,
       subject: subject,
-      text: textBody,
+      // text: textBody,
       html: htmlBody,
     };
 
     try {
       const info = await this.transporter.sendMail(mailOptions);
+      console.log(info);
       console.log(
         `User welcome email sent successfully to ${email}: ${info.messageId}`
       );
@@ -215,5 +226,5 @@ The Checkaroundme Team
 
 export const emailService = new EmailService();
 
-// await emailService.sendUserWelcomeEmail("iamthraize@gmail.com", "Thraize");
-// await emailService.sendBusinessWelcomeEmail("iamthraize@gmail.com", "Thraize");
+await emailService.sendUserWelcomeEmail("iamthraize@gmail.com", "Thraize");
+await emailService.sendBusinessWelcomeEmail("iamthraize@gmail.com", "Thraize");

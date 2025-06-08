@@ -13,6 +13,7 @@ import { Skeleton } from "../ui/skeleton";
 import { useAuth } from "@/lib/hooks/useClientAuth";
 import { redirect, useRouter } from "next/navigation";
 import { PhoneCallIcon } from "lucide-react";
+import { formatLocationString } from "@/utils/location-helpers";
 
 const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
   business,
@@ -53,7 +54,10 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
               // onClick={() => router.push(`/business/${business.$id}`)}
             >
               {/* Top section: Name, Address, Category, Rating */}
-              <div className="flex flex-col"  onClick={() => router.push(`/business/${business.$id}`)}>
+              <div
+                className="flex flex-col"
+                onClick={() => router.push(`/business/${business.$id}`)}
+              >
                 <div className="flex flex-wrap justify-between mb-2">
                   {/* Name (Top Left) */}
                   <Link href={`/business/${business.$id}`}>
@@ -65,7 +69,12 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
                   <div className="flex items-center text-xs text-white">
                     <FaMapMarkerAlt className="mr-1" />
                     <span className="text-xs">
-                      {business.addressLine1}, {business.city}{" "}
+                      {business.addressLine1},{" "}
+                      {formatLocationString(
+                        business.country,
+                        business.state,
+                        business.city
+                      )}
                     </span>
                   </div>
                 </div>
@@ -159,7 +168,12 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
             <div className="flex items-center text-sm text-gray-600 shrink-0">
               <FaMapMarkerAlt className="mr-1.5" />
               <span>
-                {business.addressLine1}, {business.city}
+                {business.addressLine1}, {" "}
+                {formatLocationString(
+                  business.country,
+                  business.state,
+                  business.city
+                )}
               </span>
             </div>
           </div>

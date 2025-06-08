@@ -47,8 +47,8 @@ export const businessSchema = z.object({
   addressLine1: z.string(),
   addressLine2: z.string().optional(),
   city: z.string(),
-  state: z.string().optional(),
-  country: z.string().optional(),
+  state: z.string(),
+  country: z.string(),
   postalCode: z.string().optional(),
   paymentOptions: z.array(z.string()).optional(), // e.g., ["cash", "bank_transfers"] - Can be used for filtering
   coordinates: z.string().optional(),
