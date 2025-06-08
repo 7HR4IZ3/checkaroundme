@@ -1,4 +1,4 @@
-"use client";
+8"use client";
 
 import { Suspense, useState } from "react";
 import Image from "next/image";
@@ -186,6 +186,10 @@ function ForgotPasswordPageInner() {
   if (auth.isAuthenticated) return redirect("/");
 
   return (
+    <GoogleReCaptchaProvider
+              type="v2-checkbox"
+              siteKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
+            >
     <div className="flex flex-col p-8 gap-6 bg-background">
       <div className="my-auto">
         <Link href="/">
@@ -201,12 +205,9 @@ function ForgotPasswordPageInner() {
         {/* Form container */}
         <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-8 lg:p-16 h-[80vh]">
           <div className="w-full max-w-md space-y-6">
-            <GoogleReCaptchaProvider
-              type="v2-checkbox"
-              siteKey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
-            >
+            
               <ForgotPasswordForm />
-            </GoogleReCaptchaProvider>
+            
           </div>
         </div>
 
@@ -223,6 +224,7 @@ function ForgotPasswordPageInner() {
         </div>
       </div>
     </div>
+      </GoogleReCaptchaProvider>
   );
 }
 
