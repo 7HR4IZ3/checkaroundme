@@ -5,13 +5,13 @@ import { trpc } from "@/lib/trpc/client";
 
 export default function VerificationPage() {
   const params = useParams();
-  const documentId = params.documentId as string;
+  const documentId = params?.documentId as string;
 
   const {
     data: submission,
     isLoading,
     error,
-  } = trpc.getAnonymousSubmissionById.useQuery(documentId);
+  } = trpc.getAnonymousSubmissionById.useQuery(documentId, { enabled: !!documentId });
 
   if (isLoading) {
     return <div>Loading...</div>;

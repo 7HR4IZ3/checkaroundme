@@ -116,9 +116,9 @@ export default function AnonymousSubmissionsPage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const password = searchParams.get("password");
-  const currentPage = Number(searchParams.get("page")) || 1;
-  const perPage = Number(searchParams.get("per_page")) || 20;
+  const password = searchParams?.get("password");
+  const currentPage = Number(searchParams?.get("page")) || 1;
+  const perPage = Number(searchParams?.get("per_page")) || 20;
 
   const [hasAccess, setHasAccess] = useState(false);
   const [selectedSubmissions, setSelectedSubmissions] = useState<Set<string>>(
@@ -217,7 +217,7 @@ export default function AnonymousSubmissionsPage() {
   };
 
   const updateQueryParams = (newPage: number, newPerPage?: number) => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams || "");
     params.set("page", newPage.toString());
     if (newPerPage) params.set("per_page", newPerPage.toString());
     router.push(`${pathname}?${params.toString()}`);

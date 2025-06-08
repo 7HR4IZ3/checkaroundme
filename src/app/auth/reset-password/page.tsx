@@ -17,8 +17,8 @@ import { trpc } from "@/lib/trpc/client";
 function ResetPasswordForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const userId = params.get("userId");
-  const secret = params.get("secret");
+  const userId = params?.get("userId");
+  const secret = params?.get("secret");
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

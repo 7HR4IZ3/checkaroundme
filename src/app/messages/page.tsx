@@ -108,7 +108,7 @@ function ConversationItem({
 export default function MessagesPage() {
   const { user, profile, isAuthenticated } = useAuth(); // Get current user from auth hook
   const searchParams = useSearchParams(); // Get search params
-  const recipientId = searchParams.get("recipient"); // Get recipient ID
+  const recipientId = searchParams?.get("recipient"); // Get recipient ID
 
   if (!isAuthenticated) {
     redirect("/auth?next=" + window.location.pathname);

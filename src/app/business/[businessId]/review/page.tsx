@@ -15,7 +15,7 @@ export default function ReviewForm() {
   const params = useParams();
   const { user, isAuthenticated } = useAuth();
 
-  const businessId = params.businessId as string;
+  const businessId = params?.businessId as string;
   if (!isAuthenticated || !businessId) {
     return redirect("/");
   }
