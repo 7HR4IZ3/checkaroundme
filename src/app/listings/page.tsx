@@ -316,7 +316,7 @@ export default function Home() {
       <div className="container mx-auto px-4">
         <div className="flex flex-row gap-8">
           {/* Main content - Takes 2/3 on tablet, 5/8 on desktop */}
-          <div className="w-2/3 py-8 space-y-4">
+          <div className="w-full md:w-2/3 py-8 space-y-4">
             <h1 className="text-lg md:text-2xl font-semibold text-gray-800">
               {selectedCategory || "All Service Providers"}
               {locationParam ? ` in ${locationParam}` : ""}
