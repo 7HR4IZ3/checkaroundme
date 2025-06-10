@@ -142,7 +142,7 @@ const Header = () => {
           />
         </Link>
 
-        <div className="space-x-2 flex-grow w-2/4">
+        <div className="space-x-2 flex justify-center flex-grow w-2/4">
           <div className="flex items-center justify-center gap-2 w-full md:w-[40vw] lg:w-[40%]">
             <div className="flex items-center border border-gray-300 rounded-full flex-grow relative">
               <Input
