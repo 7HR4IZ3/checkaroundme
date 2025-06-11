@@ -156,7 +156,7 @@ const ListingCard: React.FC<{ business: Business; hideButton?: boolean }> = ({
       <div className="hidden md:flex flex-1 flex-col gap-6">
         {/* Main info column */}
         <div className="flex flex-col flex-1 gap-3 py-2">
-          <div className="flex justify-between items-start gap-4">
+          <div className="flex flex-wrap justify-between items-start gap-4">
             <Link href={`/business/${business.$id}`} className="shrink-0">
               <h3
                 className="text-xl font-semibold text-gray-900 hover:text-primary transition-colors"
