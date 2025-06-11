@@ -93,7 +93,12 @@ const CategoryNav: React.FC<CategoryNavProps> = ({
   selectedCategory,
   onChangeCategory,
 }) => {
-  const { data: categories = [], isLoading } = trpc.getAllCategories.useQuery();
+  const { data: categories = [], isLoading } = trpc.getAllCategories.useQuery(
+    undefined,
+    {
+      staleTime: Infinity,
+    }
+  );
   const [displayCount, setDisplayCount] = useState(
     typeof window !== "undefined" ? (window.innerWidth < 768 ? 3 : 4) : 3
   );
@@ -110,7 +115,7 @@ const CategoryNav: React.FC<CategoryNavProps> = ({
   // Handle single-select category
   const handleCategoryClick = (categoryName: string) => {
     if (selectedCategory === categoryName) {
-      onChangeCategory(null); // Deselect if already selected
+      onChangeCategory(null);
     } else {
       onChangeCategory(categoryName);
     }
@@ -172,5 +177,8 @@ const CategoryNav: React.FC<CategoryNavProps> = ({
     </nav>
   );
 };
+
+// Add display name for debugging
+CategoryNav.displayName = "CategoryNav";
 
 export default CategoryNav;

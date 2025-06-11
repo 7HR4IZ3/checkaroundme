@@ -39,6 +39,54 @@ const SEARCH_PLACEHOLDERS = [
   "Caterer",
 ];
 
+interface RollingPlaceholderProps {
+  isVisible: boolean;
+}
+
+const RollingPlaceholder = React.memo(
+  ({ isVisible }: RollingPlaceholderProps) => {
+    const [placeholderIdx, setPlaceholderIdx] = useState(0);
+    const [fade, setFade] = useState(true);
+
+    React.useEffect(() => {
+      if (!isVisible) return;
+      let fadeTimeout: NodeJS.Timeout;
+      let idxTimeout: NodeJS.Timeout;
+
+      fadeTimeout = setTimeout(() => setFade(false), 1700); // Start fade out
+      idxTimeout = setTimeout(() => {
+        setPlaceholderIdx((idx) => (idx + 1) % SEARCH_PLACEHOLDERS.length);
+        setFade(true); // Fade in new text
+      }, 2200);
+
+      return () => {
+        clearTimeout(fadeTimeout);
+        clearTimeout(idxTimeout);
+      };
+    }, [placeholderIdx, isVisible]);
+
+    if (!isVisible) return null;
+
+    return (
+      <span
+        className={clsx(
+          "pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors duration-200",
+          "w-[90%] overflow-hidden h-[2em] flex items-center select-none pl-2 text-xs md:text-base",
+          fade
+            ? "opacity-100 transition-opacity duration-400"
+            : "opacity-0 transition-opacity duration-400"
+        )}
+        style={{ zIndex: 1 }}
+        aria-hidden="true"
+      >
+        {SEARCH_PLACEHOLDERS[placeholderIdx]}
+      </span>
+    );
+  }
+);
+
+RollingPlaceholder.displayName = "RollingPlaceholder";
+
 const Header = () => {
   const auth = useAuth();
   const router = useRouter();
@@ -50,31 +98,10 @@ const Header = () => {
 
   const { data: businesses, isLoading } = trpc.getBusinessesByUserId.useQuery(
     { userId: auth.user?.$id || "" },
-    { enabled: auth.isAuthenticated && !!auth.user?.$id }
+    { enabled: auth.isAuthenticated && !!auth.user?.$id, staleTime: Infinity }
   );
 
   const sendEmailMutation = trpc.sendEmailVerification.useMutation();
-
-  // Rolling placeholder state
-  const [placeholderIdx, setPlaceholderIdx] = useState(0);
-  const [fade, setFade] = useState(true);
-
-  React.useEffect(() => {
-    if (search) return;
-    let fadeTimeout: NodeJS.Timeout;
-    let idxTimeout: NodeJS.Timeout;
-
-    fadeTimeout = setTimeout(() => setFade(false), 1700); // Start fade out
-    idxTimeout = setTimeout(() => {
-      setPlaceholderIdx((idx) => (idx + 1) % SEARCH_PLACEHOLDERS.length);
-      setFade(true); // Fade in new text
-    }, 2200);
-
-    return () => {
-      clearTimeout(fadeTimeout);
-      clearTimeout(idxTimeout);
-    };
-  }, [placeholderIdx, search]);
 
   // Handler to perform search
   const handleSearch = useCallback(() => {
@@ -154,22 +181,7 @@ const Header = () => {
                 placeholder=""
                 autoComplete="off"
               />
-              {/* Rolling placeholder overlay */}
-              {!search && (
-                <span
-                  className={clsx(
-                    "pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors duration-200",
-                    "w-[90%] overflow-hidden h-[2em] flex items-center select-none pl-2 text-xs md:text-base",
-                    fade
-                      ? "opacity-100 transition-opacity duration-400"
-                      : "opacity-0 transition-opacity duration-400"
-                  )}
-                  style={{ zIndex: 1 }}
-                  aria-hidden="true"
-                >
-                  {SEARCH_PLACEHOLDERS[placeholderIdx]}
-                </span>
-              )}
+              <RollingPlaceholder isVisible={!search} />
               <div className="w-px h-6 bg-gray-300 hidden md:block"></div>
               <Input
                 type="text"

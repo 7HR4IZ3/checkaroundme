@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { FaSlidersH, FaChevronDown, FaChevronRight } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import {
@@ -59,6 +59,33 @@ const SORT_OPTIONS = [
   { label: "Price: High to Low", value: "price_desc" },
 ];
 
+// Memoized location menu items
+const LocationMenuItem = React.memo(
+  ({
+    label,
+    onClick,
+    indent = 0,
+    hasChildren = false,
+  }: {
+    label: string;
+    onClick: () => void;
+    indent?: number;
+    hasChildren?: boolean;
+  }) => (
+    <DropdownMenuItem
+      className={`flex items-center justify-between ${
+        indent ? `pl-${indent * 4}` : ""
+      }`}
+      onClick={onClick}
+    >
+      <span>{label}</span>
+      {hasChildren && <FaChevronRight size={12} />}
+    </DropdownMenuItem>
+  )
+);
+
+LocationMenuItem.displayName = "LocationMenuItem";
+
 const FilterSortBar: React.FC<FilterSortBarProps> = ({
   selectedCategories,
   onChangeCategories,
@@ -83,70 +110,93 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
     }
   };
 
-  // This function is kept to resolve the error, though direct calls to onSortByChange are preferred
   const handlePriceSortClick = (sortValue: string) => {
     onSortByChange(sortValue);
   };
 
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
-  const [selectedState, setSelectedState] = useState<string | null>(null);
-  const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  // Memoize location selection handlers
+  const handleLocationChange = useCallback(
+    (country: string | null, state?: string, city?: string) => {
+      if (city && state && country) {
+        onChangeLocation(`${city}, ${state}, ${country}`);
+      } else if (state && country) {
+        onChangeLocation(`${state}, ${country}`);
+      } else if (country) {
+        onChangeLocation(country);
+      } else {
+        onChangeLocation(null);
+      }
+    },
+    [onChangeLocation]
+  );
 
-  // Add state for controlling dropdown menus
-  const [isOpen, setIsOpen] = useState(false);
-  const [activeCountry, setActiveCountry] = useState<string | null>(null);
-  const [activeState, setActiveState] = useState<string | null>(null);
+  const handleResetLocation = useCallback(() => {
+    onChangeLocation(null);
+  }, [onChangeLocation]);
 
-  // Modify the open states to include nesting
-  const [isLocationOpen, setIsLocationOpen] = useState(false);
-  const [openMenus, setOpenMenus] = useState<{
-    country: string | null;
-    state: string | null;
-  }>({
-    country: null,
-    state: null,
-  });
+  // Memoize location dropdown content
+  const locationDropdownContent = useMemo(
+    () => (
+      <DropdownMenuContent className="w-[280px] max-h-[400px] overflow-y-auto">
+        <div className="p-2 border-b">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start text-muted-foreground"
+            onClick={handleResetLocation}
+          >
+            Reset Location
+          </Button>
+        </div>
+        <LocationMenuItem
+          label="All Locations"
+          onClick={() => handleLocationChange(null)}
+        />
+        {Object.entries(locationsHierarchy).map(
+          ([country, { name, states }]) => (
+            <div key={country} className="group">
+              <LocationMenuItem
+                label={name}
+                onClick={() => handleLocationChange(country)}
+                hasChildren={Object.keys(states).length > 0}
+                indent={0}
+              />
+              {Object.entries(states).map(
+                ([state, { name: stateName, cities }]) => (
+                  <div key={state}>
+                    <LocationMenuItem
+                      label={stateName}
+                      onClick={() => handleLocationChange(country, state)}
+                      hasChildren={cities.length > 0}
+                      indent={1}
+                    />
+                    {cities.map((city) => (
+                      <LocationMenuItem
+                        key={city}
+                        label={city}
+                        onClick={() =>
+                          handleLocationChange(country, state, city)
+                        }
+                        indent={2}
+                      />
+                    ))}
+                  </div>
+                )
+              )}
+            </div>
+          )
+        )}
+      </DropdownMenuContent>
+    ),
+    [locationsHierarchy, handleLocationChange, handleResetLocation]
+  );
 
-  const handleLocationChange = (
-    country: string | null,
-    state?: string,
-    city?: string
-  ) => {
-    setSelectedCountry(country);
-    setSelectedState(state || null);
-    setSelectedCity(city || null);
-
-    // Close all dropdowns
-    setIsLocationOpen(false);
-    setOpenMenus({ country: null, state: null });
-
-    if (city && state && country) {
-      onChangeLocation(`${city}, ${state}, ${country}`);
-    } else if (state && country) {
-      onChangeLocation(`${state}, ${country}`);
-    } else if (country) {
-      onChangeLocation(country);
-    } else {
-      onChangeLocation(null);
-    }
-  };
-
-  // Replace the handleCountryClick and handleStateClick with these
-  const handleCountryClick = (countryCode: string, event: React.MouseEvent) => {
-    event.stopPropagation();
-    setOpenMenus((prev) => ({
-      country: prev.country === countryCode ? null : countryCode,
-      state: null,
-    }));
-  };
-
-  const handleStateClick = (stateCode: string, event: React.MouseEvent) => {
-    event.stopPropagation();
-    setOpenMenus((prev) => ({
-      ...prev,
-      state: prev.state === stateCode ? null : stateCode,
-    }));
-  };
+  // Memoize selected location display
+  const selectedLocationDisplay = useMemo(() => {
+    if (!selectedLocation) return "All Locations";
+    const parts = selectedLocation.split(", ");
+    return parts[0]; // Show only the most specific part (city or state or country)
+  }, [selectedLocation]);
 
   return (
     <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
@@ -219,107 +269,18 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
         <span className="text-xs md:text-sm text-gray-600 hidden md:block">
           Location:
         </span>
-        <DropdownMenu open={isLocationOpen} onOpenChange={setIsLocationOpen}>
+        <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
               size="sm"
               className="w-[180px] justify-between"
             >
-              {selectedCity
-                ? selectedCity
-                : selectedState
-                ? (selectedCountry
-                    ? State.getStateByCodeAndCountry(
-                        selectedState,
-                        selectedCountry
-                      )
-                    : State.getStateByCode(selectedState)
-                  )?.name
-                : selectedCountry
-                ? Country.getCountryByCode(selectedCountry)?.name
-                : "All Locations"}
+              {selectedLocationDisplay}
               <FaChevronDown className="ml-2" size={12} />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-[220px] max-h-[400px] overflow-y-auto">
-            <DropdownMenuItem onClick={() => handleLocationChange(null)}>
-              All Locations
-            </DropdownMenuItem>
-            {Object.entries(locationsHierarchy).map(
-              ([country, { name, states }]) => (
-                <DropdownMenu
-                  key={country}
-                  open={openMenus.country === country}
-                  onOpenChange={(open) => {
-                    setOpenMenus((prev) => ({
-                      country: open ? country : null,
-                      state: null,
-                    }));
-                  }}
-                >
-                  <DropdownMenuTrigger
-                    className="w-full px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-default flex items-center justify-between"
-                    onClick={(event) => handleCountryClick(country, event)}
-                  >
-                    {name}
-                    <FaChevronRight size={12} />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent side="right" className="w-[220px]">
-                    <DropdownMenuItem
-                      onClick={() => handleLocationChange(country)}
-                    >
-                      All in {name}
-                    </DropdownMenuItem>
-                    {Object.entries(states).map(
-                      ([state, { name: stateName, cities }]) => (
-                        <DropdownMenu
-                          key={state}
-                          open={openMenus.state === state}
-                          onOpenChange={(open) => {
-                            setOpenMenus((prev) => ({
-                              ...prev,
-                              state: open ? state : null,
-                            }));
-                          }}
-                        >
-                          <DropdownMenuTrigger
-                            className="w-full px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground cursor-default flex items-center justify-between"
-                            onClick={(event) => handleStateClick(state, event)}
-                          >
-                            {stateName}
-                            <FaChevronRight size={12} />
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent
-                            side="right"
-                            className="w-[220px]"
-                          >
-                            <DropdownMenuItem
-                              onClick={() =>
-                                handleLocationChange(country, state)
-                              }
-                            >
-                              All in {stateName}
-                            </DropdownMenuItem>
-                            {cities.map((city) => (
-                              <DropdownMenuItem
-                                key={city}
-                                onClick={() =>
-                                  handleLocationChange(country, state, city)
-                                }
-                              >
-                                {city}
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )
-            )}
-          </DropdownMenuContent>
+          {locationDropdownContent}
         </DropdownMenu>
         <span className="text-xs md:text-sm text-gray-600 mx-2 hidden md:block">
           Sort:
@@ -349,4 +310,5 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
   );
 };
 
-export default FilterSortBar;
+// Memoize the entire component
+export default React.memo(FilterSortBar);

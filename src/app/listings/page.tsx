@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import CategoryNav from "@/components/listing/category-nav";
 import FilterSortBar from "@/components/listing/filter-sort-bar";
-import ListingCard from "@/components/listing/listing-card";
+import ListingCardsList from "@/components/listing/listing-cards-list";
 import {
   Pagination,
   PaginationContent,
@@ -20,8 +20,70 @@ import Loading from "@/components/ui/loading";
 import useGeolocation from "@/lib/hooks/useGeolocation"; // Import useGeolocation
 import { LocationData, organizeLocations } from "@/utils/location-helpers";
 
+// Memoize all components that receive props
+const MemoizedCategoryNav = React.memo(CategoryNav);
+const MemoizedListingCardsList = React.memo(ListingCardsList);
+const MemoizedFilterSortBar = React.memo(FilterSortBar);
+const MemoizedMapPlaceholder = React.memo(MapPlaceholder);
+
+// Memoize pagination component with its contents
+const MemoizedPagination = React.memo(
+  ({
+    currentPage,
+    totalPages,
+    onPageChange,
+  }: {
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+  }) => (
+    <Pagination>
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious
+            aria-disabled={currentPage === 1}
+            onClick={() => {
+              currentPage >= 1 && onPageChange(currentPage - 1);
+              typeof window !== "undefined" &&
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+          />
+        </PaginationItem>
+        {Array.from({ length: totalPages }).map((_, i) => (
+          <PaginationItem key={i + 1}>
+            <PaginationLink
+              onClick={() => {
+                onPageChange(i + 1);
+                typeof window !== "undefined" &&
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              isActive={currentPage === i + 1}
+            >
+              {i + 1}
+            </PaginationLink>
+          </PaginationItem>
+        ))}
+        <PaginationItem>
+          <PaginationNext
+            aria-disabled={currentPage === totalPages}
+            onClick={() => {
+              currentPage < totalPages && onPageChange(currentPage + 1);
+              typeof window !== "undefined" &&
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+          />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  )
+);
+
+MemoizedPagination.displayName = "MemoizedPagination";
+
 export default function Home() {
-  trpc.getAllCategories.usePrefetchQuery();
+  trpc.getAllCategories.usePrefetchQuery(undefined, {
+    staleTime: Infinity,
+  });
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -245,7 +307,7 @@ export default function Home() {
         sortBy: sortField,
         sortDirection: sortDirection as "asc" | "desc",
       },
-      { enabled: !geoLoading, refetchInterval: false } // Only enable query once geolocation is resolved (or errored)
+      { enabled: !geoLoading, staleTime: Infinity }
     );
 
   const isLoading = queryIsLoading || geoLoading;
@@ -284,10 +346,7 @@ export default function Home() {
 
   // Update initialLocations only when first data arrives
   useEffect(() => {
-    if (
-      list?.businesses &&
-      (!location || initialLocations.length === 0)
-    ) {
+    if (list?.businesses && (!location || initialLocations.length === 0)) {
       const uniqueLocations = new Set<string>();
       const locationsList: LocationData[] = [];
 
@@ -309,19 +368,18 @@ export default function Home() {
 
   return (
     <>
-      <CategoryNav
+      <MemoizedCategoryNav
         selectedCategory={selectedCategory}
         onChangeCategory={onChangeCategory}
       />
-      <div className="container mx-auto px-4">
+      <div className="mx-auto px-2 md:px-8 lg:px-16">
         <div className="flex flex-row gap-8">
-          {/* Main content - Takes 2/3 on tablet, 5/8 on desktop */}
-          <div className="w-full md:w-2/3 py-8 space-y-4">
+          <div className="w-full md:w-2/5 py-8 space-y-4">
             <h1 className="text-lg md:text-2xl font-semibold text-gray-800">
               {selectedCategory || "All Service Providers"}
               {locationParam ? ` in ${locationParam}` : ""}
             </h1>
-            <FilterSortBar
+            <MemoizedFilterSortBar
               selectedCategories={otherFilterBarCategories}
               onChangeCategories={onChangeOtherFilterBarCategories}
               onOpenFiltersPanel={onOpenFiltersPanel}
@@ -336,80 +394,34 @@ export default function Home() {
               onSortByChange={onSortByChange}
               locationsHierarchy={locationsHierarchy}
             />
-            <div className="space-y-6 w-full">
-              {isLoading ? (
-                <Loading />
-              ) : geoError && !userLatitude ? (
-                <div className="text-center text-gray-500">
-                  Could not determine your location. Please enable location
-                  services or select a location manually.
-                </div>
-              ) : !list || list.businesses.length === 0 ? (
-                <div className="text-center text-gray-500">
-                  No service providers found matching your criteria.
-                </div>
-              ) : (
-                list.businesses.map((business, index) => (
-                  <ListingCard
-                    key={business.$id || index}
-                    business={business}
-                  />
-                ))
-              )}
+            <div className="space-y-6 w-full h-full md:h-[75vh] overflow-y-auto">
+              <MemoizedListingCardsList
+                isLoading={isLoading}
+                geoError={geoError}
+                userLatitude={userLatitude}
+                businesses={list?.businesses}
+              />
             </div>
+
             {/* Updated Pagination Section */}
             {totalPages > 1 && (
               <div className="mt-4 flex items-center justify-between">
                 <div className="text-sm text-muted-foreground">
                   Showing {showingFrom} to {showingTo} of {totalEntries} entries
                 </div>
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious
-                        aria-disabled={currentPage === 1}
-                        onClick={() => {
-                          currentPage >= 1 && onPageChange(currentPage - 1);
-                          typeof window !== "undefined" &&
-                            window.scrollTo({ top: 0, behavior: "smooth" });
-                        }}
-                      />
-                    </PaginationItem>
-                    {Array.from({ length: totalPages }).map((_, i) => (
-                      <PaginationItem key={i + 1}>
-                        <PaginationLink
-                          onClick={() => {
-                            onPageChange(i + 1);
-                            typeof window !== "undefined" &&
-                              window.scrollTo({ top: 0, behavior: "smooth" });
-                          }}
-                          isActive={currentPage === i + 1}
-                        >
-                          {i + 1}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ))}
-                    <PaginationItem>
-                      <PaginationNext
-                        aria-disabled={currentPage === totalPages}
-                        onClick={() => {
-                          currentPage < totalPages &&
-                            onPageChange(currentPage + 1);
-                          typeof window !== "undefined" &&
-                            window.scrollTo({ top: 0, behavior: "smooth" });
-                        }}
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
+                <MemoizedPagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={onPageChange}
+                />
               </div>
             )}
           </div>
 
-          {/* Map section - Takes 1/3 on tablet, 3/8 on desktop */}
-          <div className="hidden md:flex flex-col items-center justify-center h-[100vh] w-1/3">
-            <div className="h-[60vh] w-full">
-              <MapPlaceholder businesses={list?.businesses || []} />
+          {/* Map section with memoized component */}
+          <div className="hidden md:flex flex-col items-center justify-center h-[100vh] w-2/3">
+            <div className="h-[90vh] w-full">
+              <MemoizedMapPlaceholder businesses={list?.businesses || []} />
             </div>
           </div>
         </div>
