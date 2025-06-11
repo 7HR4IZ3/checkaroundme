@@ -394,7 +394,16 @@ export default function Home() {
               onSortByChange={onSortByChange}
               locationsHierarchy={locationsHierarchy}
             />
-            <div className="space-y-6 w-full h-full md:h-[75vh] overflow-y-auto">
+            <div
+              className="space-y-6 w-full h-full md:h-[75vh] overflow-y-auto pr-4 
+              [&::-webkit-scrollbar]:w-2
+              [&::-webkit-scrollbar-track]:bg-gray-100
+              [&::-webkit-scrollbar-thumb]:bg-gray-300
+              [&::-webkit-scrollbar-thumb]:rounded-full
+              hover:[&::-webkit-scrollbar-thumb]:bg-gray-400
+              scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-gray-300 
+              scrollbar-thumb-rounded-full hover:scrollbar-thumb-gray-400"
+            >
               <MemoizedListingCardsList
                 isLoading={isLoading}
                 geoError={geoError}
