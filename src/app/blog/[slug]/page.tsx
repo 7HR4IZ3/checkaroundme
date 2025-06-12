@@ -63,7 +63,7 @@ export default function BlogPostPage({ params }: { params: any }) {
         </div>
 
         <Card>
-          <CardContent className="p-8">
+          <CardContent className="p-8 tiptap ProseMirror">
             {/* Featured Image */}
             {post.coverImage && (
               <div className="relative aspect-video mb-8 rounded-lg overflow-hidden">

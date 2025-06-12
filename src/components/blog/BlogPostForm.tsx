@@ -481,7 +481,7 @@ export function BlogPostForm({
                 >
                   <div className="max-w-5xl mx-auto p-8">
                     <Card>
-                      <CardContent className="p-8">
+                      <CardContent className="p-8 tiptap ProseMirror">
                         {/* Featured Image */}
                         {coverImage && (
                           <div className="relative aspect-video mb-8 rounded-lg overflow-hidden">
