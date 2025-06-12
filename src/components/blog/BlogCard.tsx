@@ -70,7 +70,7 @@ export function BlogCard({ post }: { post: any }) {
       <CardFooter className="flex justify-between">
         <div className="flex gap-2">
           {post.tags?.map((tag: string) => (
-            <Badge key={tag} variant="secondary">
+            <Badge key={tag}>
               {tag}
             </Badge>
           ))}

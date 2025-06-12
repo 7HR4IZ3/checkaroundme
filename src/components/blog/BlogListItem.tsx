@@ -68,7 +68,7 @@ const BlogListItem = memo(function BlogListItem({ post }: { post: any }) {
         {post.tags?.length > 0 && (
           <div className="flex gap-2">
             {post.tags.map((tag: string) => (
-              <Badge key={tag} variant="secondary">
+              <Badge key={tag}>
                 {tag}
               </Badge>
             ))}

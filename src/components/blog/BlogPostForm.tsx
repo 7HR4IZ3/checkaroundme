@@ -398,7 +398,6 @@ export function BlogPostForm({
                             {tags.map((tag) => (
                               <Badge
                                 key={tag}
-                                variant="secondary"
                                 className="flex items-center gap-1"
                                 onClick={() => removeTag(tag)}
                               >

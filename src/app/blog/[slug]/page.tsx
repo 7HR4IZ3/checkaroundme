@@ -140,7 +140,7 @@ export default function BlogPostPage({ params }: { params: any }) {
             {post.tags && post.tags.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-8">
                 {post.tags.map((tag) => (
-                  <Badge key={tag} variant="secondary">
+                  <Badge key={tag}>
                     {tag}
                   </Badge>
                 ))}
