@@ -11,6 +11,8 @@
 body {
   /* font-size: 15px !important; */
   /* font-weight: 100; */
+  overflow: scroll !important;
+  height: auto;
 }
 
 /* Customize slick dots/arrows if needed */

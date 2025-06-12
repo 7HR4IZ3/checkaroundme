@@ -140,7 +140,7 @@ export function BlogPostForm({
   };
 
   return (
-    <div className="h-[90vh] md:h-[calc(80vh-4rem)] overflow-auto md:overflow-hidden">
+    <div className="h-[80vh] md:h-[calc(80vh-4rem)] overflow-auto md:overflow-hidden">
       <div className="h-full flex flex-col md:flex-row gap-6 md:p-6">
         {/* Left Configuration Panel */}
         <div className="w-full md:w-1/3 h-full md:overflow-auto">
@@ -462,7 +462,7 @@ export function BlogPostForm({
               </CardHeader>
               <CardContent className="flex-grow p-0 md:overflow-auto">
                 <TabsContent value="editor" className="mt-0">
-                  <div className="h-full">
+                  <div className="h-[70vh] md:h-full">
                     <BlogEditor
                       content={content || ""}
                       onChange={(value) => setValue("content", value)}
