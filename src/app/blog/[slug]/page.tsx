@@ -19,6 +19,12 @@ import { Separator } from "@/components/ui/separator";
 import React from "react";
 import Loading from "@/components/ui/loading";
 
+import "@/components/tiptap/tiptap-node/list-node/list-node.scss";
+import "@/components/tiptap/tiptap-node/image-node/image-node.scss";
+import "@/components/tiptap/tiptap-node/paragraph-node/paragraph-node.scss";
+import "@/components/tiptap/tiptap-node/code-block-node/code-block-node.scss";
+import "@/components/tiptap/tiptap-node/image-upload-node/image-upload-node.scss";
+
 export default function BlogPostPage({ params }: { params: any }) {
   params = React.use(params);
 
@@ -160,7 +166,7 @@ export default function BlogPostPage({ params }: { params: any }) {
             <div className="flex justify-between items-center text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4" />
-                Written by Author Name
+                Written by {author?.fullName}
               </div>
               <div>
                 Last updated:{" "}

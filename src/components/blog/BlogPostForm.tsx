@@ -18,15 +18,14 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import Loading, { LoadingSVG } from "@/components/ui/loading";
+import { LoadingSVG } from "@/components/ui/loading";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
   BlogPost,
-  createBlogPostSchema,
-  updateBlogPostSchema,
+  createBlogPostSchema
 } from "@/lib/schema";
-import { trpc } from "@/lib/trpc/client";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Separator } from "@radix-ui/react-dropdown-menu";
 import {
   Calendar,
@@ -39,11 +38,10 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import z from "zod";
-import { useState } from "react";
 
 // Create a form schema that extends the blog post schema
 const blogPostFormSchema = createBlogPostSchema.extend({
