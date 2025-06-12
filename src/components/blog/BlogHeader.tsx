@@ -48,7 +48,7 @@ export function BlogHeader({
         </div>
       </div>
 
-      <div className="flex gap-4">
+      <div className="flex flex-col md:flex-row gap-4">
         <BlogSearch />
         <Select defaultValue="all" onValueChange={onCategoryChange}>
           <SelectTrigger className="w-[180px]">

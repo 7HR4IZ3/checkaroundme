@@ -51,7 +51,7 @@ export default function BlogPostPage({ params }: { params: any }) {
     <div className="min-h-screen bg-muted/10">
       <div className="container max-w-5xl mx-auto py-8">
         {/* Navigation and Actions */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-8">
           <Link href="/blog">
             <Button variant="ghost" className="gap-2">
               <ArrowLeft className="h-4 w-4" />

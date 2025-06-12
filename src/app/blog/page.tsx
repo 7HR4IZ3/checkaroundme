@@ -17,8 +17,8 @@ export default function BlogPage() {
   const { user } = useAuth();
 
   return (
-    <div className="container h-[80vh] mx-auto py-8">
-      <div className="flex justify-between items-center mb-8">
+    <div className="container h-full md:h-[80vh] mx-auto py-8 px-4">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-2">
         <BlogHeader
           view={view}
           onViewChange={setView}

@@ -21,10 +21,7 @@ import { Label } from "@/components/ui/label";
 import { LoadingSVG } from "@/components/ui/loading";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  BlogPost,
-  createBlogPostSchema
-} from "@/lib/schema";
+import { BlogPost, createBlogPostSchema } from "@/lib/schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Separator } from "@radix-ui/react-dropdown-menu";
 import {
@@ -143,10 +140,10 @@ export function BlogPostForm({
   };
 
   return (
-    <div className="h-[calc(80vh-4rem)] overflow-hidden">
-      <div className="h-full grid grid-cols-12 gap-6 p-6">
+    <div className="h-[90vh] md:h-[calc(80vh-4rem)] overflow-auto md:overflow-hidden">
+      <div className="h-full flex flex-col md:flex-row gap-6 md:p-6">
         {/* Left Configuration Panel */}
-        <div className="col-span-3 h-full overflow-auto">
+        <div className="w-full md:w-1/3 h-full md:overflow-auto">
           <div className="sticky top-0 space-y-4">
             <Card>
               <CardHeader>
@@ -446,9 +443,9 @@ export function BlogPostForm({
         </div>
 
         {/* Right Editor Panel */}
-        <div className="col-span-9 h-full overflow-auto">
-          <Card className="h-full flex flex-col">
-            <Tabs defaultValue="editor" className="h-full w-full">
+        <div className="w-full md:w-2/3 h-full md:overflow-auto">
+          <Card className="flex flex-col">
+            <Tabs defaultValue="editor" className="w-full">
               <CardHeader className="border-b">
                 <div className="flex items-center justify-between">
                   <div>
@@ -463,8 +460,8 @@ export function BlogPostForm({
                   </TabsList>
                 </div>
               </CardHeader>
-              <CardContent className="flex-grow p-0 h-full overflow-auto">
-                <TabsContent value="editor" className="h-full mt-0">
+              <CardContent className="flex-grow p-0 md:overflow-auto">
+                <TabsContent value="editor" className="mt-0">
                   <div className="h-full">
                     <BlogEditor
                       content={content || ""}
@@ -476,8 +473,8 @@ export function BlogPostForm({
                   value="preview"
                   className="h-full mt-0 bg-muted/10"
                 >
-                  <div className="max-w-5xl mx-auto p-8">
-                    <Card>
+                  <div className="w-full md:max-w-5xl md:mx-auto md:p-8">
+                    <Card className="w-full">
                       <CardContent className="p-8 tiptap ProseMirror">
                         {/* Featured Image */}
                         {coverImage && (
