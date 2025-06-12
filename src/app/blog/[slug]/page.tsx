@@ -106,7 +106,7 @@ export default function BlogPostPage({ params }: { params: any }) {
                     </Avatar>
                     <Tooltip>
                       <TooltipTrigger className="hover:text-foreground">
-                        Author Name
+                        {author?.fullName}
                       </TooltipTrigger>
                       <TooltipContent>Author</TooltipContent>
                     </Tooltip>
