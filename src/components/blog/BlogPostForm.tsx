@@ -140,17 +140,17 @@ export function BlogPostForm({
   };
 
   return (
-    <div className="h-[80vh] md:h-[calc(80vh-4rem)] overflow-auto md:overflow-hidden">
-      <div className="h-full flex flex-col md:flex-row gap-6 md:p-6">
+    <div className="h-auto md:h-[calc(80vh-4rem)] md:overflow-hidden">
+      <div className="flex flex-col md:flex-row gap-6 md:p-6">
         {/* Left Configuration Panel */}
-        <div className="w-full md:w-1/3 h-full md:overflow-auto">
+        <div className="w-full md:w-1/3 md:overflow-auto">
           <div className="sticky top-0 space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle>Post Settings</CardTitle>
                 <CardDescription>Configure your blog post</CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-2 md:px-8">
                 <form onSubmit={handleFormSubmit} className="space-y-4">
                   <Accordion
                     type="multiple"
@@ -443,11 +443,11 @@ export function BlogPostForm({
         </div>
 
         {/* Right Editor Panel */}
-        <div className="w-full md:w-2/3 h-full md:overflow-auto">
+        <div className="w-full md:w-2/3 md:overflow-auto">
           <Card className="flex flex-col">
             <Tabs defaultValue="editor" className="w-full">
               <CardHeader className="border-b">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col md:flex-row gap-2 md:items-center md:justify-between">
                   <div>
                     <CardTitle>Content</CardTitle>
                     <CardDescription>
@@ -462,7 +462,7 @@ export function BlogPostForm({
               </CardHeader>
               <CardContent className="flex-grow p-0 md:overflow-auto">
                 <TabsContent value="editor" className="mt-0">
-                  <div className="h-[70vh] md:h-full">
+                  <div className="md:h-full">
                     <BlogEditor
                       content={content || ""}
                       onChange={(value) => setValue("content", value)}
