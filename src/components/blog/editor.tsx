@@ -385,13 +385,14 @@ export default function BlogEditor({
     <EditorContext.Provider value={{ editor }}>
       <Toolbar
         ref={toolbarRef}
-        style={
-          isMobile
-            ? {
-                bottom: `calc(100% - ${windowSize.height - bodyRect.y}px)`,
-              }
-            : {}
-        }
+        style={{position: "relative"}}
+        // style={
+        //   isMobile
+        //     ? {
+        //         bottom: `calc(100% - ${windowSize.height - bodyRect.y}px)`,
+        //       }
+        //     : {}
+        // }
       >
         {mobileView === "main" ? (
           <MainToolbarContent
@@ -409,7 +410,7 @@ export default function BlogEditor({
 
       <div className="content-wrapper">
         <BubbleMenu
-          className="bubble-menu"
+          className="bubble-menu overflow-x-auto"
           tippyOptions={{ duration: 100 }}
           editor={editor}
         >
