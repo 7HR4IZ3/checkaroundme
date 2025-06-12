@@ -58,6 +58,7 @@ export default function BlogPostPage({ params }: { params: any }) {
               Back to Blog
             </Button>
           </Link>
+          <h1 className="text-2xl font-bold mb-4">{post.title}</h1>
           {user && user.$id === post.authorId && (
             <Link href={`/blog/${params.slug}/edit`}>
               <Button variant="outline" className="gap-2">
