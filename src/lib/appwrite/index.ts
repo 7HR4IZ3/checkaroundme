@@ -29,6 +29,7 @@ import {
   PaymentTransaction,
   AnonymousSubmission,
   Notification,
+  BlogPost,
 } from "../schema";
 
 // Import AuthService to get the current authenticated user for verification
@@ -71,11 +72,13 @@ export const PAYMENT_TRANSACTIONS_COLLECTION_ID = "payment_transactions";
 export const MAILING_LIST_COLLECTION_ID = "mailing_list";
 export const ANONYMOUS_SUBMISSIONS_COLLECTION_ID = "anonymous_submissions";
 export const NOTIFICATIONS_COLLECTION_ID = "notifications";
+export const BLOG_POSTS_COLLECTION_ID = "blog_posts";
 
 export const BUSINESS_IMAGES_BUCKET_ID = "67fc0ef9000e1bba4e5d";
 export const MESSAGE_IMAGES_BUCKET_ID = "67fc0ef9000e1bba4e5d";
 export const AVATAR_IMAGES_BUCKET_ID = "67fc0ef9000e1bba4e5d";
 export const ANONYMOUS_SUBMISSIONS_BUCKET_ID = "67fc0ef9000e1bba4e5d";
+export const BLOG_IMAGES_BUCKET_ID = "67fc0ef9000e1bba4e5d";
 
 // User Service
 export const UserService = {
@@ -84,6 +87,20 @@ export const UserService = {
     try {
       const user = await users.get(userId);
       return user;
+    } catch (error) {
+      console.error("Get user error:", error);
+      throw error;
+    }
+  },
+  // Get user by ID
+  async getUserProfileById(userId: string): Promise<Models.Document & User> {
+    try {
+      const profile = await databases.getDocument<Models.Document & User>(
+        DATABASE_ID,
+        USERS_COLLECTION_ID,
+        userId
+      );
+      return profile;
     } catch (error) {
       console.error("Get user error:", error);
       throw error;
@@ -191,7 +208,8 @@ export const UserService = {
     try {
       const preferences = await users.getPrefs(userId);
       const updatedPrefs = await users.updatePrefs(userId, {
-        ...preferences, ...data
+        ...preferences,
+        ...data,
       });
       return updatedPrefs;
     } catch (error) {
@@ -1489,6 +1507,209 @@ export const NotificationService = {
       }
     } catch (error) {
       console.error("Register device token error:", error);
+      throw error;
+    }
+  },
+};
+
+// Blog Service
+export const BlogService = {
+  async createPost(
+    data: Omit<BlogPost, "$id" | "createdAt" | "updatedAt" | "authorId">
+  ): Promise<BlogPost> {
+    const auth = await AuthService.getCurrentUser();
+    if (!auth) throw new Error("Unauthorized");
+
+    try {
+      const newPost = await databases.createDocument(
+        DATABASE_ID,
+        BLOG_POSTS_COLLECTION_ID,
+        ID.unique(),
+        {
+          ...data,
+          authorId: auth.user.$id,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }
+      );
+      return newPost as unknown as BlogPost;
+    } catch (error) {
+      console.error("Create blog post error:", error);
+      throw error;
+    }
+  },
+
+  async updatePost(
+    postId: string,
+    data: Partial<Omit<BlogPost, "$id" | "createdAt" | "authorId">>
+  ): Promise<BlogPost> {
+    try {
+      const updatedPost = await databases.updateDocument(
+        DATABASE_ID,
+        BLOG_POSTS_COLLECTION_ID,
+        postId,
+        {
+          ...data,
+          updatedAt: new Date().toISOString(),
+        }
+      );
+      return updatedPost as unknown as BlogPost;
+    } catch (error) {
+      console.error("Update blog post error:", error);
+      throw error;
+    }
+  },
+
+  async getPost(postId: string): Promise<BlogPost> {
+    try {
+      const post = await databases.getDocument(
+        DATABASE_ID,
+        BLOG_POSTS_COLLECTION_ID,
+        postId
+      );
+      return post as unknown as BlogPost;
+    } catch (error) {
+      console.error("Get blog post error:", error);
+      throw error;
+    }
+  },
+
+  async getPostBySlug(slug: string): Promise<BlogPost> {
+    try {
+      const posts = await databases.listDocuments(
+        DATABASE_ID,
+        BLOG_POSTS_COLLECTION_ID,
+        [Query.equal("slug", slug), Query.limit(1)]
+      );
+
+      if (posts.documents.length === 0) {
+        throw new Error("Post not found");
+      }
+
+      return posts.documents[0] as unknown as BlogPost;
+    } catch (error) {
+      console.error("Get blog post by slug error:", error);
+      throw error;
+    }
+  },
+
+  async listPosts(opts: {
+    page?: number;
+    perPage?: number;
+    status?: "draft" | "published" | "archived";
+    tag?: string;
+  }): Promise<{ posts: BlogPost[]; total: number }> {
+    const { page = 1, perPage = 10, status, tag } = opts;
+    const offset = (page - 1) * perPage;
+
+    try {
+      const queries = [Query.orderDesc("createdAt")];
+
+      if (status) {
+        queries.push(Query.equal("status", status));
+      }
+
+      if (tag) {
+        queries.push(Query.search("tags", tag));
+      }
+
+      queries.push(Query.limit(perPage), Query.offset(offset));
+
+      const result = await databases.listDocuments(
+        DATABASE_ID,
+        BLOG_POSTS_COLLECTION_ID,
+        queries
+      );
+
+      return {
+        posts: result.documents as unknown as BlogPost[],
+        total: result.total,
+      };
+    } catch (error) {
+      console.error("List blog posts error:", error);
+      throw error;
+    }
+  },
+
+  async deletePost(postId: string): Promise<void> {
+    try {
+      await databases.deleteDocument(
+        DATABASE_ID,
+        BLOG_POSTS_COLLECTION_ID,
+        postId
+      );
+    } catch (error) {
+      console.error("Delete blog post error:", error);
+      throw error;
+    }
+  },
+
+  async uploadImage(file: File): Promise<string> {
+    try {
+      const result = await storage.createFile(
+        BLOG_IMAGES_BUCKET_ID,
+        ID.unique(),
+        file
+      );
+      // return storage.getFileView(BLOG_IMAGES_BUCKET_ID, ).toString();
+      return getImageURl(result.$id);
+    } catch (error) {
+      console.error("Upload blog image error:", error);
+      throw error;
+    }
+  },
+
+  async searchPosts(
+    query: string
+  ): Promise<{ posts: BlogPost[]; total: number }> {
+    try {
+      const queries = [
+        Query.orderDesc("createdAt"),
+        Query.equal("status", "published"),
+        Query.or([
+          Query.search("title", query),
+          Query.search("content", query),
+          Query.search("excerpt", query),
+          Query.contains("tags", query),
+        ]),
+      ];
+
+      const result = await databases.listDocuments(
+        DATABASE_ID,
+        BLOG_POSTS_COLLECTION_ID,
+        queries
+      );
+
+      return {
+        posts: result.documents as unknown as BlogPost[],
+        total: result.total,
+      };
+    } catch (error) {
+      console.error("Search blog posts error:", error);
+      throw error;
+    }
+  },
+
+  async getCategories(): Promise<string[]> {
+    try {
+      // Get all published posts
+      const result = await databases.listDocuments(
+        DATABASE_ID,
+        BLOG_POSTS_COLLECTION_ID,
+        [Query.equal("status", "published")]
+      );
+
+      // Extract unique categories from tags
+      const uniqueCategories = new Set<string>();
+      result.documents.forEach((post) => {
+        if (Array.isArray(post.tags)) {
+          post.tags.forEach((tag: string) => uniqueCategories.add(tag));
+        }
+      });
+
+      return Array.from(uniqueCategories).sort();
+    } catch (error) {
+      console.error("Get blog categories error:", error);
       throw error;
     }
   },

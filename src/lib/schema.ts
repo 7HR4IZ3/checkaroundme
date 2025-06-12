@@ -290,6 +290,43 @@ export const notificationSchema = z.object({
   updatedAt: z.string().optional(),
 });
 
+// Blog Post Schema
+export const blogPostSchema = z.object({
+  $id: z.string(),
+  title: z.string().min(3, "Title must be at least 3 characters"),
+  slug: z.string(),
+  content: z.string(),
+  excerpt: z.string().optional(),
+  coverImage: z.string().url().optional(),
+  authorId: z.string(),
+  status: z.enum(["draft", "published", "archived"]).default("draft"),
+  tags: z.array(z.string()).default([]),
+  createdAt: z.date().default(() => new Date()),
+  updatedAt: z.date().default(() => new Date()),
+  publishedAt: z.date().optional(),
+});
+
+export const createBlogPostSchema = blogPostSchema.omit({
+  $id: true,
+  createdAt: true,
+  updatedAt: true,
+  authorId: true,
+});
+
+export const updateBlogPostSchema = createBlogPostSchema.extend({
+  updatedAt: z.date().default(() => new Date()),
+}).partial();
+
+// Blog Image Schema
+export const blogImageSchema = z.object({
+  $id: z.string(),
+  postId: z.string(),
+  imageUrl: z.string().url(),
+  alt: z.string().optional(),
+  caption: z.string().optional(),
+  createdAt: z.date().default(() => new Date()),
+});
+
 // Type definitions to use throughout the application
 export type User = z.infer<typeof userSchema>;
 export type Business = z.infer<typeof businessSchema>;
@@ -310,3 +347,5 @@ export type UserSubscription = z.infer<typeof userSubscriptionSchema>;
 export type PaymentTransaction = z.infer<typeof paymentTransactionSchema>;
 export type AnonymousSubmission = z.infer<typeof anonymousSubmissionSchema>;
 export type Notification = z.infer<typeof notificationSchema>;
+export type BlogPost = z.infer<typeof blogPostSchema>;
+export type BlogImage = z.infer<typeof blogImageSchema>;

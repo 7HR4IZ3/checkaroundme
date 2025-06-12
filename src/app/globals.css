@@ -5,6 +5,9 @@
 @import "../../node_modules/slick-carousel/slick/slick-theme.css";
 @import "tw-animate-css";
 
+@import "../styles/_variables.scss";
+@import "../styles/_keyframe-animations.scss";
+
 body {
   /* font-size: 15px !important; */
   /* font-weight: 100; */
@@ -179,4 +182,45 @@ body {
   /* scale: 0.8; */
   max-height: 100%;
   min-width: 10vw;
+}
+
+/* Bubble menu */
+.bubble-menu {
+  background-color: white;
+  border: 1px solid gray;
+  border-radius: 0.7rem;
+  box-shadow: var(--shadow);
+  display: flex;
+  padding: 0.2rem;
+
+  button {
+    background-color: unset;
+
+    &:hover {
+      background-color: var(--gray-3);
+    }
+
+    &.is-active {
+      background-color: var(--purple);
+
+      &:hover {
+        background-color: var(--purple-contrast);
+      }
+    }
+  }
+}
+
+.ProseMirror {
+  min-height: 200px;
+  height: 100%;
+  outline: none;
+}
+
+.ProseMirror img {
+  max-width: 100%;
+  height: auto;
+}
+
+.tippy-box {
+  max-width: 100% !important;
 }

@@ -14,13 +14,19 @@ import { AuthService } from "@/lib/appwrite/services/auth";
 
 export function createUserProcedures(
   t: AppTRPC,
-  protectedProcedure: typeof t.procedure,
+  protectedProcedure: typeof t.procedure
 ) {
   return {
     getUserById: t.procedure
       .input(z.object({ userId: z.string() }))
       .query(async ({ input }) => {
         return await UserService.getUserById(input.userId);
+      }),
+
+    getUserProfileById: t.procedure
+      .input(z.object({ userId: z.string() }))
+      .query(async ({ input }) => {
+        return await UserService.getUserProfileById(input.userId);
       }),
 
     updateUser: protectedProcedure
@@ -99,7 +105,7 @@ export function createUserProcedures(
         z.object({
           limit: z.number().min(1).max(100).nullish(),
           cursor: z.string().nullish(),
-        }),
+        })
       )
       .query(async ({ ctx, input }) => {
         const user = await AuthService.getCurrentUser();
@@ -111,7 +117,7 @@ export function createUserProcedures(
           return await UserService.getPaymentHistory(
             userId,
             input.limit ?? 10,
-            input.cursor ?? undefined,
+            input.cursor ?? undefined
           );
         } catch (error) {
           console.error("Failed to get payment history:", error);

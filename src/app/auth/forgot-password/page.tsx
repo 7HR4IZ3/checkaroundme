@@ -14,12 +14,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { useAuth } from "@/lib/hooks/useClientAuth";
-import { redirect, useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
 
 // Renamed from LoginForm to ForgotPasswordForm
 function ForgotPasswordForm() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
   const [captchaToken, setCaptchaToken] = useState("");
@@ -72,6 +71,9 @@ function ForgotPasswordForm() {
               break; // Assuming only one email error
             }
           }
+
+          // TODO: Refactor this mess
+
           // If no specific email error, show a generic one
           if (!emailError) {
             // This condition might need adjustment if other errors are possible
@@ -119,12 +121,7 @@ function ForgotPasswordForm() {
         </div>
 
         <div className="p-3 mt-4 flex flex-col items-center justify-center">
-          <GoogleReCaptchaCheckbox
-            onChange={(token) => {
-              setCaptchaToken(token || "");
-              setCaptchaError("");
-            }}
-          />
+          <GoogleReCaptchaCheckbox onChange={setCaptchaToken} />
           {captchaError && (
             <p className="text-red-500 text-sm mt-1">{captchaError}</p>
           )}

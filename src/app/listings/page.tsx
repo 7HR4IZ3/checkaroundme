@@ -395,7 +395,7 @@ export default function Home() {
               locationsHierarchy={locationsHierarchy}
             />
             <div
-              className="space-y-6 w-full h-full md:h-[75vh] overflow-y-auto pr-4 
+              className="space-y-6 w-full md:h-[75vh] overflow-y-auto pr-4 
               [&::-webkit-scrollbar]:w-2
               [&::-webkit-scrollbar-track]:bg-gray-100
               [&::-webkit-scrollbar-thumb]:bg-gray-300

@@ -15,6 +15,7 @@ import { createConversationProcedures } from "./routers/conversation";
 import { createVerificationProcedures } from "./routers/verification";
 import { createAnonymousSubmissionRouter } from "./routers/anonymous-submission"; // Import the new router
 import { createNotificationProcedures } from "./routers/notification"; // Add this import
+import { createBlogProcedures } from "./routers/blog"; // Import the blog router
 
 // Server-side secret key (should be in .env and NOT prefixed with NEXT_PUBLIC_)
 const SERVER_TRPC_SECRET_KEY = process.env.SERVER_TRPC_SECRET_KEY;
@@ -105,31 +106,7 @@ export const appRouter = t.router({
   ...createLocationProcedures(t, protectedProcedureWithSecret),
   ...createVerificationProcedures(t, protectedProcedureWithSecret),
   ...createNotificationProcedures(t, protectedProcedureWithSecret), // Add to the appRouter
-
-  // Add Flutterwave procedures.
-  // NOTE: The second argument to createFlutterwaveProcedures is a placeholder
-  // for your actual `protectedProcedure`. If your protectedProcedure is simply
-  // `t.procedure.use(authMiddleware)`, then passing `t.procedure` and relying
-  // on the internal structure of `createFlutterwaveProcedures` to use a passed
-  // `protectedProcedure` (or defining it within that file using `t`) is one way.
-  // Ensure `protectedProcedure` in `flutterwave.ts` aligns with how you handle auth.
-  // For now, assuming `t.procedure` is the base for public, and `flutterwave.ts`
-  // uses the passed `protectedProcedure` for protected routes.
-  // You might need to adjust how `protectedProcedure` is passed or defined.
-  // A common pattern is: `const protectedProcedure = t.procedure.use(isAuthedMiddleware);`
-  // Then you'd pass this `protectedProcedure` to `createFlutterwaveProcedures`.
-  // The current `createFlutterwaveProcedures` expects `protectedProcedure` as an argument.
-  // Let's assume you have a `protectedProcedure` exported from `../trpc` or defined here.
-  // If not, `t.procedure` will be used, and you'd need to add auth middleware within those specific procedures.
-  // For simplicity, if `protectedProcedure` is not explicitly defined and passed,
-  // the placeholder in `createFlutterwaveProcedures` will use `t.procedure`.
-  // This means those routes will be public unless you adjust `createFlutterwaveProcedures`.
-  // A better way: define `publicProcedure = t.procedure;` and `protectedProcedure = t.procedure.use(authMiddleware);`
-  // then pass both to `createFlutterwaveProcedures`.
-  // Given the current structure of `createFlutterwaveProcedures`, it expects `protectedProcedure`.
-  // Let's assume `t.procedure` is passed for now, and you'll adjust auth within the router or by passing a real `protectedProcedure`.
-
-  // ...createFlutterwaveProcedures(t, protectedProcedureWithSecret),
+  ...createBlogProcedures(t, protectedProcedureWithSecret), // Add blog procedures
   ...createPaystackProcedures(t, protectedProcedureWithSecret),
   ...createAnonymousSubmissionRouter(t, protectedProcedureWithSecret), // Include the new router
 });
