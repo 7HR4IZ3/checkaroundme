@@ -17,7 +17,7 @@ export default function BlogPage() {
   const { user } = useAuth();
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container h-[80vh] mx-auto py-8">
       <div className="flex justify-between items-center mb-8">
         <BlogHeader
           view={view}
