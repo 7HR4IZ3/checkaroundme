@@ -351,9 +351,12 @@ export const BusinessService = {
 
   // List businesses with filtering options
   async listBusinesses({
-    category = "",
-    query = "",
-    location = "",
+    category,
+    query,
+    location,
+    city,
+    state,
+    country,
     limit = 10,
     offset = 0,
     sortBy = "rating",
@@ -368,6 +371,9 @@ export const BusinessService = {
     category?: string;
     query?: string;
     location?: string;
+    city?: string;
+    state?: string;
+    country?: string;
     limit?: number;
     offset?: number;
     sortBy?: string;
@@ -402,7 +408,18 @@ export const BusinessService = {
         );
       }
 
-      if (location) {
+      if (city) {
+        appwriteFilters.push(Query.equal("city", city));
+      }
+      if (state) {
+        appwriteFilters.push(Query.equal("state", state));
+      }
+      if (country) {
+        appwriteFilters.push(Query.equal("country", country));
+      }
+
+      // Keep legacy location search for backward compatibility
+      if (location && !city && !state && !country) {
         appwriteFilters.push(
           Query.or([
             Query.search("addressLine1", location),

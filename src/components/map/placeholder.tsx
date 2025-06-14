@@ -1,7 +1,7 @@
 "use client";
 
+import React, { useMemo, memo } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import L from "leaflet";
 
@@ -16,6 +16,45 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "/images/leaflet/marker-shadow.png",
 });
 
+// Memoized marker component
+const BusinessMarker = memo(({ business }: { business: Business }) => {
+  if (!business.coordinates) return null;
+
+  const coordinates = JSON.parse(business.coordinates);
+
+  return (
+    <Marker position={[coordinates.latitude, coordinates.longitude]}>
+      <Popup>
+        <Link href={`/business/${business.$id}`}>{business.name}</Link>
+      </Popup>
+    </Marker>
+  );
+});
+
+BusinessMarker.displayName = "BusinessMarker";
+
+// Memoized loading state component
+const LoadingState = memo(() => (
+  <div className="w-full h-full sticky top-[88px] bg-gray-300 rounded-lg overflow-hidden flex items-center justify-center">
+    <span className="bg-white px-4 py-2 rounded shadow font-medium text-gray-600">
+      Loading map...
+    </span>
+  </div>
+));
+
+LoadingState.displayName = "LoadingState";
+
+// Memoized error state component
+const ErrorState = memo(({ message }: { message: string }) => (
+  <div className="w-full h-full sticky top-[88px] bg-gray-300 rounded-lg overflow-hidden flex items-center justify-center">
+    <span className="bg-white px-4 py-2 rounded shadow font-medium text-gray-600">
+      Error getting location: {message}
+    </span>
+  </div>
+));
+
+ErrorState.displayName = "ErrorState";
+
 interface MapPlaceholderProps {
   businesses?: Business[];
 }
@@ -23,28 +62,29 @@ interface MapPlaceholderProps {
 const MapPlaceholder: React.FC<MapPlaceholderProps> = ({ businesses }) => {
   const { latitude, longitude, error, loading } = useGeolocation();
 
+  // Memoize the user position
+  const position: [number, number] = useMemo(
+    () => (latitude && longitude ? [latitude, longitude] : [0, 0]),
+    [latitude, longitude]
+  );
+
+  // Memoize business markers
+  const businessMarkers = useMemo(
+    () =>
+      businesses?.map((business) => (
+        <BusinessMarker key={business.$id} business={business} />
+      )),
+    [businesses]
+  );
+
   if (error) {
-    return (
-      <div className="w-full h-full sticky top-[88px] bg-gray-300 rounded-lg overflow-hidden flex items-center justify-center">
-        <span className="bg-white px-4 py-2 rounded shadow font-medium text-gray-600">
-          Error getting location: {error.message}
-        </span>
-      </div>
-    );
+    return <ErrorState message={error.message} />;
   }
 
-  // Handle loading state
   if (loading || latitude === null || longitude === null) {
-    return (
-      <div className="w-full h-full sticky top-[88px] bg-gray-300 rounded-lg overflow-hidden flex items-center justify-center">
-        <span className="bg-white px-4 py-2 rounded shadow font-medium text-gray-600">
-          Loading map...
-        </span>
-      </div>
-    );
+    return <LoadingState />;
   }
 
-  const position: [number, number] = [latitude, longitude];
 
   return (
     <div className="w-full h-full sticky top-[88px] bg-gray-300 rounded-lg overflow-hidden">
@@ -61,33 +101,11 @@ const MapPlaceholder: React.FC<MapPlaceholderProps> = ({ businesses }) => {
         <Marker position={position}>
           <Popup>Your current location.</Popup>
         </Marker>
-
-        {businesses &&
-          businesses.map((business) => {
-            if (business.coordinates) {
-              const coordinates = JSON.parse(business.coordinates);
-              return (
-                <Marker
-                  key={business.$id}
-                  position={[coordinates.latitude, coordinates.longitude]}
-                  eventHandlers={{
-                    click: () => {
-                      // router.push(`/business/${business.$id}`);
-                    },
-                  }}
-                >
-                  <Popup>
-                    <Link href={`/business/${business.$id}`}>
-                      {business.name}
-                    </Link>
-                  </Popup>
-                </Marker>
-              );
-            }
-          })}
+        {businessMarkers}
       </MapContainer>
     </div>
   );
 };
 
-export default MapPlaceholder;
+// Memoize the entire component
+export default memo(MapPlaceholder);

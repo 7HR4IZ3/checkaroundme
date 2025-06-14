@@ -105,6 +105,11 @@ export default function Home() {
   const queryParam = searchParams?.get("query") || "";
   const locationParam = searchParams?.get("location") || "";
 
+  // Replace locationParam with specific location params
+  const cityParam = searchParams?.get("city") || "";
+  const stateParam = searchParams?.get("state") || "";
+  const countryParam = searchParams?.get("country") || "";
+
   // Filters from FiltersPanel
   const priceParam = searchParams?.get("price");
   const featuresParam = searchParams?.get("features");
@@ -295,7 +300,13 @@ export default function Home() {
       {
         category: selectedCategory || "",
         query: queryParam,
-        location: locationParam,
+        location:
+          !cityParam && !stateParam && !countryParam
+            ? locationParam
+            : undefined,
+        city: cityParam,
+        state: stateParam,
+        country: countryParam,
         limit,
         offset,
         price: initialFiltersPanelFilters.price,
@@ -312,19 +323,59 @@ export default function Home() {
 
   const isLoading = queryIsLoading || geoLoading;
 
-  const locations = useMemo(() => {
-    if (!list?.businesses) return [];
-    const uniqueLocations = new Set(
-      list.businesses.map((b) => `${b.city}, ${b.country}`)
-    );
-    return Array.from(uniqueLocations);
-  }, [list?.businesses]);
+  // const locations = useMemo(() => {
+  //   if (!list?.businesses) return [];
+  //   const uniqueLocations = new Set(
+  //     list.businesses.map((b) => `${b.city}, ${b.country}`)
+  //   );
+  //   return Array.from(uniqueLocations);
+  // }, [list?.businesses]);
 
   const onChangeLocation = useCallback(
-    (newLocation: string | null) => {
-      updateUrlAndResetOffset({ location: newLocation });
+    (
+      newLocation: string | null,
+      locationType?: "city" | "state" | "country"
+    ) => {
+      if (!newLocation) {
+        updateUrlAndResetOffset({
+          city: null,
+          state: null,
+          country: null,
+        });
+        return;
+      }
+
+      // Update URL based on location type
+      switch (locationType) {
+        case "city":
+          updateUrlAndResetOffset({
+            city: newLocation,
+            state: stateParam,
+            country: countryParam,
+          });
+          break;
+        case "state":
+          // newLocation is already the state code
+          updateUrlAndResetOffset({
+            city: null,
+            state: newLocation,
+            country: countryParam,
+          });
+          break;
+        case "country":
+          // newLocation is already the country code
+          updateUrlAndResetOffset({
+            city: null,
+            state: null,
+            country: newLocation,
+          });
+          break;
+        default:
+          // Legacy support
+          updateUrlAndResetOffset({ location: newLocation });
+      }
     },
-    [updateUrlAndResetOffset]
+    [updateUrlAndResetOffset, stateParam, countryParam]
   );
 
   const currentPage = Math.floor(offset / limit) + 1;
@@ -366,6 +417,43 @@ export default function Home() {
     }
   }, [list?.businesses, initialLocations.length, location]);
 
+  // Add function to check if any filter is active
+  const hasActiveFilters = useMemo(() => {
+    return (
+      selectedCategory !== null ||
+      locationParam !== null ||
+      openNow ||
+      selectedDistance !== null ||
+      otherFilterBarCategories.length > 0 ||
+      initialFiltersPanelFilters.price !== undefined ||
+      initialFiltersPanelFilters.features.length > 0
+    );
+  }, [
+    selectedCategory,
+    locationParam,
+    openNow,
+    selectedDistance,
+    otherFilterBarCategories,
+    initialFiltersPanelFilters,
+  ]);
+
+  // Add function to clear all filters
+  const handleClearAllFilters = useCallback(() => {
+    onChangeCategory(null);
+    onChangeLocation(null);
+    setOpenNow(false);
+    setSelectedDistance(null);
+    onChangeOtherFilterBarCategories([]);
+    onApplyFilters({ price: undefined, features: [] });
+    setSortBy("top");
+    // router.push("/listings");
+  }, [
+    onChangeCategory,
+    onChangeLocation,
+    onChangeOtherFilterBarCategories,
+    onApplyFilters,
+  ]);
+
   return (
     <>
       <MemoizedCategoryNav
@@ -383,8 +471,11 @@ export default function Home() {
               selectedCategories={otherFilterBarCategories}
               onChangeCategories={onChangeOtherFilterBarCategories}
               onOpenFiltersPanel={onOpenFiltersPanel}
-              locations={locations}
-              selectedLocation={locationParam}
+              // locations={locations}
+              // selectedLocation={null}
+              selectedCity={cityParam}
+              selectedState={stateParam}
+              selectedCountry={countryParam}
               onChangeLocation={onChangeLocation}
               openNow={openNow}
               onToggleOpenNow={onToggleOpenNow}
@@ -393,9 +484,11 @@ export default function Home() {
               sortBy={sortBy}
               onSortByChange={onSortByChange}
               locationsHierarchy={locationsHierarchy}
+              hasActiveFilters={hasActiveFilters}
+              onClearAllFilters={handleClearAllFilters}
             />
             <div
-              className="space-y-6 w-full md:h-[75vh] overflow-y-auto pr-4 
+              className="space-y-6 w-full md:h-[80vh] overflow-y-auto pr-4 
               [&::-webkit-scrollbar]:w-2
               [&::-webkit-scrollbar-track]:bg-gray-100
               [&::-webkit-scrollbar-thumb]:bg-gray-300
@@ -429,7 +522,7 @@ export default function Home() {
 
           {/* Map section with memoized component */}
           <div className="hidden md:flex flex-col items-center justify-center h-[100vh] w-2/3">
-            <div className="h-[90vh] w-full">
+            <div className="h-[80vh] w-full">
               <MemoizedMapPlaceholder businesses={list?.businesses || []} />
             </div>
           </div>

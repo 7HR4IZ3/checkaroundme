@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useMemo } from "react";
-import { FaSlidersH, FaChevronDown, FaChevronRight } from "react-icons/fa";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
+import { FaSlidersH, FaChevronDown } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -15,22 +15,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { LocationHierarchy } from "@/utils/location-helpers";
-import { Country, State } from "country-state-city";
 
 type FilterSortBarProps = {
-  selectedCategories: string[]; // For filters like "offers_delivery"
+  selectedCategories: string[];
   onChangeCategories: (categories: string[]) => void;
   onOpenFiltersPanel: () => void;
-  locations: string[];
-  selectedLocation: string | null;
-  onChangeLocation: (location: string | null) => void;
+  selectedCity: string | null;
+  selectedState: string | null;
+  selectedCountry: string | null;
+  onChangeLocation: (
+    location: string | null,
+    locationType?: "city" | "state" | "country"
+  ) => void;
   openNow: boolean;
   onToggleOpenNow: () => void;
-  selectedDistance: string | null; // e.g., "1km", "5km", "any"
+  selectedDistance: string | null;
   onChangeDistance: (distance: string | null) => void;
-  sortBy: string; // e.g., "rating", "distance", "price_asc"
+  sortBy: string;
   onSortByChange: (sortValue: string) => void;
   locationsHierarchy: LocationHierarchy;
+  hasActiveFilters: boolean;
+  onClearAllFilters: () => void;
 };
 
 const OTHER_FILTER_CATEGORIES = [
@@ -59,39 +64,13 @@ const SORT_OPTIONS = [
   { label: "Price: High to Low", value: "price_desc" },
 ];
 
-// Memoized location menu items
-const LocationMenuItem = React.memo(
-  ({
-    label,
-    onClick,
-    indent = 0,
-    hasChildren = false,
-  }: {
-    label: string;
-    onClick: () => void;
-    indent?: number;
-    hasChildren?: boolean;
-  }) => (
-    <DropdownMenuItem
-      className={`flex items-center justify-between ${
-        indent ? `pl-${indent * 4}` : ""
-      }`}
-      onClick={onClick}
-    >
-      <span>{label}</span>
-      {hasChildren && <FaChevronRight size={12} />}
-    </DropdownMenuItem>
-  )
-);
-
-LocationMenuItem.displayName = "LocationMenuItem";
-
 const FilterSortBar: React.FC<FilterSortBarProps> = ({
   selectedCategories,
   onChangeCategories,
   onOpenFiltersPanel,
-  locations,
-  selectedLocation,
+  selectedCity,
+  selectedState,
+  selectedCountry,
   onChangeLocation,
   openNow,
   onToggleOpenNow,
@@ -100,6 +79,8 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
   sortBy,
   onSortByChange,
   locationsHierarchy,
+  hasActiveFilters,
+  onClearAllFilters,
 }) => {
   const handleOtherCategoryClick = (value: string) => {
     const isSelected = selectedCategories.includes(value);
@@ -114,93 +95,199 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
     onSortByChange(sortValue);
   };
 
-  // Memoize location selection handlers
-  const handleLocationChange = useCallback(
-    (country: string | null, state?: string, city?: string) => {
-      if (city && state && country) {
-        onChangeLocation(`${city}, ${state}, ${country}`);
-      } else if (state && country) {
-        onChangeLocation(`${state}, ${country}`);
-      } else if (country) {
-        onChangeLocation(country);
-      } else {
+  const [selectedCountryState, setSelectedCountryState] = useState<
+    string | null
+  >(null);
+  const [selectedStateState, setSelectedStateState] = useState<string | null>(
+    null
+  );
+  const [selectedCityState, setSelectedCityState] = useState<string | null>(
+    null
+  );
+
+  useEffect(() => {
+    const countries = Object.keys(locationsHierarchy);
+    if (countries.length === 1) {
+      setSelectedCountryState(countries[0]);
+    }
+  }, [locationsHierarchy]);
+
+  const availableStates = useMemo(() => {
+    if (!selectedCountryState) return {};
+    return locationsHierarchy[selectedCountryState]?.states || {};
+  }, [selectedCountryState, locationsHierarchy]);
+
+  const availableCities = useMemo(() => {
+    if (!selectedCountryState || !selectedStateState) return [];
+    return availableStates[selectedStateState]?.cities || [];
+  }, [selectedCountryState, selectedStateState, availableStates]);
+
+  const handleCountryChange = useCallback(
+    (countryCode: string) => {
+      if (countryCode === "_all") {
+        setSelectedCountryState(null);
         onChangeLocation(null);
+        return;
       }
+      setSelectedCountryState(countryCode);
+      setSelectedStateState(null);
+      setSelectedCityState(null);
+      onChangeLocation(countryCode, "country");
     },
     [onChangeLocation]
   );
 
-  const handleResetLocation = useCallback(() => {
-    onChangeLocation(null);
-  }, [onChangeLocation]);
-
-  // Memoize location dropdown content
-  const locationDropdownContent = useMemo(
-    () => (
-      <DropdownMenuContent className="w-[280px] max-h-[400px] overflow-y-auto">
-        <div className="p-2 border-b">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start text-muted-foreground"
-            onClick={handleResetLocation}
-          >
-            Reset Location
-          </Button>
-        </div>
-        <LocationMenuItem
-          label="All Locations"
-          onClick={() => handleLocationChange(null)}
-        />
-        {Object.entries(locationsHierarchy).map(
-          ([country, { name, states }]) => (
-            <div key={country} className="group">
-              <LocationMenuItem
-                label={name}
-                onClick={() => handleLocationChange(country)}
-                hasChildren={Object.keys(states).length > 0}
-                indent={0}
-              />
-              {Object.entries(states).map(
-                ([state, { name: stateName, cities }]) => (
-                  <div key={state}>
-                    <LocationMenuItem
-                      label={stateName}
-                      onClick={() => handleLocationChange(country, state)}
-                      hasChildren={cities.length > 0}
-                      indent={1}
-                    />
-                    {cities.map((city) => (
-                      <LocationMenuItem
-                        key={city}
-                        label={city}
-                        onClick={() =>
-                          handleLocationChange(country, state, city)
-                        }
-                        indent={2}
-                      />
-                    ))}
-                  </div>
-                )
-              )}
-            </div>
-          )
-        )}
-      </DropdownMenuContent>
-    ),
-    [locationsHierarchy, handleLocationChange, handleResetLocation]
+  const handleStateChange = useCallback(
+    (stateCode: string) => {
+      if (stateCode === "_all") {
+        setSelectedStateState(null);
+        if (selectedCountryState) {
+          onChangeLocation(selectedCountryState, "country");
+        }
+        return;
+      }
+      setSelectedStateState(stateCode);
+      setSelectedCityState(null);
+      if (!selectedCountryState || !stateCode) {
+        onChangeLocation(selectedCountryState || null, "country");
+      } else {
+        onChangeLocation(stateCode, "state");
+      }
+    },
+    [selectedCountryState, onChangeLocation]
   );
 
-  // Memoize selected location display
-  const selectedLocationDisplay = useMemo(() => {
-    if (!selectedLocation) return "All Locations";
-    const parts = selectedLocation.split(", ");
-    return parts[0]; // Show only the most specific part (city or state or country)
-  }, [selectedLocation]);
+  const handleCityChange = useCallback(
+    (city: string) => {
+      if (city === "_all") {
+        setSelectedCityState(null);
+        if (selectedStateState) {
+          onChangeLocation(selectedStateState, "state");
+        }
+        return;
+      }
+      setSelectedCityState(city);
+      if (!selectedCountryState || !selectedStateState) return;
+      if (!city) {
+        onChangeLocation(availableStates[selectedStateState].name, "state");
+      } else {
+        onChangeLocation(city, "city");
+      }
+    },
+    [
+      selectedCountryState,
+      selectedStateState,
+      availableStates,
+      onChangeLocation,
+    ]
+  );
+
+  const locationDropdownContent = useMemo(
+    () => (
+      <DropdownMenuContent className="w-[280px] min-h-[110px] max-h-[400px] overflow-y-auto p-2">
+        <div className="space-y-2">
+          <div>
+            <Select
+              value={selectedCountryState || "_all"}
+              onValueChange={handleCountryChange}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select country" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.keys(locationsHierarchy).length > 1 && (
+                  <SelectItem value="_all">All Countries</SelectItem>
+                )}
+                {Object.entries(locationsHierarchy).map(([code, { name }]) => (
+                  <SelectItem key={code} value={code}>
+                    {name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {selectedCountryState && (
+            <div>
+              <Select
+                value={selectedStateState || "_all"}
+                onValueChange={handleStateChange}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select state" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_all">All States</SelectItem>
+                  {Object.entries(availableStates).map(([code, { name }]) => (
+                    <SelectItem key={code} value={code}>
+                      {name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {selectedStateState && (
+            <div>
+              <Select
+                value={selectedCityState || "_all"}
+                onValueChange={handleCityChange}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select city" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_all">All Cities</SelectItem>
+                  {availableCities.map((city) => (
+                    <SelectItem key={city} value={city}>
+                      {city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
+      </DropdownMenuContent>
+    ),
+    [
+      selectedCountryState,
+      selectedStateState,
+      selectedCityState,
+      locationsHierarchy,
+      availableStates,
+      availableCities,
+      handleCountryChange,
+      handleStateChange,
+      handleCityChange,
+    ]
+  );
+
+  const LocationButton = useMemo(() => {
+    let displayText = "All Locations";
+    if (selectedCity) displayText = selectedCity;
+    else if (selectedState && selectedCountry) {
+      const stateName =
+        Object.entries(locationsHierarchy[selectedCountry]?.states || {}).find(
+          ([code]) => code === selectedState
+        )?.[1]?.name || selectedState;
+      displayText = stateName;
+    } else if (selectedCountry) {
+      displayText =
+        locationsHierarchy[selectedCountry]?.name || selectedCountry;
+    }
+
+    return (
+      <div className="flex items-center justify-between w-full gap-2">
+        <span className="truncate">{displayText}</span>
+      </div>
+    );
+  }, [selectedCity, selectedState, selectedCountry, locationsHierarchy]);
 
   return (
     <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Button
           variant="outline"
           size="sm"
@@ -271,13 +358,8 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
         </span>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-[180px] justify-between"
-            >
-              {selectedLocationDisplay}
-              <FaChevronDown className="ml-2" size={12} />
+            <Button variant="outline" size="sm" className="w-[180px]">
+              {LocationButton}
             </Button>
           </DropdownMenuTrigger>
           {locationDropdownContent}
@@ -306,9 +388,23 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      {hasActiveFilters && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-xs text-muted-foreground hover:text-destructive"
+          onClick={() => {
+            setSelectedCityState(null);
+            setSelectedStateState(null);
+            setSelectedCountryState(null);
+            onClearAllFilters();
+          }}
+        >
+          Clear all filters
+        </Button>
+      )}
     </div>
   );
 };
 
-// Memoize the entire component
 export default React.memo(FilterSortBar);
