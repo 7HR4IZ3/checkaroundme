@@ -29,6 +29,10 @@ import {
   HardHat, // New
   Laptop, // New
   Activity, // New
+  Scissors, // New
+  Brush, // New
+  Sofa, // Instead of Couch
+  Sword, // Instead of Knife
 } from "lucide-react";
 
 type CategoryNavProps = {
@@ -50,7 +54,7 @@ const CategoryIcon = ({
       return <Sparkles size={size} />;
     case "Aluminum Fabricater":
       return <Layers size={size} />;
-    case "Mechanic (Auto Repair)":
+    case "Mechanic":
       return <Car size={size} />;
     case "Event Planner":
       return <PartyPopper size={size} />;
@@ -76,7 +80,7 @@ const CategoryIcon = ({
       return <Camera size={size} />;
     case "Caterer":
       return <ChefHat size={size} />;
-    case "Mover":
+    case "Delivery Van":
       return <Truck size={size} />;
     case "Home Renovator / Contractor":
       return <HardHat size={size} />;
@@ -84,6 +88,14 @@ const CategoryIcon = ({
       return <Laptop size={size} />;
     case "Personal Trainer / Fitness Instructor":
       return <Activity size={size} />;
+    case "Furniture & carpentry":
+      return <Sofa size={size} />;
+    case "Barbers & Hairdresser":
+      return <Scissors size={size} />;
+    case "Makeup & Nails Tech":
+      return <Brush size={size} />;
+    case "Tattoo Artist":
+      return <Sword size={size} />;
     default:
       return <Ellipsis size={size} />;
   }
