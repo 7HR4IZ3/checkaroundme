@@ -130,18 +130,13 @@ async function checkOpenNow(
 // Business Service
 export const BusinessService = {
   // Add utility function to check business count
-  async checkUserBusinessLimit(userId: string): Promise<boolean> {
-    try {
-      const { documents } = await databases.listDocuments(
-        DATABASE_ID,
-        BUSINESSES_COLLECTION_ID,
-        [Query.equal("ownerId", userId)]
-      );
-      return documents.length >= 1;
-    } catch (error) {
-      console.error("Error checking business limit:", error);
-      throw error;
-    }
+  async hasReachedBusinessLimit(userId: string): Promise<boolean> {
+    const { total } = await databases.listDocuments(
+      DATABASE_ID,
+      BUSINESSES_COLLECTION_ID,
+      [Query.equal("ownerId", userId), Query.limit(1)]
+    );
+    return total >= 1;
   },
 
   // Create new business
@@ -155,7 +150,7 @@ export const BusinessService = {
       }
 
       // Check business limit before creating
-      const hasReachedLimit = await this.checkUserBusinessLimit(auth.user.$id);
+      const hasReachedLimit = await this.hasReachedBusinessLimit(auth.user.$id);
       if (hasReachedLimit) {
         throw new Error(
           "Business limit reached. You can only create one business"

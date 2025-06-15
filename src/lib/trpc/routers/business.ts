@@ -241,12 +241,12 @@ export function createBusinessProcedures(
     getUserBusinessCount: t.procedure
       .input(z.object({ userId: z.string() }))
       .query(async ({ input }) => {
-        const { documents } = await databases.listDocuments(
+        const { total } = await databases.listDocuments(
           DATABASE_ID,
           BUSINESSES_COLLECTION_ID,
           [Query.equal("ownerId", input.userId)]
         );
-        return documents.length;
+        return total;
       }),
   };
 }
