@@ -223,7 +223,7 @@ export function createPaystackProcedures(
           let paystackSubscriptionStartDate = new Date(transactionData.paid_at);
           if (isEligibleForTwoMonthFreeOffer) {
             const twoMonthsFromNow = paystackSubscriptionStartDate;
-            twoMonthsFromNow.setMonth(twoMonthsFromNow.getMonth() + 2);
+            twoMonthsFromNow.setMonth(twoMonthsFromNow.getMonth() + 3);
             paystackSubscriptionStartDate = twoMonthsFromNow;
           }
 
@@ -281,7 +281,7 @@ export function createPaystackProcedures(
           if (isEligibleForTwoMonthFreeOffer) {
             // Base expiry is 2 months from now + plan's original interval
             const twoMonthsFromNow = new Date(currentDate);
-            twoMonthsFromNow.setMonth(currentDate.getMonth() + 2);
+            twoMonthsFromNow.setMonth(currentDate.getMonth() + 3);
             appwriteExpiryDate = calculateExpiryDate(
               twoMonthsFromNow,
               planInterval
