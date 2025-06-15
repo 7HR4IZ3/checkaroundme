@@ -6,16 +6,16 @@ import { BusinessHoursService } from "../../appwrite/services/business-hours";
 import {
   createBusinessSchema,
   updateBusinessSchema,
-  businessImageSchema,
-  businessHoursSchema,
-  businessSchema,
   daySchema,
-  BusinessImage,
-  BusinessHours,
-  Business,
 } from "../../schema";
 
 import type { AppTRPC } from "../router";
+import {
+  databases,
+  DATABASE_ID,
+  BUSINESSES_COLLECTION_ID,
+} from "@/lib/appwrite";
+import { Query } from "node-appwrite";
 
 export function createBusinessProcedures(
   t: AppTRPC,
@@ -236,6 +236,17 @@ export function createBusinessProcedures(
         return await BusinessService.getBusinessCountByReferralCode(
           input.referralCode
         );
+      }),
+
+    getUserBusinessCount: t.procedure
+      .input(z.object({ userId: z.string() }))
+      .query(async ({ input }) => {
+        const { documents } = await databases.listDocuments(
+          DATABASE_ID,
+          BUSINESSES_COLLECTION_ID,
+          [Query.equal("ownerId", input.userId)]
+        );
+        return documents.length;
       }),
   };
 }

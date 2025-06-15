@@ -27,13 +27,27 @@ export default function BusinessCreateForm() {
   const [newlyCreatedBusinessId, setNewlyCreatedBusinessId] = useState<
     string | null
   >(null);
+  const [showLimitModal, setShowLimitModal] = useState(false);
 
   const createBusiness = trpc.createBusiness.useMutation();
+
+  // Add business count query
+  const { data: businessCount } = trpc.getUserBusinessCount.useQuery(
+    { userId: user?.$id ?? "" },
+    { enabled: !!user }
+  );
+
   const handleCreateBusiness = async (formData: any) => {
     if (createBusiness.isPending || createBusiness.isSuccess) return;
 
     if (!user?.$id) {
       toast.error("Error", { description: "User not authenticated." });
+      return;
+    }
+
+    // Check business limit
+    if (businessCount && businessCount >= 1) {
+      setShowLimitModal(true);
       return;
     }
 
@@ -80,6 +94,8 @@ export default function BusinessCreateForm() {
         submitButtonText="Create Business"
         isSubmitting={createBusiness.isPending}
       />
+
+      {/* Subscription Modal */}
       {showSubscriptionModal && newlyCreatedBusinessId && (
         <Dialog
           open={showSubscriptionModal}
@@ -116,6 +132,38 @@ export default function BusinessCreateForm() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Business Limit Modal */}
+      <Dialog open={showLimitModal} onOpenChange={setShowLimitModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Business Limit Reached</DialogTitle>
+            <DialogDescription>
+              You can only create one business at a time. To create another
+              business, please upgrade your subscription plan.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-between gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowLimitModal(false);
+                router.push("/business/my-businesses");
+              }}
+            >
+              View My Business
+            </Button>
+            <Button
+              onClick={() => {
+                setShowLimitModal(false);
+                router.push("/business/payment");
+              }}
+            >
+              Upgrade Plan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
