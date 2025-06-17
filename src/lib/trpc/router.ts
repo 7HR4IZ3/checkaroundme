@@ -13,9 +13,10 @@ import { createBusinessProcedures } from "./routers/business";
 import { createPaystackProcedures } from "./routers/paystack";
 import { createConversationProcedures } from "./routers/conversation";
 import { createVerificationProcedures } from "./routers/verification";
-import { createAnonymousSubmissionRouter } from "./routers/anonymous-submission"; // Import the new router
+import { createAnonymousSubmissionRouter as createAnonymousSubmissionProcedures } from "./routers/anonymous-submission"; // Import the new router
 import { createNotificationProcedures } from "./routers/notification"; // Add this import
 import { createBlogProcedures } from "./routers/blog"; // Import the blog router
+import { createAdminProcedures } from "./routers/admin";
 
 // Server-side secret key (should be in .env and NOT prefixed with NEXT_PUBLIC_)
 const SERVER_TRPC_SECRET_KEY = process.env.SERVER_TRPC_SECRET_KEY;
@@ -94,6 +95,7 @@ export const publicProcedure = t.procedure;
  * Routes using this procedure will require a valid Bearer token in the Authorization header.
  */
 export const protectedProcedureWithSecret = t.procedure; //.use(enforceSecretKey);
+export const adminProcedure = protectedProcedureWithSecret;
 
 export const appRouter = t.router({
   ...createAuthProcedures(t, protectedProcedureWithSecret),
@@ -105,10 +107,12 @@ export const appRouter = t.router({
   ...createConversationProcedures(t, protectedProcedureWithSecret),
   ...createLocationProcedures(t, protectedProcedureWithSecret),
   ...createVerificationProcedures(t, protectedProcedureWithSecret),
-  ...createNotificationProcedures(t, protectedProcedureWithSecret), // Add to the appRouter
-  ...createBlogProcedures(t, protectedProcedureWithSecret), // Add blog procedures
+  ...createNotificationProcedures(t, protectedProcedureWithSecret),
+  ...createBlogProcedures(t, protectedProcedureWithSecret),
   ...createPaystackProcedures(t, protectedProcedureWithSecret),
-  ...createAnonymousSubmissionRouter(t, protectedProcedureWithSecret), // Include the new router
+  ...createAnonymousSubmissionProcedures(t, protectedProcedureWithSecret), 
+
+  admin: createAdminProcedures(t, adminProcedure)
 });
 
 // Export type definition of API

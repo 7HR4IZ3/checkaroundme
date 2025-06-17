@@ -38,6 +38,7 @@ import { createAdminClient } from "./admin";
 import { createSessionClient } from "./session";
 import axios, { AxiosError } from "axios"; // Keep axios here as BusinessService still needs it
 import { randomInt, randomUUID } from "crypto";
+import { emailService } from "../email/EmailService"; // Import email service
 
 // Appwrite configuration
 const client = new Client();
@@ -795,6 +796,40 @@ export const MessageService = {
         }
       );
 
+      // Get the conversation to find other participants
+      const conversation = (await databases.getDocument(
+        DATABASE_ID,
+        CONVERSATIONS_COLLECTION_ID,
+        conversationId
+      )) as unknown as Conversation;
+
+      // Get sender's info
+      const sender = await users.get(senderId);
+      const senderName = sender.name || "A user";
+
+      // Send email notifications to other participants
+      const otherParticipants = conversation.participants.filter(
+        (id) => id !== senderId
+      );
+      for (const participantId of otherParticipants) {
+        try {
+          const participant = await users.get(participantId);
+          if (participant.email) {
+            await emailService.sendMessageNotificationEmail(
+              participant.email,
+              senderName,
+              image ? "Sent you an image" : text ? text : "Sent you a message"
+            );
+          }
+        } catch (error) {
+          console.error(
+            `Failed to send notification to participant ${participantId}:`,
+            error
+          );
+          // Continue with other participants even if one fails
+        }
+      }
+
       return newMessage as unknown as Message;
     } catch (error) {
       console.error("Send message error:", error);
@@ -1157,6 +1192,192 @@ export const PaymentTransactionService = {
       );
     } catch (error) {
       console.error("Delete payment transaction error:", error);
+      throw error;
+    }
+  },
+
+  // List transactions with filtering and pagination
+  async listTransactions({
+    page = 1,
+    perPage = 10,
+    status,
+    startDate,
+    endDate,
+    search,
+  }: {
+    page?: number;
+    perPage?: number;
+    status?: string;
+    startDate?: string;
+    endDate?: string;
+    search?: string;
+  }) {
+    try {
+      const queries = [Query.orderDesc("$createdAt")];
+
+      // Add filters if provided
+      if (status) {
+        queries.push(Query.equal("status", status));
+      }
+
+      if (startDate) {
+        queries.push(Query.greaterThanEqual("createdAt", startDate));
+      }
+
+      if (endDate) {
+        queries.push(Query.lessThanEqual("createdAt", endDate));
+      }
+
+      if (search) {
+        queries.push(
+          Query.or([
+            Query.search("reference", search),
+            Query.search("customerEmail", search),
+          ])
+        );
+      }
+
+      // Add pagination
+      const offset = (page - 1) * perPage;
+      queries.push(Query.limit(perPage));
+      queries.push(Query.offset(offset));
+
+      const result = await databases.listDocuments<
+        Models.Document & PaymentTransaction
+      >(DATABASE_ID, PAYMENT_TRANSACTIONS_COLLECTION_ID, queries);
+
+      return {
+        data: result.documents,
+        total: result.total,
+        page,
+        perPage,
+        hasMore: offset + result.documents.length < result.total,
+      };
+    } catch (error) {
+      console.error("List transactions error:", error);
+      throw error;
+    }
+  },
+
+  // Get transaction statistics
+  async getTransactionStats(startDate?: string, endDate?: string) {
+    try {
+      const queries = [];
+      if (startDate) {
+        queries.push(Query.greaterThanEqual("createdAt", startDate));
+      }
+      if (endDate) {
+        queries.push(Query.lessThanEqual("createdAt", endDate));
+      }
+
+      const result = await databases.listDocuments(
+        DATABASE_ID,
+        PAYMENT_TRANSACTIONS_COLLECTION_ID,
+        queries
+      );
+
+      const transactions = result.documents;
+
+      return {
+        total: transactions.length,
+        totalAmount: transactions.reduce(
+          (sum, tx) => sum + Number(tx.amount),
+          0
+        ),
+        successful: transactions.filter((tx) => tx.status === "success").length,
+        failed: transactions.filter((tx) => tx.status === "failed").length,
+        pending: transactions.filter((tx) => tx.status === "pending").length,
+      };
+    } catch (error) {
+      console.error("Get transaction stats error:", error);
+      throw error;
+    }
+  },
+
+  // Get transactions by customer
+  async getCustomerTransactions(
+    customerId: string,
+    page: number = 1,
+    perPage: number = 10
+  ) {
+    try {
+      const offset = (page - 1) * perPage;
+      const result = await databases.listDocuments(
+        DATABASE_ID,
+        PAYMENT_TRANSACTIONS_COLLECTION_ID,
+        [
+          Query.equal("userId", customerId),
+          Query.orderDesc("$createdAt"),
+          Query.limit(perPage),
+          Query.offset(offset),
+        ]
+      );
+
+      return {
+        data: result.documents,
+        total: result.total,
+        page,
+        perPage,
+        hasMore: offset + result.documents.length < result.total,
+      };
+    } catch (error) {
+      console.error("Get customer transactions error:", error);
+      throw error;
+    }
+  },
+
+  // Get transaction amounts by period (for analytics)
+  async getTransactionAmountsByPeriod(
+    period: "daily" | "weekly" | "monthly" | "yearly",
+    startDate: string,
+    endDate: string
+  ) {
+    try {
+      const result = await databases.listDocuments(
+        DATABASE_ID,
+        PAYMENT_TRANSACTIONS_COLLECTION_ID,
+        [
+          Query.equal("status", "success"),
+          Query.greaterThanEqual("createdAt", startDate),
+          Query.lessThanEqual("createdAt", endDate),
+          Query.orderAsc("createdAt"),
+        ]
+      );
+
+      const transactions = result.documents;
+      const amounts: { [key: string]: number } = {};
+
+      transactions.forEach((tx) => {
+        let key: string;
+        const date = new Date(tx.createdAt);
+
+        switch (period) {
+          case "daily":
+            key = date.toISOString().split("T")[0];
+            break;
+          case "weekly":
+            const weekNumber = Math.ceil(
+              (date.getDate() - 1 - date.getDay()) / 7
+            );
+            key = `${date.getFullYear()}-W${weekNumber}`;
+            break;
+          case "monthly":
+            key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+              2,
+              "0"
+            )}`;
+            break;
+          case "yearly":
+            key = date.getFullYear().toString();
+            break;
+        }
+
+        amounts[key] = (amounts[key] || 0) + Number(tx.amount);
+      });
+
+      return amounts;
+    } catch (error) {
+      console.error("Get transaction amounts by period error:", error);
       throw error;
     }
   },

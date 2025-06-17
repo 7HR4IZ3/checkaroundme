@@ -1,4 +1,8 @@
 import { Paystack } from "paystack-sdk";
+import {
+  UpdateCustomer,
+  ValidateCustomer,
+} from "paystack-sdk/dist/customer/interface";
 
 let PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 
@@ -264,7 +268,6 @@ export const listSubscriptions = async (params?: {
   }
 };
 
-
 /**
  * Disables a subscription on Paystack.
  * @param details - Subscription code and token.
@@ -338,6 +341,142 @@ export const createCustomer = async (details: {
       error?.response?.data?.message ||
         error.message ||
         "Failed to create Paystack customer." // Corrected error message
+    );
+  }
+};
+
+// --- Customer Functions ---
+
+/**
+ * Lists all customers from Paystack.
+ * @param params - Optional query parameters
+ * @returns Paystack API response
+ */
+export const listCustomers = async (params?: {
+  perPage?: number;
+  page?: number;
+  from?: string; // Start date
+  to?: string; // End date
+}) => {
+  const ps = getPaystackInstance();
+  try {
+    // @ts-ignore
+    const response = await ps.customer.list(params);
+    console.log("Paystack List Customers Response:", response);
+    return response;
+  } catch (error: any) {
+    console.error(
+      "Error listing Paystack customers:",
+      error?.response?.data || error.message
+    );
+    throw new Error(
+      error?.response?.data?.message ||
+        error.message ||
+        "Failed to list Paystack customers."
+    );
+  }
+};
+
+/**
+ * Fetches a customer's details from Paystack.
+ * @param emailOrCode - Customer's email or code
+ * @returns Paystack API response
+ */
+export const fetchCustomer = async (emailOrCode: string) => {
+  const ps = getPaystackInstance();
+  try {
+    const response = await ps.customer.fetch(emailOrCode);
+    console.log("Paystack Fetch Customer Response:", response);
+    return response;
+  } catch (error: any) {
+    console.error(
+      "Error fetching Paystack customer:",
+      error?.response?.data || error.message
+    );
+    throw new Error(
+      error?.response?.data?.message ||
+        error.message ||
+        "Failed to fetch Paystack customer."
+    );
+  }
+};
+
+/**
+ * Updates a customer's details on Paystack.
+ * @param code - Customer's code
+ * @param details - Customer details to update
+ * @returns Paystack API response
+ */
+export const updateCustomer = async (code: string, details: UpdateCustomer) => {
+  const ps = getPaystackInstance();
+  try {
+    const response = await ps.customer.update(code, details);
+    console.log("Paystack Update Customer Response:", response);
+    return response;
+  } catch (error: any) {
+    console.error(
+      "Error updating Paystack customer:",
+      error?.response?.data || error.message
+    );
+    throw new Error(
+      error?.response?.data?.message ||
+        error.message ||
+        "Failed to update Paystack customer."
+    );
+  }
+};
+
+/**
+ * Validates a customer's identification.
+ * @param details - Customer identification details
+ * @returns Paystack API response
+ */
+export const validateCustomer = async (
+  customer: string,
+  details: ValidateCustomer
+) => {
+  const ps = getPaystackInstance();
+  try {
+    const response = await ps.customer.validate(customer, details);
+    console.log("Paystack Validate Customer Response:", response);
+    return response;
+  } catch (error: any) {
+    console.error(
+      "Error validating Paystack customer:",
+      error?.response?.data || error.message
+    );
+    throw new Error(
+      error?.response?.data?.message ||
+        error.message ||
+        "Failed to validate Paystack customer."
+    );
+  }
+};
+
+/**
+ * Deactivates an authorization for a customer
+ * @param details - Authorization details
+ * @returns Paystack API response
+ */
+export const deactivateAuthorization = async (details: {
+  authorization_code: string;
+}) => {
+  const ps = getPaystackInstance();
+  try {
+    const response = await ps.customer.deactivateAutorization(
+      details.authorization_code
+    );
+    console.log("Paystack Deactivate Authorization Response:", response);
+    return response;
+  } catch (error: any) {
+    console.error(
+      "Error deactivating authorization:",
+      error?.response?.data || error.message
+    );
+    throw new Error(
+      error?.response?.data?.message ||
+        error.message ||
+        "Failed to deactivate authorization."
     );
   }
 };

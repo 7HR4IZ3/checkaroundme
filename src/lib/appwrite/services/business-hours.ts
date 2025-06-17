@@ -9,13 +9,13 @@ export const BusinessHoursService = {
   // Add/update business hours
   async setBusinessHours(
     businessId: string,
-    hours: { [key: string]: DaySchema },
+    hours: { [key: string]: DaySchema }
   ): Promise<BusinessHours[]> {
     try {
       const existing = await databases.listDocuments(
         DATABASE_ID,
         BUSINESS_HOURS_COLLECTION_ID,
-        [Query.equal("businessId", businessId)],
+        [Query.equal("businessId", businessId)]
       );
 
       // Delete old hours
@@ -23,7 +23,7 @@ export const BusinessHoursService = {
         await databases.deleteDocument(
           DATABASE_ID,
           BUSINESS_HOURS_COLLECTION_ID,
-          doc.$id,
+          doc.$id
         );
       }
 
@@ -40,7 +40,7 @@ export const BusinessHoursService = {
             openTime: hours[hour].open,
             closeTime: hours[hour].close,
             isClosed: hours[hour].closed,
-          },
+          }
         );
 
         results.push(newHour);
@@ -53,13 +53,35 @@ export const BusinessHoursService = {
     }
   },
 
+  async getBusinessHour(
+    businessId: string,
+    day: string
+  ): Promise<BusinessHours | null> {
+    try {
+      const result = await databases.listDocuments(
+        DATABASE_ID,
+        BUSINESS_HOURS_COLLECTION_ID,
+        [
+          Query.equal("businessId", businessId),
+          Query.equal("day", day),
+          Query.limit(1),
+        ]
+      );
+
+      return result.documents?.at(0) as unknown as BusinessHours;
+    } catch (error) {
+      console.error("Get business hours error:", error);
+      throw error;
+    }
+  },
+
   // Get business hours
   async getBusinessHours(businessId: string): Promise<BusinessHours[]> {
     try {
       const result = await databases.listDocuments(
         DATABASE_ID,
         BUSINESS_HOURS_COLLECTION_ID,
-        [Query.equal("businessId", businessId)],
+        [Query.equal("businessId", businessId)]
       );
 
       return result.documents as unknown as BusinessHours[];

@@ -210,7 +210,82 @@ The Checkaroundme Team
     }
   }
 
-  // Add other email sending methods as needed (e.g., reset password, verification)
+  /**
+   * Sends an email notification when a user receives a new message.
+   * @param email The recipient's email address
+   * @param senderName The name of the person who sent the message
+   * @param messagePreview A preview of the message content
+   */
+  async sendMessageNotificationEmail(
+    email: string,
+    senderName: string,
+    messagePreview: string
+  ): Promise<void> {
+    const subject = `New Message from ${senderName} on Checkaroundme`;
+    const textBody = `
+Hi there,
+
+You have received a new message from ${senderName} on Checkaroundme.
+
+Message preview:
+${messagePreview.substring(0, 100)}${messagePreview.length > 100 ? "..." : ""}
+
+Login to your account to view and respond to this message:
+https://checkaroundme.com/messages
+
+Best regards,
+The Checkaroundme Team
+    `.trim();
+
+    const htmlBody = `
+<div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
+  <div style="text-align: center; margin-bottom: 20px;">
+    <h1 style="font-size: 24px; color: #333; margin: 0;">New Message on Checkaroundme</h1>
+  </div>
+  
+  <p>Hi there,</p>
+  
+  <p>You have received a new message from <strong>${senderName}</strong> on Checkaroundme.</p>
+  
+  <div style="margin: 20px 0; padding: 15px; background-color: #fff; border-radius: 5px;">
+    <p><strong>Message preview:</strong></p>
+    <p style="color: #666;">${messagePreview.substring(0, 100)}${
+      messagePreview.length > 100 ? "..." : ""
+    }</p>
+  </div>
+  
+  <div style="text-align: center; margin: 20px 0;">
+    <a href="https://checkaroundme.com/messages" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">View Message</a>
+  </div>
+  
+  <p>Best regards,<br>
+  The Checkaroundme Team</p>
+</div>
+    `.trim();
+
+    const mailOptions = {
+      from:
+        process.env.PRIVATE_MAIL_SMTP_FROM_EMAIL ||
+        '"Checkaroundme" <noreply@checkaroundme.com>',
+      to: email,
+      subject: subject,
+      text: textBody,
+      html: htmlBody,
+    };
+
+    try {
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log(
+        `Message notification email sent successfully to ${email}: ${info.messageId}`
+      );
+    } catch (error) {
+      console.error(
+        `Failed to send message notification email to ${email}:`,
+        error
+      );
+      throw error;
+    }
+  }
 }
 
 export const emailService = new EmailService();

@@ -246,22 +246,6 @@ export const userSubscriptionSchema = z.object({
   // any other relevant fields from updateUserSubscriptionStatus
 });
 
-// Payment Transaction Schema (for a new Appwrite Collection)
-export const paymentTransactionSchema = z.object({
-  $id: z.string().optional(), // Appwrite generated
-  userId: z.string(),
-  providerTransactionId: z.string(),
-  date: z.string(), // ISO Date string
-  amount: z.number(),
-  currency: z.string(),
-  description: z.string(),
-  status: z.enum(["succeeded", "failed", "pending", "refunded"]),
-  provider: z.enum(["paystack", "flutterwave"]),
-  invoiceUrl: z.string().url().optional(),
-  createdAt: z.string().optional(), // Appwrite generated
-  updatedAt: z.string().optional(), // Appwrite generated
-});
-
 export const anonymousSubmissionSchema = z.object({
   $id: z.string(),
   name: z.string(),
@@ -327,6 +311,44 @@ export const blogImageSchema = z.object({
   createdAt: z.date().default(() => new Date()),
 });
 
+// Payment Transaction Schema (for a new Appwrite Collection)
+export const paymentTransactionSchema = z.object({
+  $id: z.string().optional(), // Appwrite generated
+  userId: z.string(),
+  providerTransactionId: z.string(),
+  date: z.string(), // ISO Date string
+  amount: z.number(),
+  currency: z.string(),
+  description: z.string(),
+  status: z.enum(["succeeded", "failed", "pending", "refunded"]),
+  provider: z.enum(["paystack", "flutterwave"]),
+  invoiceUrl: z.string().url().optional(),
+  createdAt: z.string().optional(), // Appwrite generated
+  updatedAt: z.string().optional(), // Appwrite generated
+});
+
+export const paystackCustomerSchema = z.object({
+  id: z.number(),
+  email: z.string().email(),
+  first_name: z.string(),
+  last_name: z.string(),
+  phone: z.string().optional(),
+  metadata: z.record(z.any()).optional(),
+  customer_code: z.string(),
+  created_at: z.string()
+});
+
+export const paystackSubscriptionSchema = z.object({
+  id: z.number(),
+  customer: z.number(),
+  plan: z.number(),
+  status: z.enum(['active', 'cancelled', 'pending', 'expired']),
+  start_date: z.string(),
+  next_payment_date: z.string().nullable(),
+  created_at: z.string()
+});
+
+
 // Type definitions to use throughout the application
 export type User = z.infer<typeof userSchema>;
 export type Business = z.infer<typeof businessSchema>;
@@ -344,8 +366,11 @@ export type UserSettings = z.infer<typeof userSettingsSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type RegisterInput = z.infer<typeof registerInputSchema>;
 export type UserSubscription = z.infer<typeof userSubscriptionSchema>;
-export type PaymentTransaction = z.infer<typeof paymentTransactionSchema>;
 export type AnonymousSubmission = z.infer<typeof anonymousSubmissionSchema>;
 export type Notification = z.infer<typeof notificationSchema>;
 export type BlogPost = z.infer<typeof blogPostSchema>;
 export type BlogImage = z.infer<typeof blogImageSchema>;
+
+export type PaymentTransaction = z.infer<typeof paymentTransactionSchema>;
+export type PaystackCustomer = z.infer<typeof paystackCustomerSchema>;
+export type PaystackSubscription = z.infer<typeof paystackSubscriptionSchema>;
