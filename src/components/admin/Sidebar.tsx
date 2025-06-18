@@ -23,7 +23,10 @@ export function Sidebar({ user }: SidebarProps) {
   const router = useRouter();
 
   useEffect(() => {
-    if (!user.labels.includes("admin")) {
+    if (
+      !pathname?.startsWith("/admin/submissions") &&
+      !user.labels.includes("admin")
+    ) {
       router.push("/");
     }
   }, [user, router]);
@@ -36,7 +39,7 @@ export function Sidebar({ user }: SidebarProps) {
     { name: "Plans", href: "/admin/plans", icon: Package },
   ];
 
-  return (
+  return !pathname?.startsWith("/admin/submissions") ? (
     <nav className="w-64 bg-white border-r px-3 py-6 flex flex-col h-screen">
       <div className="px-3 mb-8">
         <h1 className="text-xl font-semibold text-gray-900">Admin Panel</h1>
@@ -62,5 +65,5 @@ export function Sidebar({ user }: SidebarProps) {
         })}
       </div>
     </nav>
-  );
+  ) : null;
 }
