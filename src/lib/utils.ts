@@ -20,7 +20,7 @@ export function calculateExpiryDate(
     | "monthly"
     | "quarterly"
     | "biannually"
-    | "annually",
+    | "annually"
 ): Date {
   const expiryDate = new Date(startDate);
 
@@ -49,11 +49,37 @@ export function calculateExpiryDate(
     default:
       // Default to monthly if interval is unknown, or throw an error
       console.warn(
-        `Unknown subscription interval: ${interval}. Defaulting to monthly.`,
+        `Unknown subscription interval: ${interval}. Defaulting to monthly.`
       );
       expiryDate.setMonth(expiryDate.getMonth() + 1);
       break;
   }
 
   return expiryDate;
+}
+
+/**
+ * Formats a given amount into a currency string.
+ * @param amount - The amount in kobo.
+ * @param currency - The currency code (default is "NGN").
+ * @returns The formatted currency string.
+ */
+export function formatCurrency(
+  amount: number,
+  currency: string = "NGN"
+): string {
+  const value = amount / 100; // Convert from kobo to naira
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency,
+  }).format(value);
+}
+
+/**
+ * Converts an amount from kobo to naira.
+ * @param amount - The amount in kobo.
+ * @returns The amount in naira.
+ */
+export function koboToNaira(amount: number): number {
+  return amount / 100;
 }

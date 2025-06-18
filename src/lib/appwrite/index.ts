@@ -347,7 +347,7 @@ export const ReviewService = {
     text,
     title,
     recommendation,
-    parentReviewId, // Added parentReviewId
+    parentReviewId,
   }: Omit<Review, "$id" | "createdAt" | "updatedAt" | "likes" | "dislikes"> & {
     parentReviewId?: string;
   }): Promise<Review> {
@@ -357,7 +357,6 @@ export const ReviewService = {
         REVIEWS_COLLECTION_ID,
         ID.unique(),
         {
-          // Data object
           businessId,
           userId,
           rating,
@@ -365,7 +364,7 @@ export const ReviewService = {
           title,
           recommendation,
           likes: 0,
-          parentReviewId, // Include parentReviewId
+          parentReviewId,
           dislikes: 0,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -374,6 +373,30 @@ export const ReviewService = {
 
       // Update business average rating and review count
       await updateBusinessRating(businessId);
+
+      // Get business owner's email and business name
+      try {
+        const business = await databases.getDocument(
+          DATABASE_ID,
+          BUSINESSES_COLLECTION_ID,
+          businessId
+        );
+        const businessOwner = await users.get(business.userId);
+        const reviewer = await users.get(userId);
+
+        if (businessOwner.email) {
+          await emailService.sendReviewNotificationEmail(
+            businessOwner.email,
+            reviewer.name || "A customer",
+            rating,
+            text || "",
+            business.name
+          );
+        }
+      } catch (error) {
+        console.error("Failed to send review notification:", error);
+        // Don't throw error here - we still want to return the created review
+      }
 
       return newReview as unknown as Review;
     } catch (error) {
@@ -808,27 +831,31 @@ export const MessageService = {
       const senderName = sender.name || "A user";
 
       // Send email notifications to other participants
-      const otherParticipants = conversation.participants.filter(
-        (id) => id !== senderId
+      await Promise.all(
+        conversation.participants
+          .filter((id) => id !== senderId)
+          .map(async (participantId) => {
+            try {
+              const participant = await users.get(participantId);
+              if (participant.email) {
+                await emailService.sendMessageNotificationEmail(
+                  participant.email,
+                  senderName,
+                  image
+                    ? "Sent you an image"
+                    : text
+                    ? text
+                    : "Sent you a message"
+                );
+              }
+            } catch (error) {
+              console.error(
+                `Failed to send notification to participant ${participantId}:`,
+                error
+              );
+            }
+          })
       );
-      for (const participantId of otherParticipants) {
-        try {
-          const participant = await users.get(participantId);
-          if (participant.email) {
-            await emailService.sendMessageNotificationEmail(
-              participant.email,
-              senderName,
-              image ? "Sent you an image" : text ? text : "Sent you a message"
-            );
-          }
-        } catch (error) {
-          console.error(
-            `Failed to send notification to participant ${participantId}:`,
-            error
-          );
-          // Continue with other participants even if one fails
-        }
-      }
 
       return newMessage as unknown as Message;
     } catch (error) {
@@ -1386,15 +1413,13 @@ export const PaymentTransactionService = {
 // Mailing List Service
 export const MailingListService = {
   // Add email to mailing list
-  async addEmail(email: string): Promise<Models.Document> {
+  async addEmail(email: string): Promise<Models.Document & { email: string }> {
     try {
       // Optional: Check if email already exists to prevent duplicates
       // This might be better handled by a unique index on the 'email' attribute in Appwrite
-      const existingEmails = await databases.listDocuments(
-        DATABASE_ID,
-        MAILING_LIST_COLLECTION_ID,
-        [Query.equal("email", email)]
-      );
+      const existingEmails = await databases.listDocuments<
+        Models.Document & { email: string }
+      >(DATABASE_ID, MAILING_LIST_COLLECTION_ID, [Query.equal("email", email)]);
 
       if (existingEmails.total > 0) {
         // Email already exists, you can either return the existing document or throw an error
@@ -1403,15 +1428,12 @@ export const MailingListService = {
         return existingEmails.documents[0]; // Or handle as you see fit
       }
 
-      const newEmailEntry = await databases.createDocument(
-        DATABASE_ID,
-        MAILING_LIST_COLLECTION_ID,
-        ID.unique(),
-        {
-          email,
-          subscribedAt: new Date().toISOString(),
-        }
-      );
+      const newEmailEntry = await databases.createDocument<
+        Models.Document & { email: string }
+      >(DATABASE_ID, MAILING_LIST_COLLECTION_ID, ID.unique(), {
+        email,
+        subscribedAt: new Date().toISOString(),
+      });
       return newEmailEntry;
     } catch (error) {
       console.error("Add email to mailing list error:", error);
@@ -1420,9 +1442,11 @@ export const MailingListService = {
   },
 
   // Get all emails from mailing list
-  async getAllEmails(): Promise<Models.Document[]> {
+  async getAllEmails(): Promise<(Models.Document & { email: string })[]> {
     try {
-      const result = await databases.listDocuments(
+      const result = await databases.listDocuments<
+        Models.Document & { email: string }
+      >(
         DATABASE_ID,
         MAILING_LIST_COLLECTION_ID,
         [Query.orderDesc("subscribedAt")] // Optional: order by subscription date
@@ -1753,6 +1777,39 @@ export const BlogService = {
           updatedAt: new Date().toISOString(),
         }
       );
+
+      // Only send notifications if the post is published
+      if (data.status === "published") {
+        try {
+          // Get all mailing list subscribers
+          const subscribers = await MailingListService.getAllEmails();
+          const postUrl = `https://checkaroundme.com/blog/${data.slug}`;
+
+          // Send notifications in parallel
+          await Promise.all(
+            subscribers.map((subscriber) =>
+              emailService
+                .sendNewBlogPostNotification(
+                  subscriber.email,
+                  data.title,
+                  data.excerpt || data.content.substring(0, 150) + "...",
+                  postUrl
+                )
+                .catch((error) => {
+                  // Log error but don't fail the whole operation
+                  console.error(
+                    `Failed to send notification to ${subscriber.email}:`,
+                    error
+                  );
+                })
+            )
+          );
+        } catch (error) {
+          console.error("Failed to send blog post notifications:", error);
+          // Don't throw error - we still want to return the created post
+        }
+      }
+
       return newPost as unknown as BlogPost;
     } catch (error) {
       console.error("Create blog post error:", error);

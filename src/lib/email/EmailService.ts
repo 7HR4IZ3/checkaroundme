@@ -286,6 +286,172 @@ The Checkaroundme Team
       throw error;
     }
   }
+
+  /**
+   * Sends an email notification when a business receives a new review
+   * @param email The business owner's email address
+   * @param reviewerName The name of the person who left the review
+   * @param rating The rating given (1-5 stars)
+   * @param comment The review text
+   * @param businessName The name of the business being reviewed
+   */
+  async sendReviewNotificationEmail(
+    email: string,
+    reviewerName: string,
+    rating: number,
+    comment: string,
+    businessName: string
+  ): Promise<void> {
+    const subject = `New Review for ${businessName} on Checkaroundme`;
+    const stars = "⭐".repeat(rating);
+
+    const textBody = `
+Hi there,
+
+Your business "${businessName}" has received a new review on Checkaroundme.
+
+Rating: ${stars} (${rating}/5)
+From: ${reviewerName}
+
+Review:
+${comment}
+
+Login to your account to view and respond to this review:
+https://checkaroundme.com/dashboard/reviews
+
+Best regards,
+The Checkaroundme Team
+    `.trim();
+
+    const htmlBody = `
+<div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
+  <div style="text-align: center; margin-bottom: 20px;">
+    <h1 style="font-size: 24px; color: #333; margin: 0;">New Review on Checkaroundme</h1>
+  </div>
+  
+  <p>Hi there,</p>
+  
+  <p>Your business "<strong>${businessName}</strong>" has received a new review on Checkaroundme.</p>
+  
+  <div style="margin: 20px 0; padding: 15px; background-color: #fff; border-radius: 5px;">
+    <p><strong>Rating:</strong> ${stars} (${rating}/5)</p>
+    <p><strong>From:</strong> ${reviewerName}</p>
+    <p><strong>Review:</strong></p>
+    <p style="color: #666;">${comment}</p>
+  </div>
+  
+  <div style="text-align: center; margin: 20px 0;">
+    <a href="https://checkaroundme.com/dashboard/reviews" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">View Review</a>
+  </div>
+  
+  <p>Best regards,<br>
+  The Checkaroundme Team</p>
+</div>
+    `.trim();
+
+    const mailOptions = {
+      from:
+        process.env.PRIVATE_MAIL_SMTP_FROM_EMAIL ||
+        '"Checkaroundme" <noreply@checkaroundme.com>',
+      to: email,
+      subject: subject,
+      text: textBody,
+      html: htmlBody,
+    };
+
+    try {
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log(
+        `Review notification email sent successfully to ${email}: ${info.messageId}`
+      );
+    } catch (error) {
+      console.error(
+        `Failed to send review notification email to ${email}:`,
+        error
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Sends a notification about a new blog post to subscribers
+   * @param email The recipient's email address
+   * @param postTitle The blog post title
+   * @param postExcerpt A short excerpt from the post
+   * @param postUrl The URL to view the full post
+   */
+  async sendNewBlogPostNotification(
+    email: string,
+    postTitle: string,
+    postExcerpt: string,
+    postUrl: string
+  ): Promise<void> {
+    const subject = `New Blog Post: ${postTitle} - Checkaroundme`;
+
+    const textBody = `
+Hi there!
+
+We've just published a new blog post that we think you'll find interesting:
+
+${postTitle}
+
+${postExcerpt}
+
+Read the full post here:
+${postUrl}
+
+If you no longer wish to receive these notifications, you can unsubscribe using the link below:
+https://checkaroundme.com/unsubscribe
+
+Best regards,
+The Checkaroundme Team
+    `.trim();
+
+    const htmlBody = `
+<div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
+  <div style="text-align: center; margin-bottom: 20px;">
+    <h1 style="font-size: 24px; color: #333; margin: 0;">New Blog Post</h1>
+  </div>
+  
+  <h2 style="color: #007bff;">${postTitle}</h2>
+  
+  <div style="margin: 20px 0; padding: 15px; background-color: #fff; border-radius: 5px;">
+    <p style="color: #666;">${postExcerpt}</p>
+  </div>
+  
+  <div style="text-align: center; margin: 20px 0;">
+    <a href="${postUrl}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">Read Full Post</a>
+  </div>
+  
+  <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 12px; color: #666; text-align: center;">
+    <p>If you no longer wish to receive these notifications, you can <a href="https://checkaroundme.com/unsubscribe" style="color: #007bff;">unsubscribe here</a>.</p>
+  </div>
+</div>
+    `.trim();
+
+    const mailOptions = {
+      from:
+        process.env.PRIVATE_MAIL_SMTP_FROM_EMAIL ||
+        '"Checkaroundme" <noreply@checkaroundme.com>',
+      to: email,
+      subject: subject,
+      text: textBody,
+      html: htmlBody,
+    };
+
+    try {
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log(
+        `Blog post notification email sent successfully to ${email}: ${info.messageId}`
+      );
+    } catch (error) {
+      console.error(
+        `Failed to send blog post notification email to ${email}:`,
+        error
+      );
+      throw error;
+    }
+  }
 }
 
 export const emailService = new EmailService();

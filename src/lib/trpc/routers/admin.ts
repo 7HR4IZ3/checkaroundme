@@ -9,7 +9,7 @@ import {
   listCustomers,
 } from "@/lib/paystack";
 import { AuthService } from "@/lib/appwrite/services/auth";
-import { PaymentTransactionService } from "@/lib/appwrite";
+import { PaymentTransactionService, USERS_COLLECTION_ID } from "@/lib/appwrite";
 import {
   paymentTransactionSchema,
   paystackCustomerSchema,
@@ -18,7 +18,17 @@ import {
 
 import type { AppTRPC } from "../router";
 import { IPlan } from "paystack-sdk/dist/plan";
-import { ListSubscriptions, Subscription } from "paystack-sdk/dist/subscription";
+import {
+  ListSubscriptions,
+  Subscription,
+} from "paystack-sdk/dist/subscription";
+import { Query } from "appwrite";
+import { databases } from "@/lib/appwrite";
+import {
+  DATABASE_ID,
+  BUSINESSES_COLLECTION_ID,
+  REVIEWS_COLLECTION_ID,
+} from "@/lib/appwrite/index";
 
 // Helper function to check admin status
 async function verifyAdmin() {
@@ -296,6 +306,186 @@ export function createAdminProcedures(
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to fetch customer transactions",
+          });
+        }
+      }),
+
+    getRevenueData: adminProcedure
+      .input(
+        z.object({
+          startDate: z.string().optional(),
+          endDate: z.string().optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        try {
+          const result =
+            await PaymentTransactionService.getTransactionAmountsByPeriod(
+              "daily",
+              input.startDate ||
+                new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+              input.endDate || new Date().toISOString()
+            );
+
+          // Transform data for the chart
+          return Object.entries(result).map(([date, amount]) => ({
+            date,
+            amount,
+          }));
+        } catch (error) {
+          console.error("Error fetching revenue data:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to fetch revenue data",
+          });
+        }
+      }),
+
+    getTransactionStats: adminProcedure
+      .input(
+        z.object({
+          startDate: z.string().optional(),
+          endDate: z.string().optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        try {
+          return await PaymentTransactionService.getTransactionStats(
+            input.startDate,
+            input.endDate
+          );
+        } catch (error) {
+          console.error("Error fetching transaction stats:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to fetch transaction stats",
+          });
+        }
+      }),
+
+    getBusinessStats: adminProcedure
+      .input(
+        z.object({
+          startDate: z.string().optional(),
+          endDate: z.string().optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        try {
+          const queries = [];
+          if (input.startDate) {
+            queries.push(Query.greaterThanEqual("createdAt", input.startDate));
+          }
+          if (input.endDate) {
+            queries.push(Query.lessThanEqual("createdAt", input.endDate));
+          }
+
+          const businesses = await databases.listDocuments(
+            DATABASE_ID,
+            BUSINESSES_COLLECTION_ID,
+            queries
+          );
+
+          // Calculate category distribution
+          const categoryCount: { [key: string]: number } = {};
+          businesses.documents.forEach((business) => {
+            business.categories.forEach((category: string) => {
+              categoryCount[category] = (categoryCount[category] || 0) + 1;
+            });
+          });
+
+          const categoryDistribution = Object.entries(categoryCount).map(
+            ([name, value]) => ({
+              name,
+              value,
+            })
+          );
+
+          return {
+            totalCount: businesses.total,
+            verifiedCount: businesses.documents.filter((b) => b.isVerified)
+              .length,
+            categoryDistribution,
+          };
+        } catch (error) {
+          console.error("Get business stats error:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to fetch business stats",
+          });
+        }
+      }),
+
+    getUserStats: adminProcedure.query(async () => {
+      try {
+        const now = new Date();
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+        const allUsers = await databases.listDocuments(
+          DATABASE_ID,
+          USERS_COLLECTION_ID
+        );
+        const newUsers = await databases.listDocuments(
+          DATABASE_ID,
+          USERS_COLLECTION_ID,
+          [Query.greaterThan("createdAt", weekAgo.toISOString())]
+        );
+
+        return {
+          total: allUsers.total,
+          newUsers: newUsers.total,
+          activeUsers: allUsers.documents.filter(
+            (user) => user.lastSeen && new Date(user.lastSeen) > weekAgo
+          ).length,
+        };
+      } catch (error) {
+        console.error("Get user stats error:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch user statistics",
+        });
+      }
+    }),
+
+    // Add these new procedures for the dashboard
+    listBusinesses: adminProcedure
+      .input(
+        z.object({
+          page: z.number().default(1),
+          limit: z.number().default(10),
+          status: z.string().optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        try {
+          const offset = (input.page - 1) * input.limit;
+          const queries = [
+            Query.orderDesc("$createdAt"),
+            Query.limit(input.limit),
+            Query.offset(offset),
+          ];
+
+          if (input.status) {
+            queries.push(Query.equal("status", input.status));
+          }
+
+          const result = await databases.listDocuments(
+            DATABASE_ID,
+            BUSINESSES_COLLECTION_ID,
+            queries
+          );
+
+          return {
+            data: result.documents,
+            total: result.total,
+            page: input.page,
+            limit: input.limit,
+          };
+        } catch (error) {
+          console.error("List businesses error:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to fetch businesses",
           });
         }
       }),

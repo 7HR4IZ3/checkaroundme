@@ -131,7 +131,7 @@ export default function Home() {
   const [openNow, setOpenNow] = useState<boolean>(
     searchParams?.has("open_now")
       ? searchParams?.get("open_now") === "true"
-      : true
+      : false
   );
   const [selectedDistance, setSelectedDistance] = useState<string | null>(
     searchParams?.get("max_distance") || "any"
