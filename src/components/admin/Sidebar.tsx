@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { redirect, usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -13,23 +13,25 @@ import {
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Models } from "appwrite";
+import { useAuth } from "@/lib/hooks/useClientAuth";
 
-interface SidebarProps {
-  user: Models.User<Models.Preferences>;
-}
-
-export function Sidebar({ user }: SidebarProps) {
+export function Sidebar() {
+  const auth = useAuth();
   const pathname = usePathname();
   const router = useRouter();
 
   useEffect(() => {
+    if (!auth.user) {
+      redirect("/auth");
+    }
+
     if (
       !pathname?.startsWith("/admin/submissions") &&
-      !user.labels.includes("admin")
+      !auth.user.labels.includes("admin")
     ) {
-      router.push("/");
+      redirect("/");
     }
-  }, [user, router]);
+  }, [auth.user, router]);
 
   const navigation = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
