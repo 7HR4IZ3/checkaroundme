@@ -93,7 +93,7 @@ function ProfileOverviewSection() {
   const appwriteUser = auth.user;
 
   return (
-    <Card className="rounded-lg border shadow-sm">
+    <Card className="rounded-lg w-full border shadow-sm">
       <CardHeader>
         <CardTitle>Profile Overview</CardTitle>
         <CardDescription>
@@ -265,7 +265,7 @@ function EditProfileSection() {
   if (!auth.isAuthenticated || !auth.user) return <Loading />;
 
   return (
-    <Card className="rounded-lg border shadow-sm">
+    <Card className="rounded-lg w-full border shadow-sm">
       <CardHeader>
         <CardTitle>Edit Profile</CardTitle>
         <CardDescription>
@@ -367,7 +367,7 @@ function MyBusinessesSection() {
   const auth = useAuth();
   if (!auth.isAuthenticated) return <Loading />;
   return (
-    <Card className="rounded-lg border shadow-sm">
+    <Card className="rounded-lg w-full border shadow-sm">
       <CardHeader>
         <CardTitle>My Businesses</CardTitle>
         <CardDescription>Manage your registered businesses.</CardDescription>
@@ -433,7 +433,7 @@ function AppSettingsSection() {
     );
 
   return (
-    <Card className="rounded-lg border shadow-sm">
+    <Card className="rounded-lg w-full border shadow-sm">
       <CardHeader>
         <CardTitle>Application Settings</CardTitle>
         <CardDescription>
@@ -443,7 +443,7 @@ function AppSettingsSection() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmitSettings)}>
           <CardContent className="space-y-6">
-            <Card className="rounded-lg border shadow-sm">
+            <Card className="rounded-lg w-full border shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg">
                   Notification Preferences
@@ -501,7 +501,7 @@ function AppSettingsSection() {
               </CardContent>
             </Card>
 
-            <Card className="rounded-lg border shadow-sm">
+            <Card className="rounded-lg w-full border shadow-sm">
               <CardHeader>
                 <CardTitle className="text-lg">Theme Settings</CardTitle>
               </CardHeader>
@@ -600,7 +600,7 @@ function SecuritySection() {
   if (!auth.isAuthenticated) return <Loading />;
 
   return (
-    <Card className="rounded-lg border shadow-sm">
+    <Card className="rounded-lg w-full border shadow-sm">
       <CardHeader>
         <CardTitle>Security Settings</CardTitle>
         <CardDescription>Manage your account password.</CardDescription>
@@ -698,7 +698,7 @@ function ReferralSection() {
   };
 
   return (
-    <Card className="rounded-lg border shadow-sm">
+    <Card className="rounded-lg w-full border shadow-sm">
       <CardHeader>
         <CardTitle>Refer a Friend</CardTitle>
         <CardDescription>
@@ -807,8 +807,8 @@ function BillingSection() {
     paymentHistoryData?.pages.flatMap((page) => page.transactions) ?? [];
 
   return (
-    <div className="space-y-8">
-      <Card className="rounded-lg border shadow-sm">
+    <div className="space-y-8 w-full">
+      <Card className="rounded-lg w-full border shadow-sm">
         <CardHeader>
           <CardTitle>Current Subscription</CardTitle>
           <CardDescription>
@@ -864,7 +864,7 @@ function BillingSection() {
         </CardFooter>
       </Card>
 
-      <Card className="rounded-lg border shadow-sm">
+      <Card className="rounded-lg w-full border shadow-sm">
         <CardHeader>
           <CardTitle>Payment History</CardTitle>
           <CardDescription>
@@ -1083,8 +1083,8 @@ export default function ProfilePage() {
         </ScrollArea>
       </div>
 
-      <div className="flex-1 space-y-4">
-        <div className="grid gap-4">
+      <div className="flex-1 space-y-4 w-full">
+        <div className="grid gap-4 w-full">
           <Suspense
             fallback={
               <div className="flex justify-center py-10">

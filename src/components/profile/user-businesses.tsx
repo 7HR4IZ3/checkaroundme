@@ -164,11 +164,11 @@ export function UserBusinesses() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold">Your Businesses</h2>
-        <Button asChild variant="outline">
+        {/* <Button asChild variant="outline">
           <Link href="/business/create">
             <PlusCircle className="mr-2 h-4 w-4" /> Add New Business
           </Link>
-        </Button>
+        </Button> */}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {businesses.map((business) => (
