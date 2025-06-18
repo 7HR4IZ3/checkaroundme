@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Models } from "appwrite";
 import { useAuth } from "@/lib/hooks/useClientAuth";
 
 export function Sidebar() {
@@ -21,13 +20,13 @@ export function Sidebar() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!auth.user) {
+    if (!pathname?.startsWith("/admin/submissions") && !auth.user) {
       redirect("/auth");
     }
 
     if (
       !pathname?.startsWith("/admin/submissions") &&
-      !auth.user.labels.includes("admin")
+      !auth.user?.labels.includes("admin")
     ) {
       redirect("/");
     }
