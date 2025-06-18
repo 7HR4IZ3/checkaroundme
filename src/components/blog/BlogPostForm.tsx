@@ -35,7 +35,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -80,7 +80,10 @@ export function BlogPostForm({
     defaultValues: {
       title: initialData?.title ?? "",
       content: initialData?.content ?? "",
-      slug: initialData?.slug ?? "",
+      slug:
+        initialData?.slug ??
+        initialData?.title?.toLowerCase().replace(/\s+/g, "-") ??
+        "",
       status: initialData?.status ?? "draft",
       tags: initialData?.tags || [],
       excerpt: initialData?.excerpt ?? "",
@@ -109,6 +112,16 @@ export function BlogPostForm({
   const coverImage = watch("coverImage");
   const excerpt = watch("excerpt");
   const scheduledDate = watch("publishedAt");
+
+  // Auto-populate slug based on title
+  useEffect(() => {
+    if (title && !initialData?.slug) {
+      const newSlug = title.toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-') // Replace special characters with hyphens
+        .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+      setValue("slug", newSlug);
+    }
+  }, [title, setValue, initialData?.slug]);
 
   const handleFormSubmit = handleSubmit(async (data) => {
     try {
