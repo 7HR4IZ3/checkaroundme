@@ -393,9 +393,9 @@ export default function Home() {
 
   // Store initial locations
   const [initialLocations, setInitialLocations] = useState<LocationData[]>([]);
-  const locationsHierarchy = useMemo(() => {
-    return organizeLocations(initialLocations);
-  }, [initialLocations]);
+  // const locationsHierarchy = useMemo(() => {
+  //   return organizeLocations(initialLocations);
+  // }, [initialLocations]);
 
   // Update initialLocations only when first data arrives
   useEffect(() => {
@@ -485,7 +485,7 @@ export default function Home() {
               onChangeDistance={onChangeDistance}
               sortBy={sortBy}
               onSortByChange={onSortByChange}
-              locationsHierarchy={locationsHierarchy}
+              // locationsHierarchy={locationsHierarchy}
               hasActiveFilters={hasActiveFilters}
               onClearAllFilters={handleClearAllFilters}
             />
