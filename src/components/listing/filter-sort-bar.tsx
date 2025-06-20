@@ -14,7 +14,7 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import { LocationHierarchy } from "@/utils/location-helpers";
+import { Country, State, City } from "country-state-city";
 
 type FilterSortBarProps = {
   selectedCategories: string[];
@@ -33,7 +33,6 @@ type FilterSortBarProps = {
   onChangeDistance: (distance: string | null) => void;
   sortBy: string;
   onSortByChange: (sortValue: string) => void;
-  locationsHierarchy: LocationHierarchy;
   hasActiveFilters: boolean;
   onClearAllFilters: () => void;
 };
@@ -78,7 +77,6 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
   onChangeDistance,
   sortBy,
   onSortByChange,
-  locationsHierarchy,
   hasActiveFilters,
   onClearAllFilters,
 }) => {
@@ -106,21 +104,25 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
   );
 
   useEffect(() => {
-    const countries = Object.keys(locationsHierarchy);
+    const countries = Country.getAllCountries();
     if (countries.length === 1) {
-      setSelectedCountryState(countries[0]);
+      setSelectedCountryState(countries[0].isoCode);
     }
-  }, [locationsHierarchy]);
+  }, []);
+
+  const availableCountries = useMemo(() => {
+    return [Country.getCountryByCode("NG")!];
+  }, []);
 
   const availableStates = useMemo(() => {
-    if (!selectedCountryState) return {};
-    return locationsHierarchy[selectedCountryState]?.states || {};
-  }, [selectedCountryState, locationsHierarchy]);
+    if (!selectedCountryState) return [];
+    return State.getStatesOfCountry(selectedCountryState);
+  }, [selectedCountryState]);
 
   const availableCities = useMemo(() => {
     if (!selectedCountryState || !selectedStateState) return [];
-    return availableStates[selectedStateState]?.cities || [];
-  }, [selectedCountryState, selectedStateState, availableStates]);
+    return City.getCitiesOfState(selectedCountryState, selectedStateState);
+  }, [selectedCountryState, selectedStateState]);
 
   const handleCountryChange = useCallback(
     (countryCode: string) => {
@@ -169,17 +171,12 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
       setSelectedCityState(city);
       if (!selectedCountryState || !selectedStateState) return;
       if (!city) {
-        onChangeLocation(availableStates[selectedStateState].name, "state");
+        onChangeLocation(selectedStateState, "state");
       } else {
         onChangeLocation(city, "city");
       }
     },
-    [
-      selectedCountryState,
-      selectedStateState,
-      availableStates,
-      onChangeLocation,
-    ]
+    [selectedCountryState, selectedStateState, onChangeLocation]
   );
 
   const locationDropdownContent = useMemo(
@@ -195,12 +192,10 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
                 <SelectValue placeholder="Select country" />
               </SelectTrigger>
               <SelectContent>
-                {Object.keys(locationsHierarchy).length > 1 && (
-                  <SelectItem value="_all">All Countries</SelectItem>
-                )}
-                {Object.entries(locationsHierarchy).map(([code, { name }]) => (
-                  <SelectItem key={code} value={code}>
-                    {name}
+                <SelectItem value="_all">All Countries</SelectItem>
+                {availableCountries.map((country) => (
+                  <SelectItem key={country.isoCode} value={country.isoCode}>
+                    {country.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -218,9 +213,9 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="_all">All States</SelectItem>
-                  {Object.entries(availableStates).map(([code, { name }]) => (
-                    <SelectItem key={code} value={code}>
-                      {name}
+                  {availableStates.map((state) => (
+                    <SelectItem key={state.isoCode} value={state.isoCode}>
+                      {state.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -240,8 +235,8 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
                 <SelectContent>
                   <SelectItem value="_all">All Cities</SelectItem>
                   {availableCities.map((city) => (
-                    <SelectItem key={city} value={city}>
-                      {city}
+                    <SelectItem key={city.name} value={city.name}>
+                      {city.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -255,7 +250,7 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
       selectedCountryState,
       selectedStateState,
       selectedCityState,
-      locationsHierarchy,
+      availableCountries,
       availableStates,
       availableCities,
       handleCountryChange,
@@ -268,14 +263,14 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
     let displayText = "All Locations";
     if (selectedCity) displayText = selectedCity;
     else if (selectedState && selectedCountry) {
-      const stateName =
-        Object.entries(locationsHierarchy[selectedCountry]?.states || {}).find(
-          ([code]) => code === selectedState
-        )?.[1]?.name || selectedState;
-      displayText = stateName;
+      const state = State.getStateByCodeAndCountry(
+        selectedState,
+        selectedCountry
+      );
+      displayText = state?.name || selectedState;
     } else if (selectedCountry) {
-      displayText =
-        locationsHierarchy[selectedCountry]?.name || selectedCountry;
+      const country = Country.getCountryByCode(selectedCountry);
+      displayText = country?.name || selectedCountry;
     }
 
     return (
@@ -283,7 +278,7 @@ const FilterSortBar: React.FC<FilterSortBarProps> = ({
         <span className="truncate">{displayText}</span>
       </div>
     );
-  }, [selectedCity, selectedState, selectedCountry, locationsHierarchy]);
+  }, [selectedCity, selectedState, selectedCountry]);
 
   return (
     <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
