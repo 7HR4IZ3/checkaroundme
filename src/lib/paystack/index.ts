@@ -63,12 +63,14 @@ export const initializeTransaction = async (details: {
   )[];
   // Add other valid parameters from Paystack API docs
 }) => {
+  
   const ps = getPaystackInstance();
   try {
     // Ensure amount is an integer
     const amountInKobo = Math.round(details.amount).toString();
     const response = await ps.transaction.initialize({
       ...details,
+      channels: ["card", "bank", "mobile_money"],
       amount: amountInKobo,
     });
     console.log("Paystack Initialize Transaction Response:", response);
