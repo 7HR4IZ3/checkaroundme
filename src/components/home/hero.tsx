@@ -22,7 +22,7 @@ const Hero: React.FC<HeroProps> = ({ title, subtitles, button }) => {
     <div className="relative overflow-hidden m-6 md:m-0 rounded-lg h-[30vh] md:h-[50vh]">
       {/* Map Background */}
       <div className="absolute inset-0 z-0">
-        <MapPlaceholder />
+        <MapPlaceholder isHero={true} />
       </div>
 
       {/* Dark Overlay */}

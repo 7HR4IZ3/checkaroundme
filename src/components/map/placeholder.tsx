@@ -56,18 +56,21 @@ const ErrorState = memo(({ message }: { message: string }) => (
 ErrorState.displayName = "ErrorState";
 
 interface MapPlaceholderProps {
+  isHero?: boolean;
   businesses?: Business[];
 }
 
-const MapPlaceholder: React.FC<MapPlaceholderProps> = ({ businesses }) => {
+const MapPlaceholder: React.FC<MapPlaceholderProps> = ({
+  businesses,
+  isHero,
+}) => {
   const { latitude, longitude, error, loading } = useGeolocation();
 
   // Memoize the user position
-  const position: [number, number] = [6.4597, 3.3864];
-  // useMemo(
-  //   () => (latitude && longitude ? [latitude, longitude] : [0, 0]),
-  //   [latitude, longitude]
-  // );
+  const position: [number, number] = useMemo(
+    () => (latitude && longitude ? [latitude, longitude] : [0, 0]),
+    [latitude, longitude]
+  );
 
   // Memoize business markers
   const businessMarkers = useMemo(
@@ -90,10 +93,10 @@ const MapPlaceholder: React.FC<MapPlaceholderProps> = ({ businesses }) => {
     <div className="w-full h-full bg-gray-300 rounded-lg overflow-hidden">
       <MapContainer
         center={position}
-        zoom={30}
-        scrollWheelZoom={false}
-        dragging={false} // Disable dragging
-        zoomControl={false} // Hide zoom controls
+        zoom={20}
+        scrollWheelZoom={!isHero}
+        dragging={!isHero} // Disable dragging
+        zoomControl={!isHero} // Hide zoom controls
         style={{ height: "100%", width: "100%" }}
       >
         <TileLayer
