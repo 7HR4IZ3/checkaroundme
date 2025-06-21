@@ -63,10 +63,11 @@ const MapPlaceholder: React.FC<MapPlaceholderProps> = ({ businesses }) => {
   const { latitude, longitude, error, loading } = useGeolocation();
 
   // Memoize the user position
-  const position: [number, number] = useMemo(
-    () => (latitude && longitude ? [latitude, longitude] : [0, 0]),
-    [latitude, longitude]
-  );
+  const position: [number, number] = [6.4597, 3.3864];
+  // useMemo(
+  //   () => (latitude && longitude ? [latitude, longitude] : [0, 0]),
+  //   [latitude, longitude]
+  // );
 
   // Memoize business markers
   const businessMarkers = useMemo(
@@ -85,18 +86,20 @@ const MapPlaceholder: React.FC<MapPlaceholderProps> = ({ businesses }) => {
     return <LoadingState />;
   }
 
-
   return (
-    <div className="w-full h-full sticky top-[88px] bg-gray-300 rounded-lg overflow-hidden">
+    <div className="w-full h-full bg-gray-300 rounded-lg overflow-hidden">
       <MapContainer
         center={position}
-        zoom={15}
+        zoom={30}
         scrollWheelZoom={false}
+        dragging={false} // Disable dragging
+        zoomControl={false} // Hide zoom controls
         style={{ height: "100%", width: "100%" }}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+          maxZoom={19}
         />
         <Marker position={position}>
           <Popup>Your current location.</Popup>

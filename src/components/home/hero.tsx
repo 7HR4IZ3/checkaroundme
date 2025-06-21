@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
+import MapPlaceholder from "@/components/map/placeholder";
 
 interface HeroProps {
   title?: string;
@@ -19,20 +19,18 @@ const Hero: React.FC<HeroProps> = ({ title, subtitles, button }) => {
   button ??= { text: "EXPLORE", onclick: () => router.push("/listings") };
 
   return (
-    <div className="relative bg-gray-800 text-white overflow-hidden m-6 md:m-0 rounded-lg h-[30vh] md:h-[50vh]">
-      {/* Background Image */}
-      <Image
-        src="/images/hero-bg.jpg"
-        alt="Assorted food items"
-        layout="fill"
-        objectFit="cover"
-        quality={85}
-        className="absolute z-1 opacity-70"
-      />
+    <div className="relative overflow-hidden m-6 md:m-0 rounded-lg h-[30vh] md:h-[50vh]">
+      {/* Map Background */}
+      <div className="absolute inset-0 z-0">
+        <MapPlaceholder />
+      </div>
+
+      {/* Dark Overlay */}
+      <div className="absolute inset-0 bg-black/60 z-10" />
 
       {/* Content */}
-      <div className="relative flex flex-col z-10 container px-4 sm:px-6 lg:px-8 py-8 md:py-32 lg:py-40 text-left z-10 gap-2 md:gap-4 h-[100%] flex justify-center mx-auto my-auto">
-        <span className="text-xs md:text-sm text-muted text-bold">
+      <div className="relative flex flex-col z-20 container px-4 sm:px-6 lg:px-8 py-8 md:py-32 lg:py-40 text-left gap-2 md:gap-4 h-[100%] flex justify-center mx-auto my-auto text-white">
+        <span className="text-xs md:text-sm text-muted-foreground font-bold">
           CHECKAROUNDME
         </span>
         <span className="text-md md:text-4xl font-bold leading-tight">
