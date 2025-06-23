@@ -167,7 +167,7 @@ const CategoryNav: React.FC<CategoryNavProps> = ({
                 <FaChevronDown size={14} />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
+            <DropdownMenuContent className="z-100">
               {categories.slice(displayCount).map((category) => (
                 <DropdownMenuItem
                   key={category.$id}
