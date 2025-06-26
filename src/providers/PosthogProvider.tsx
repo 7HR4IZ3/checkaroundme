@@ -13,8 +13,8 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
       api_host:
         process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com",
       person_profiles: "always",
-  ui_host: 'https://us.posthog.com',
-  defaults: '2025-05-24',
+      ui_host: "https://us.posthog.com",
+      defaults: "2025-05-24",
     });
   }, []);
 
