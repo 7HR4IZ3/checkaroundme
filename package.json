@@ -85,6 +85,7 @@
     "node-appwrite": "^15.0.1",
     "nodemailer": "^7.0.3",
     "paystack-sdk": "^2.5.19",
+    "posthog-js": "^1.255.1",
     "react": "^19.0.0",
     "react-day-picker": "^9.7.0",
     "react-dom": "^19.0.0",

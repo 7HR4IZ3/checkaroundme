@@ -97,7 +97,7 @@ const MapPlaceholder: React.FC<MapPlaceholderProps> = ({
         scrollWheelZoom={!isHero}
         dragging={!isHero} // Disable dragging
         zoomControl={!isHero} // Hide zoom controls
-        style={{ height: "100%", width: "100%", zIndex: "10" }}
+        style={{ height: "100%", width: "100%" }}
       >
         <TileLayer
           attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"

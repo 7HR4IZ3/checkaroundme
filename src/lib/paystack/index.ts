@@ -31,7 +31,7 @@ try {
 }
 
 // Helper function to ensure Paystack is initialized
-function getPaystackInstance(): Paystack {
+export function getPaystackInstance(): Paystack {
   if (!paystack) {
     throw new Error("Paystack SDK not initialized. Check API key.");
   }

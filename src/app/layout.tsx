@@ -18,6 +18,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { HydrateClient } from "@/lib/trpc/server";
 import PWAProvider from "@/lib/pwa/provider";
 import type { Metadata } from "next";
+import { PostHogProvider } from "@/providers/PosthogProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -85,21 +86,23 @@ export default function RootLayout({
       <head>
         {process.env.NODE_ENV === "development" && (
           <script
-          crossOrigin="anonymous"
-          src="//unpkg.com/react-scan/dist/auto.global.js"
+            crossOrigin="anonymous"
+            src="//unpkg.com/react-scan/dist/auto.global.js"
           />
         )}
       </head>
       <body className={inter.className}>
-        <TrpcProvider>
-          <HydrateClient>
-            <Suspense fallback={<Loading />}>
-              <AuthProvider>
-                <LayoutInner>{children}</LayoutInner>
-              </AuthProvider>
-            </Suspense>
-          </HydrateClient>
-        </TrpcProvider>
+        <PostHogProvider>
+          <TrpcProvider>
+            <HydrateClient>
+              <Suspense fallback={<Loading />}>
+                <AuthProvider>
+                  <LayoutInner>{children}</LayoutInner>
+                </AuthProvider>
+              </Suspense>
+            </HydrateClient>
+          </TrpcProvider>
+        </PostHogProvider>
         <PWAProvider />
         {process.env.NODE_ENV !== "development" && (
           <Analytics mode="production" />
