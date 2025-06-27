@@ -40,7 +40,7 @@ export function BlogCard({ post }: { post: any }) {
               <>
                 <AvatarImage src={author?.avatarUrl} />
                 <AvatarFallback>
-                  {author?.fullName[0].toUpperCase()}
+                  {author?.fullName?.[0].toUpperCase()}
                 </AvatarFallback>
               </>
             )}
