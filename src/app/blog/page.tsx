@@ -24,7 +24,7 @@ export default function BlogPage() {
           onViewChange={setView}
           onCategoryChange={() => {}}
         />
-        {user && (
+        {user && user.labels.includes("editor") && (
           <Link href="/blog/new">
             <Button>Create New Post</Button>
           </Link>
