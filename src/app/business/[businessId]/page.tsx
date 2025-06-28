@@ -547,39 +547,39 @@ export default function BusinessPage() {
                   {business.name}
                 </h1>
                 <div className="flex flex-row gap-2">
-                {user?.$id === business.ownerId && (
-                  <Link
-                    className="ml-2 flex items-center gap-1"
-                    href={`/business/${businessId}/edit`}
-                  >
-                    <Button variant="outline">
-                      <Pencil className="w-4 h-4 mr-1" />
-                      Edit Business
+                  {user?.$id === business.ownerId && (
+                    <Link
+                      className="ml-2 flex items-center gap-1"
+                      href={`/business/${businessId}/edit`}
+                    >
+                      <Button variant="outline">
+                        <Pencil className="w-4 h-4 mr-1" />
+                        Edit Business
+                      </Button>
+                    </Link>
+                  )}
+                  {user?.$id === business.ownerId && (
+                    <Button
+                      size="sm"
+                      variant={
+                        business.status === "active" ? "destructive" : "outline"
+                      }
+                      className="ml-2 flex items-center gap-1"
+                      onClick={handleToggleBusinessStatus}
+                      disabled={updateBusinessMutation.isPending}
+                    >
+                      {business.status === "active" ? (
+                        <PowerOff className="w-4 h-4 mr-1" />
+                      ) : (
+                        <Power className="w-4 h-4 mr-1" />
+                      )}
+                      {updateBusinessMutation.isPending
+                        ? "Updating..."
+                        : business.status === "active"
+                        ? "Deactivate"
+                        : "Activate"}
                     </Button>
-                  </Link>
-                )}
-                {user?.$id === business.ownerId && (
-                  <Button
-                    size="sm"
-                    variant={
-                      business.status === "active" ? "destructive" : "outline"
-                    }
-                    className="ml-2 flex items-center gap-1"
-                    onClick={handleToggleBusinessStatus}
-                    disabled={updateBusinessMutation.isPending}
-                  >
-                    {business.status === "active" ? (
-                      <PowerOff className="w-4 h-4 mr-1" />
-                    ) : (
-                      <Power className="w-4 h-4 mr-1" />
-                    )}
-                    {updateBusinessMutation.isPending
-                      ? "Updating..."
-                      : business.status === "active"
-                      ? "Deactivate"
-                      : "Activate"}
-                  </Button>
-                )}
+                  )}
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-2">
@@ -1048,7 +1048,10 @@ export default function BusinessPage() {
 
       {/* Image Modal */}
       <Dialog open={isImageModalOpen} onOpenChange={setIsImageModalOpen}>
-        <DialogContent className="md:max-w-[80vw] h-[80vh] bg-white p-0">
+        <DialogContent
+          className="md:max-w-[80vw] h-[80vh] bg-white p-0"
+          style={{ zIndex: 1000 }}
+        >
           <DialogHeader className="px-6 pt-6">
             <DialogTitle className="text-center text-xl">
               Photo {currentImageIndex + 1} of {imageUrls.length}
